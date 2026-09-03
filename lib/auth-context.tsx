@@ -60,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
 
         if (session?.user) {
+          await ensureProfile(session.user);
           const { data } = await supabase
             .from('profiles')
             .select('*')
@@ -77,6 +78,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  const ensureProfile = async (authUser: User) => {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('user_id')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (existing) return;
+
+    const agencyName =
+      (authUser.user_metadata?.agency_name as string | undefined) ||
+      authUser.email?.split('@')[0] ||
+      'My Agency';
+
+    await supabase.from('profiles').insert({
+      user_id: authUser.id,
+      agency_name: agencyName,
+      plan: 'free',
+    });
+  };
 
   const refreshProfile = async () => {
     if (!user) return;

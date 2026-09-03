@@ -566,7 +566,7 @@ export default function SettingsPage() {
                 variant={locale === 'es' ? 'default' : 'outline'}
                 onClick={() => handleLocaleChange('es')}
               >
-                Espa\u00f1ol
+                Español
               </Button>
             </div>
           </CardContent>
@@ -603,7 +603,7 @@ export default function SettingsPage() {
                 id="support_hours"
                 value={supportHours}
                 onChange={(e) => setSupportHours(e.target.value)}
-                placeholder="Mon\u2013Fri, 9am\u20135pm GMT"
+                placeholder="Mon–Fri, 9am–5pm GMT"
               />
             </div>
             <div className="space-y-2">

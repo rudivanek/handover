@@ -64,7 +64,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   onClick={() => handleLocaleChange('es')}
                   className={locale === 'es' ? 'font-semibold' : ''}
                 >
-                  Espa\u00f1ol
+                  Español
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
