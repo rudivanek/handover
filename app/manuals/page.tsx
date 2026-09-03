@@ -50,7 +50,7 @@ export default function ManualsPage() {
   const isFree = !profile || profile.plan !== 'paid';
   const manualLimit = isFree ? 1 : Infinity;
   const atLimit = manuals.length >= manualLimit;
-  const stripeLink = profile?.stripe_payment_link;
+  const stripeLink = process.env.NEXT_PUBLIC_STRIPE_LINK;
 
   const fetchManuals = useCallback(async () => {
     const { data, error } = await supabase

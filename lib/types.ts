@@ -15,7 +15,6 @@ export type Profile = {
   support_hours: string | null;
   emergency_phone: string | null;
   plan: string | null;
-  stripe_payment_link: string | null;
   ui_locale: Locale;
 };
 

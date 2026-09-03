@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Palette, Clock, Mail, Phone, Building2, CreditCard, CheckCircle2, Globe, Upload, X, Link2, Type } from 'lucide-react';
+import { Save, Palette, Clock, Mail, Phone, Building2, CreditCard, CheckCircle2, Globe, Upload, X, Link2, Type, ArrowUpRight } from 'lucide-react';
 import type { Locale } from '@/lib/types';
 import { fonts, sansFontOptions, serifFontOptions, getFontDef, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 
@@ -40,7 +40,6 @@ export default function SettingsPage() {
   const [supportEmail, setSupportEmail] = useState('');
   const [supportHours, setSupportHours] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
-  const [stripeLink, setStripeLink] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,7 +56,6 @@ export default function SettingsPage() {
       setSupportEmail(profile.support_email ?? '');
       setSupportHours(profile.support_hours ?? '');
       setEmergencyPhone(profile.emergency_phone ?? '');
-      setStripeLink(profile.stripe_payment_link ?? '');
       setHeadingFontKey(profile.heading_font_key ?? 'system');
       setBodyFontKey(profile.body_font_key ?? 'system');
       setCustomFontName(profile.custom_font_name ?? '');
@@ -634,28 +632,32 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              {profile.plan === 'paid' ? (
-                <>
-                  <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  <p className="text-sm font-medium">{t('settings.paidPlan')}</p>
-                </>
-              ) : (
+            {profile.plan === 'paid' ? (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-600" />
+                <p className="text-sm font-medium">{t('settings.paidPlan')}</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
                 <p className="text-sm font-medium">{t('settings.freePlan')}</p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="stripe_link">{t('settings.stripeLink')}</Label>
-              <Input
-                id="stripe_link"
-                value={stripeLink}
-                onChange={(e) => setStripeLink(e.target.value)}
-                placeholder="https://buy.stripe.com/..."
-              />
-              <p className="text-xs text-muted-foreground">
-                {t('settings.stripeLinkHelp')}
-              </p>
-            </div>
+                {process.env.NEXT_PUBLIC_STRIPE_LINK && (
+                  <>
+                    <Button asChild size="sm">
+                      <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
+                        {t('settings.upgrade')}
+                        <ArrowUpRight className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      {t('settings.upgradePrice')}
+                    </p>
+                  </>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  {t('settings.upgradeNote')}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
