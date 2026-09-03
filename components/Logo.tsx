@@ -30,13 +30,13 @@ export function HandoverMark({ size = 20, className }: MarkProps) {
   )
 }
 
-export function HandoverLogo({ size = 19 }: { size?: number }) {
+export function HandoverLogo({ size = 19, textSize, markClassName }: { size?: number; textSize?: number; markClassName?: string }) {
   return (
     <span className="inline-flex items-center gap-2 text-[#1A1F27]">
-      <HandoverMark size={size} />
+      <HandoverMark size={size} className={markClassName} />
       <span
         className="font-semibold"
-        style={{ fontSize: size * 0.79, letterSpacing: '-0.01em' }}
+        style={{ fontSize: textSize ?? size * 0.79, letterSpacing: '-0.01em' }}
       >
         Handover
       </span>

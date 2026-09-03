@@ -247,7 +247,7 @@ export default function ManualsPage() {
     <AppShell>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl tracking-tight-app">{t('manuals.title')}</h1>
+          <h1 className="text-[31px] tracking-tight-app">{t('manuals.title')}</h1>
           <p className="mt-1 text-muted-foreground">
             {profile?.agency_name
               ? t('manuals.subtitle', { agency: profile.agency_name })
@@ -319,7 +319,7 @@ export default function ManualsPage() {
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg hover:underline">{manual.client_name || t('manuals.untitled')}</h3>
                         {draft && (
-                          <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+                          <Badge variant="secondary" className="bg-[#f3f4f6] text-[#dc2828] border-amber-200">
                             {t('manuals.draft')}
                           </Badge>
                         )}
