@@ -228,7 +228,7 @@ export default function ManualsPage() {
     <AppShell>
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl tracking-tight">{t('manuals.title')}</h1>
+          <h1 className="text-3xl tracking-tight-app">{t('manuals.title')}</h1>
           <p className="mt-1 text-muted-foreground">
             {profile?.agency_name
               ? t('manuals.subtitle', { agency: profile.agency_name })
@@ -275,7 +275,7 @@ export default function ManualsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" strokeWidth={1} />
-            <h3 className="font-serif text-xl">{t('manuals.empty')}</h3>
+            <h3 className="text-xl">{t('manuals.empty')}</h3>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
               {t('manuals.emptyDescription')}
             </p>
@@ -298,7 +298,7 @@ export default function ManualsPage() {
                   <div className="min-w-0 flex-1">
                     <Link href={`/manuals/${manual.id}/edit`} className="block">
                       <div className="flex items-center gap-2">
-                        <h3 className="font-serif text-lg hover:underline">{manual.client_name || t('manuals.untitled')}</h3>
+                        <h3 className="text-lg hover:underline">{manual.client_name || t('manuals.untitled')}</h3>
                         {draft && (
                           <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
                             {t('manuals.draft')}
@@ -361,7 +361,7 @@ export default function ManualsPage() {
       <Dialog open={newOpen} onOpenChange={setNewOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl">{t('manuals.newDialog.title')}</DialogTitle>
+            <DialogTitle className="text-xl">{t('manuals.newDialog.title')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             <div className="space-y-2">
@@ -392,7 +392,7 @@ export default function ManualsPage() {
       <Dialog open={!!shareWarnManual} onOpenChange={(open) => !open && setShareWarnManual(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+            <DialogTitle className="text-xl flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               {t('manuals.draftWarn.title')}
             </DialogTitle>

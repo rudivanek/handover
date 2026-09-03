@@ -229,7 +229,7 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <div className="mb-8">
-        <h1 className="font-serif text-3xl tracking-tight">{t('settings.title')}</h1>
+        <h1 className="text-3xl tracking-tight-app">{t('settings.title')}</h1>
         <p className="mt-1 text-muted-foreground">
           {t('settings.subtitle')}
         </p>
@@ -238,7 +238,7 @@ export default function SettingsPage() {
       <form onSubmit={handleSave} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Building2 className="h-5 w-5 text-muted-foreground" />
               {t('settings.identity')}
             </CardTitle>
@@ -378,7 +378,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Palette className="h-5 w-5 text-muted-foreground" />
               {t('settings.brandColor')}
             </CardTitle>
@@ -419,7 +419,7 @@ export default function SettingsPage() {
             </div>
             <div className="rounded-lg border border-border p-4">
               <p className="text-xs text-muted-foreground">{t('settings.preview')}</p>
-              <h3 className="mt-1 font-serif text-xl" style={{ color: brandColor }}>
+              <h3 className="mt-1 text-xl" style={{ color: brandColor }}>
                 {t('settings.previewHeading')}
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -431,7 +431,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Type className="h-5 w-5 text-muted-foreground" />
               {t('settings.typeface')}
             </CardTitle>
@@ -449,14 +449,14 @@ export default function SettingsPage() {
                 >
                   <optgroup label={t('settings.fontGroupSans')}>
                     {sansFontOptions.map((opt) => (
-                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].stack } : undefined}>
+                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].fontFamily } : undefined}>
                         {opt.label}
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label={t('settings.fontGroupSerif')}>
                     {serifFontOptions.map((opt) => (
-                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].stack } : undefined}>
+                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].fontFamily } : undefined}>
                         {opt.label}
                       </option>
                     ))}
@@ -474,14 +474,14 @@ export default function SettingsPage() {
                 >
                   <optgroup label={t('settings.fontGroupSans')}>
                     {sansFontOptions.map((opt) => (
-                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].stack } : undefined}>
+                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].fontFamily } : undefined}>
                         {opt.label}
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label={t('settings.fontGroupSerif')}>
                     {serifFontOptions.map((opt) => (
-                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].stack } : undefined}>
+                      <option key={opt.slug} value={opt.slug} className={opt.className || undefined} style={opt.className ? { fontFamily: fonts[opt.slug].fontFamily } : undefined}>
                         {opt.label}
                       </option>
                     ))}
@@ -530,12 +530,12 @@ export default function SettingsPage() {
               </div>
             )}
 
-            <div className={`rounded-lg border border-border p-4 ${getFontDef(headingFontKey === 'custom' && customReady ? 'system' : headingFontKey).className} ${getFontDef(bodyFontKey === 'custom' && customReady ? 'system' : bodyFontKey).className}`}>
+            <div className={`rounded-lg border border-border p-4 ${getFontDef(headingFontKey === 'custom' && customReady ? 'system' : headingFontKey).variable} ${getFontDef(bodyFontKey === 'custom' && customReady ? 'system' : bodyFontKey).variable}`}>
               <p className="text-xs text-muted-foreground" style={{ fontFamily: 'inherit' }}>{t('settings.typefacePreview')}</p>
-              <h3 className="mt-2 text-xl" style={{ color: brandColor, fontFamily: headingFontKey === 'custom' && customReady ? `'${customFontName.trim()}', ${SERIF_STACK}` : getFontDef(headingFontKey).stack }}>
+              <h3 className="mt-2 text-xl" style={{ color: brandColor, fontFamily: headingFontKey === 'custom' && customReady ? `'${customFontName.trim()}', ${SERIF_STACK}` : getFontDef(headingFontKey).fontFamily }}>
                 {agencyName || (locale === 'es' ? 'Tu agencia' : 'Your Agency')}
               </h3>
-              <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: bodyFontKey === 'custom' && customReady ? `'${customFontName.trim()}', ${SYSTEM_STACK}` : getFontDef(bodyFontKey).stack }}>
+              <p className="mt-1 text-sm text-muted-foreground" style={{ fontFamily: bodyFontKey === 'custom' && customReady ? `'${customFontName.trim()}', ${SYSTEM_STACK}` : getFontDef(bodyFontKey).fontFamily }}>
                 {t('settings.typefacePreviewBody')}
               </p>
             </div>
@@ -544,7 +544,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Globe className="h-5 w-5 text-muted-foreground" />
               {t('settings.language')}
             </CardTitle>
@@ -574,7 +574,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <Mail className="h-5 w-5 text-muted-foreground" />
               {t('settings.support')}
             </CardTitle>
@@ -625,7 +625,7 @@ export default function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-lg font-serif">
+            <CardTitle className="flex items-center gap-2 text-lg">
               <CreditCard className="h-5 w-5 text-muted-foreground" />
               {t('settings.billing')}
             </CardTitle>

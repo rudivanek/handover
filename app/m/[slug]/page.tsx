@@ -96,7 +96,7 @@ export default function PublicManualPage() {
       <div className="flex min-h-screen items-center justify-center bg-secondary/30">
         <div className="flex items-center gap-2 text-muted-foreground animate-pulse">
           <FileText className="h-6 w-6" strokeWidth={1.5} />
-          <span className="font-serif text-xl">{t('public.loadingManual')}</span>
+          <span className="text-xl">{t('public.loadingManual')}</span>
         </div>
       </div>
     );
@@ -106,7 +106,7 @@ export default function PublicManualPage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4">
         <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" strokeWidth={1} />
-        <h1 className="font-serif text-2xl">{t('public.manualNotFound')}</h1>
+        <h1 className="text-2xl">{t('public.manualNotFound')}</h1>
         <p className="mt-2 text-muted-foreground">{t('public.manualNotFoundDesc')}</p>
       </div>
     );
@@ -138,13 +138,6 @@ export default function PublicManualPage() {
   const customFontFace = (headingIsCustom || bodyIsCustom) && customFontUrl
     ? `@font-face { font-family: '${customFontName}'; src: url('${customFontUrl}') format('${inferFontFormat(customFontUrl)}'); font-display: swap; }`
     : null;
-
-  const headingFontFamily = headingIsCustom
-    ? `'${customFontName}', ${SERIF_STACK}`
-    : headingFontDef.stack;
-  const bodyFontFamily = bodyIsCustom
-    ? `'${customFontName}', ${SYSTEM_STACK}`
-    : bodyFontDef.stack;
 
   const manualStyle: React.CSSProperties = {
     minWidth: 0,

@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { FileText } from 'lucide-react';
+import { HandoverMark } from '@/components/Logo';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -21,8 +21,8 @@ export default function Home() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/30">
       <div className="flex items-center gap-2 text-primary animate-pulse">
-        <FileText className="h-6 w-6" strokeWidth={1.5} />
-        <span className="font-serif text-xl">Handover</span>
+        <HandoverMark size={24} />
+        <span className="text-xl font-semibold">Handover</span>
       </div>
     </div>
   );

@@ -33,7 +33,6 @@ export type FontDef = {
   className: string;
   variable: string;
   fontFamily: string;
-  stack: string;
   category: FontCategory;
   headingOnly?: boolean;
 };
@@ -42,20 +41,20 @@ export const SYSTEM_STACK = systemStack;
 export const SERIF_STACK = serifStack;
 
 export const fonts: Record<string, FontDef> = {
-  'system': { label: 'System default', className: '', variable: '', fontFamily: '', stack: systemStack, category: 'sans' },
-  'dm-sans': { label: 'DM Sans', className: dmSans.className, variable: dmSans.variable, fontFamily: dmSans.style.fontFamily, stack: `'DM Sans', ${systemStack}`, category: 'sans' },
-  'manrope': { label: 'Manrope', className: manrope.className, variable: manrope.variable, fontFamily: manrope.style.fontFamily, stack: `'Manrope', ${systemStack}`, category: 'sans' },
-  'plus-jakarta': { label: 'Plus Jakarta Sans', className: plusJakarta.className, variable: plusJakarta.variable, fontFamily: plusJakarta.style.fontFamily, stack: `'Plus Jakarta Sans', ${systemStack}`, category: 'sans' },
-  'work-sans': { label: 'Work Sans', className: workSans.className, variable: workSans.variable, fontFamily: workSans.style.fontFamily, stack: `'Work Sans', ${systemStack}`, category: 'sans' },
-  'source-sans': { label: 'Source Sans 3', className: sourceSans.className, variable: sourceSans.variable, fontFamily: sourceSans.style.fontFamily, stack: `'Source Sans 3', ${systemStack}`, category: 'sans' },
-  'nunito-sans': { label: 'Nunito Sans', className: nunitoSans.className, variable: nunitoSans.variable, fontFamily: nunitoSans.style.fontFamily, stack: `'Nunito Sans', ${systemStack}`, category: 'sans' },
-  'poppins': { label: 'Poppins', className: poppins.className, variable: poppins.variable, fontFamily: poppins.style.fontFamily, stack: `'Poppins', ${systemStack}`, category: 'sans' },
-  'montserrat': { label: 'Montserrat', className: montserrat.className, variable: montserrat.variable, fontFamily: montserrat.style.fontFamily, stack: `'Montserrat', ${systemStack}`, category: 'sans' },
-  'libre-franklin': { label: 'Libre Franklin', className: libreFranklin.className, variable: libreFranklin.variable, fontFamily: libreFranklin.style.fontFamily, stack: `'Libre Franklin', ${systemStack}`, category: 'sans' },
-  'lora': { label: 'Lora', className: lora.className, variable: lora.variable, fontFamily: lora.style.fontFamily, stack: `'Lora', ${serifStack}`, category: 'serif' },
-  'source-serif': { label: 'Source Serif 4', className: sourceSerif.className, variable: sourceSerif.variable, fontFamily: sourceSerif.style.fontFamily, stack: `'Source Serif 4', ${serifStack}`, category: 'serif' },
-  'merriweather': { label: 'Merriweather', className: merriweather.className, variable: merriweather.variable, fontFamily: merriweather.style.fontFamily, stack: `'Merriweather', ${serifStack}`, category: 'serif' },
-  'playfair': { label: 'Playfair Display (headings)', className: playfair.className, variable: playfair.variable, fontFamily: playfair.style.fontFamily, stack: `'Playfair Display', ${serifStack}`, category: 'serif', headingOnly: true },
+  'system': { label: 'System default', className: '', variable: '', fontFamily: '', category: 'sans' },
+  'dm-sans': { label: 'DM Sans', className: dmSans.className, variable: dmSans.variable, fontFamily: dmSans.style.fontFamily, category: 'sans' },
+  'manrope': { label: 'Manrope', className: manrope.className, variable: manrope.variable, fontFamily: manrope.style.fontFamily, category: 'sans' },
+  'plus-jakarta': { label: 'Plus Jakarta Sans', className: plusJakarta.className, variable: plusJakarta.variable, fontFamily: plusJakarta.style.fontFamily, category: 'sans' },
+  'work-sans': { label: 'Work Sans', className: workSans.className, variable: workSans.variable, fontFamily: workSans.style.fontFamily, category: 'sans' },
+  'source-sans': { label: 'Source Sans 3', className: sourceSans.className, variable: sourceSans.variable, fontFamily: sourceSans.style.fontFamily, category: 'sans' },
+  'nunito-sans': { label: 'Nunito Sans', className: nunitoSans.className, variable: nunitoSans.variable, fontFamily: nunitoSans.style.fontFamily, category: 'sans' },
+  'poppins': { label: 'Poppins', className: poppins.className, variable: poppins.variable, fontFamily: poppins.style.fontFamily, category: 'sans' },
+  'montserrat': { label: 'Montserrat', className: montserrat.className, variable: montserrat.variable, fontFamily: montserrat.style.fontFamily, category: 'sans' },
+  'libre-franklin': { label: 'Libre Franklin', className: libreFranklin.className, variable: libreFranklin.variable, fontFamily: libreFranklin.style.fontFamily, category: 'sans' },
+  'lora': { label: 'Lora', className: lora.className, variable: lora.variable, fontFamily: lora.style.fontFamily, category: 'serif' },
+  'source-serif': { label: 'Source Serif 4', className: sourceSerif.className, variable: sourceSerif.variable, fontFamily: sourceSerif.style.fontFamily, category: 'serif' },
+  'merriweather': { label: 'Merriweather', className: merriweather.className, variable: merriweather.variable, fontFamily: merriweather.style.fontFamily, category: 'serif' },
+  'playfair': { label: 'Playfair Display (headings)', className: playfair.className, variable: playfair.variable, fontFamily: playfair.style.fontFamily, category: 'serif', headingOnly: true },
 };
 
 export type FontOption = { slug: string; label: string; className: string; category: FontCategory; headingOnly?: boolean };

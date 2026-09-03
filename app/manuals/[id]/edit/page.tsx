@@ -645,7 +645,7 @@ export default function EditManualPage() {
         </Button>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="font-serif text-3xl tracking-tight">{manual.client_name}</h1>
+            <h1 className="text-3xl tracking-tight-app">{manual.client_name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t('edit.subtitle')}
               {saving ? `  ${t('edit.savingStatus')}` : `  ${t('edit.savedStatus')}`}
@@ -729,7 +729,7 @@ export default function EditManualPage() {
       <Dialog open={shareWarnOpen} onOpenChange={setShareWarnOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+            <DialogTitle className="text-xl flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               {t('edit.draftWarn.title')}
             </DialogTitle>
@@ -754,7 +754,7 @@ export default function EditManualPage() {
       <Dialog open={localeWarnOpen} onOpenChange={setLocaleWarnOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+            <DialogTitle className="text-xl flex items-center gap-2">
               <Globe className="h-5 w-5 text-muted-foreground" />
               {t('edit.localeWarn.title')}
             </DialogTitle>
@@ -777,7 +777,7 @@ export default function EditManualPage() {
       <Dialog open={!!deleteSectionId} onOpenChange={(open) => !open && setDeleteSectionId(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+            <DialogTitle className="text-xl flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500" />
               {t('edit.deleteSection.title')}
             </DialogTitle>
@@ -806,7 +806,7 @@ export default function EditManualPage() {
         {/* Site & Stack */}
         <AccordionItem value="site" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <Globe className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.site')}
             </span>
@@ -850,7 +850,7 @@ export default function EditManualPage() {
         {/* Domain & DNS */}
         <AccordionItem value="domain" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <Globe className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.domain')}
             </span>
@@ -886,7 +886,7 @@ export default function EditManualPage() {
         {/* Hosting & Email */}
         <AccordionItem value="hosting" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <Server className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.hosting')}
             </span>
@@ -928,7 +928,7 @@ export default function EditManualPage() {
         {/* Accounts & Ownership */}
         <AccordionItem value="accounts" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <Users className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.accounts')}
             </span>
@@ -973,7 +973,7 @@ export default function EditManualPage() {
         {/* Files & assets */}
         <AccordionItem value="assets" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <FolderOpen className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.assets')}
             </span>
@@ -1066,7 +1066,7 @@ export default function EditManualPage() {
         {/* How To Edit */}
         <AccordionItem value="edit" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <PencilLine className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.edit')}
             </span>
@@ -1105,7 +1105,7 @@ export default function EditManualPage() {
         {/* What's Covered */}
         <AccordionItem value="coverage" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <CheckSquare className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.coverage')}
             </span>
@@ -1161,7 +1161,7 @@ export default function EditManualPage() {
         {/* Emergency Contacts */}
         <AccordionItem value="emergency" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
-            <span className="flex items-center gap-2 font-serif text-lg">
+            <span className="flex items-center gap-2 text-lg">
               <Phone className="h-5 w-5 text-muted-foreground" />
               {t('edit.sections.emergency')}
             </span>
@@ -1214,7 +1214,7 @@ export default function EditManualPage() {
                   if (sectionCheckResults[section.id]) {
                     setSectionCheckResults((prev) => { const next = { ...prev }; delete next[section.id]; return next; });
                   }
-                }} onBlur={() => saveCustomSectionTitle(section.id)} placeholder={t('edit.sectionTitlePlaceholder')} className={`border-0 px-1 font-serif text-lg shadow-none focus-visible:ring-0 ${sectionCheckResults[section.id] === 'block' ? 'border-destructive' : ''}`} />
+                }} onBlur={() => saveCustomSectionTitle(section.id)} placeholder={t('edit.sectionTitlePlaceholder')} className={`border-0 px-1 text-lg shadow-none focus-visible:ring-0 ${sectionCheckResults[section.id] === 'block' ? 'border-destructive' : ''}`} />
                 {sectionCheckResults[section.id] === 'block' && (
                   <p className="mt-1 px-1 text-xs text-destructive">{t('secretName.blocked')}</p>
                 )}

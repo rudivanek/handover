@@ -34,9 +34,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  h1, h2, h3, h4 {
-    font-family: var(--font-serif), Georgia, serif;
-  }
+
 }
 
 /* Print styles for the public manual page */

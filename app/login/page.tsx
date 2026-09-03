@@ -63,7 +63,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-sm">
         <CardHeader className="space-y-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-serif">{t('login.title')}</CardTitle>
+            <CardTitle className="text-2xl">{t('login.title')}</CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1">
