@@ -1,0 +1,90 @@
+{
+  "site_intro": {
+    "en": "This manual documents everything you need to know to keep {site_name} running smoothly. It was prepared by {agency_name} and covers your website's technology, domain, hosting, accounts, and day-to-day editing.",
+    "es": "Este manual documenta todo lo que necesitas saber para mantener {site_name} funcionando sin problemas. Fue preparado por {agency_name} y cubre la tecnolog\u00eda de tu sitio web, dominio, hosting, cuentas y edici\u00f3n del d\u00eda a d\u00eda."
+  },
+  "site_overview": {
+    "en": "{site_name} is your organization's website, hosted at {site_url}. It is built on {platform} using {framework_or_theme}. {plugins_clause}",
+    "es": "{site_name} es el sitio web de tu organizaci\u00f3n, alojado en {site_url}. Est\u00e1 construido con {platform} usando {framework_or_theme}. {plugins_clause}"
+  },
+  "platform": {
+    "en": "Your website is built on {platform}, a content management system that lets your team update pages, posts, and media through a visual editor \u2014 no coding required.",
+    "es": "Tu sitio web est\u00e1 construido con {platform}, un sistema de gesti\u00f3n de contenidos que permite a tu equipo actualizar p\u00e1ginas, publicaciones y medios mediante un editor visual \u2014 sin necesidad de programar."
+  },
+  "framework_or_theme": {
+    "en": "The site uses the {framework_or_theme} theme, which controls the visual design and layout. Changes to the theme affect every page on the site, so they should be made carefully and ideally by your agency.",
+    "es": "El sitio usa la plantilla {framework_or_theme}, que controla el dise\u00f1o visual y el dise\u00f1o de la p\u00e1gina. Los cambios a la plantilla afectan a todas las p\u00e1ginas del sitio, as\u00ed que deben hacerse con cuidado y, idealmente, por tu agencia."
+  },
+  "key_plugins": {
+    "en": "Your site uses the following plugins to add functionality: {key_plugins}. Plugins should be kept up to date and deactivated only after checking with your agency, as removing one can remove features or content from the live site.",
+    "es": "Tu sitio usa los siguientes plugins para a\u00f1adir funcionalidad: {key_plugins}. Los plugins deben mantenerse actualizados y desactivarse solo despu\u00e9s de consultar con tu agencia, ya que quitar uno puede eliminar funciones o contenido del sitio en vivo."
+  },
+  "domain": {
+    "en": "Your domain is registered with {registrar} and renews on {domain_expiry}. If it expires, your website and email both stop working the same day. {domain_owner_clause}",
+    "es": "Tu dominio est\u00e1 registrado con {registrar} y se renueva el {domain_expiry}. Si expira, tu sitio web y tu correo dejan de funcionar el mismo d\u00eda. {domain_owner_clause}"
+  },
+  "domain_owner": {
+    "en": "The domain is owned by {domain_owner}. Only the owner (or someone they authorize) can renew, transfer, or make changes to the domain registration.",
+    "es": "El dominio es propiedad de {domain_owner}. Solo el propietario (o alguien que \u00e9l autorice) puede renovar, transferir o hacer cambios al registro del dominio."
+  },
+  "nameservers": {
+    "en": "Your domain points to these nameservers: {nameservers}. Nameservers tell the internet where your website and email live. If they are changed incorrectly, your site and email will go offline.",
+    "es": "Tu dominio apunta a estos nameservers: {nameservers}. Los nameservers le dicen a internet d\u00f3nde viven tu sitio web y tu correo. Si se cambian de forma incorrecta, tu sitio y tu correo se quedar\u00e1n sin servicio."
+  },
+  "host": {
+    "en": "Your website is hosted with {host} on the {host_plan} plan. Hosting is the computer your website lives on; without it, the site has nowhere to serve pages from.",
+    "es": "Tu sitio web est\u00e1 alojado con {host} en el plan {host_plan}. El hosting es la computadora donde vive tu sitio web; sin \u00e9l, el sitio no tiene d\u00f3nde servir sus p\u00e1ginas."
+  },
+  "host_renewal": {
+    "en": "Your hosting renews on {host_renewal}. If hosting lapses, your website goes offline. Renewal is typically handled by your agency unless you have been told otherwise.",
+    "es": "Tu hosting se renueva el {host_renewal}. Si el hosting caduca, tu sitio web se queda fuera de l\u00ednea. La renovaci\u00f3n normalmente la maneja tu agencia, a menos que te hayan dicho lo contrario."
+  },
+  "email_provider": {
+    "en": "Your email is provided by {email_provider}. Email is separate from your website \u2014 it can keep working even if the site is down \u2014 but it does depend on your domain being active and your DNS records being correct.",
+    "es": "Tu correo lo proporciona {email_provider}. El correo es independiente de tu sitio web \u2014 puede seguir funcionando incluso si el sitio est\u00e1 ca\u00eddo \u2014 pero s\u00ed depende de que tu dominio est\u00e9 activo y de que tus registros DNS sean correctos."
+  },
+  "accounts_intro": {
+    "en": "Below is a list of the services and accounts connected to your website. We record what accounts exist and who owns them \u2014 never credentials. If you need access to any of these accounts, contact the listed owner.",
+    "es": "A continuaci\u00f3n se muestra una lista de los servicios y cuentas conectados a tu sitio web. Registramos qu\u00e9 cuentas existen y qui\u00e9n es el propietario \u2014 nunca las contrase\u00f1as. Si necesitas acceso a alguna de estas cuentas, contacta al propietario indicado."
+  },
+  "accounts_note": {
+    "en": "We store what accounts exist and who owns them, never credentials.",
+    "es": "Guardamos qu\u00e9 cuentas existen y qui\u00e9n es el propietario, nunca las contrase\u00f1as."
+  },
+  "edit_blocks_intro": {
+    "en": "This section explains how to make common updates to your site. Each block covers one type of edit. If a change is not listed here, it is likely a larger task that should be handled by your agency.",
+    "es": "Esta secci\u00f3n explica c\u00f3mo hacer actualizaciones comunes a tu sitio. Cada bloque cubre un tipo de edici\u00f3n. Si un cambio no est\u00e1 listado aqu\u00ed, probablemente sea una tarea m\u00e1s grande que debe manejar tu agencia."
+  },
+  "coverage_intro": {
+    "en": "This section sets out what is included in your ongoing retainer and what is billed separately. It is here to keep expectations clear on both sides.",
+    "es": "Esta secci\u00f3n establece qu\u00e9 est\u00e1 incluido en tu mantenimiento continuo y qu\u00e9 se factura por separado. Est\u00e1 aqu\u00ed para mantener las expectativas claras en ambos lados."
+  },
+  "coverage_included": {
+    "en": "The following items are included in your monthly retainer:",
+    "es": "Los siguientes art\u00edculos est\u00e1n incluidos en tu mantenimiento mensual:"
+  },
+  "coverage_excluded": {
+    "en": "The following items are not included and are billed separately when requested:",
+    "es": "Los siguientes art\u00edculos no est\u00e1n incluidos y se facturan por separado cuando se solicitan:"
+  },
+  "emergency_intro": {
+    "en": "If something urgent happens \u2014 your site goes down, you suspect a hack, or email stops working \u2014 use the contacts below. For anything non-urgent, email {support_email} during support hours ({support_hours}).",
+    "es": "Si ocurre algo urgente \u2014 tu sitio se cae, sospechas un hackeo o el correo deja de funcionar \u2014 usa los contactos a continuaci\u00f3n. Para cualquier cosa no urgente, escribe a {support_email} durante el horario de soporte ({support_hours})."
+  },
+  "emergency_contact": {
+    "en": "For emergencies, call {emergency_name} ({emergency_role}) at {emergency_phone} or email {emergency_email}. Use this only for situations where your website or email is down or compromised.",
+    "es": "Para emergencias, llama a {emergency_name} ({emergency_role}) al {emergency_phone} o escribe a {emergency_email}. Usa esto solo para situaciones en las que tu sitio web o correo est\u00e9n ca\u00eddos o comprometidos."
+  },
+  "support_general": {
+    "en": "For day-to-day questions and non-urgent requests, email {support_email}. Support hours are {support_hours}. We aim to respond within one business day.",
+    "es": "Para preguntas del d\u00eda a d\u00eda y solicitudes no urgentes, escribe a {support_email}. El horario de soporte es {support_hours}. Buscamos responder dentro de un d\u00eda h\u00e1bil."
+  },
+  "print_note": {
+    "en": "This manual can be saved as a PDF at any time using the Print / Save as PDF button at the top of the page.",
+    "es": "Este manual se puede guardar como PDF en cualquier momento usando el bot\u00f3n Imprimir / Guardar como PDF en la parte superior de la p\u00e1gina."
+  },
+  "made_with": {
+    "en": "Made with Handover",
+    "es": "Hecho con Handover"
+  }
+}

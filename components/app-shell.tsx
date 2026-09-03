@@ -1,0 +1,103 @@
+'use client';
+
+import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
+import { useI18n, persistUiLocale } from '@/lib/i18n';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { FileText, Settings, LogOut, BookOpen, ChevronDown, Globe } from 'lucide-react';
+import type { Locale } from '@/lib/types';
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  const { user, profile, signOut } = useAuth();
+  const { locale, setLocale, t } = useI18n();
+
+  const handleLocaleChange = (newLocale: Locale) => {
+    setLocale(newLocale);
+    if (user) {
+      persistUiLocale(user.id, newLocale);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-secondary/30">
+      <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
+          <Link href="/manuals" className="flex items-center gap-2 text-primary">
+            <FileText className="h-5 w-5" strokeWidth={1.5} />
+            <span className="font-serif text-lg tracking-tight">{t('app.name')}</span>
+          </Link>
+
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/manuals">
+                <BookOpen className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">{t('nav.manuals')}</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/settings">
+                <Settings className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">{t('nav.settings')}</span>
+              </Link>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <Globe className="h-4 w-4" />
+                  <span className="hidden sm:inline">{locale === 'en' ? 'EN' : 'ES'}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() => handleLocaleChange('en')}
+                  className={locale === 'en' ? 'font-semibold' : ''}
+                >
+                  English
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleLocaleChange('es')}
+                  className={locale === 'es' ? 'font-semibold' : ''}
+                >
+                  Espa\u00f1ol
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-1">
+                  <span className="hidden sm:inline">
+                    {profile?.agency_name || user?.email}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem className="text-muted-foreground text-xs">
+                  {user?.email}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings">{t('nav.agencySettings')}</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => signOut()}
+                  className="text-destructive"
+                >
+                  <LogOut className="mr-2 h-4 w-4" />
+                  {t('nav.signOut')}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</main>
+    </div>
+  );
+}
