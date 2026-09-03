@@ -29,9 +29,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-secondary/30">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link href="/manuals">
+          <a href="https://handover.agency/">
             <HandoverLogo textSize={24} markClassName="bg-[#f3f4f6] rounded" />
-          </Link>
+          </a>
 
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
