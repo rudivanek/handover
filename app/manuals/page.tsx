@@ -24,7 +24,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, Lock, AlertTriangle, Link2 } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, Lock, AlertTriangle, Link2, ArrowUpRight } from 'lucide-react';
+import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 
 type ManualWithChildren = Manual & {
   accounts?: Account[];
@@ -253,6 +254,15 @@ export default function ManualsPage() {
               ? t('manuals.subtitle', { agency: profile.agency_name })
               : t('manuals.subtitleGeneric')}
           </p>
+          <a
+            href={EXAMPLE_MANUAL_URL}
+            target="_blank"
+            rel="noopener"
+            className="mt-1.5 inline-flex items-center gap-1 text-xs text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+          >
+            {t('manuals.seeExample')}
+            <ArrowUpRight className="h-3 w-3" />
+          </a>
         </div>
         {atLimit ? (
           <Button disabled title={isFree ? t('manuals.limitReached') : undefined}>
@@ -298,8 +308,17 @@ export default function ManualsPage() {
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
               {t('manuals.emptyDescription')}
             </p>
+            <a
+              href={EXAMPLE_MANUAL_URL}
+              target="_blank"
+              rel="noopener"
+              className="mt-4 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t('manuals.seeExample')}
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </a>
             {!atLimit && (
-              <Button className="mt-6" onClick={() => setNewOpen(true)}>
+              <Button className="mt-4" onClick={() => setNewOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 {t('manuals.createFirst')}
               </Button>

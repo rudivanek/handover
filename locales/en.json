@@ -91,6 +91,7 @@
   "manuals.couldNotLoad": "Could not load manuals",
   "manuals.couldNotCreate": "Could not create manual",
   "manuals.couldNotDuplicate": "Could not duplicate",
+  "manuals.seeExample": "See a finished example",
 
   "settings.title": "Agency Settings",
   "settings.subtitle": "This branding appears on every client manual you generate. Set it up once.",

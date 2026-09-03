@@ -91,6 +91,7 @@
   "manuals.couldNotLoad": "No se pudieron cargar los manuales",
   "manuals.couldNotCreate": "No se pudo crear el manual",
   "manuals.couldNotDuplicate": "No se pudo duplicar",
+  "manuals.seeExample": "Ver un manual de ejemplo",
 
   "settings.title": "Ajustes de la agencia",
   "settings.subtitle": "Esta marca aparece en cada manual de cliente que generas. Config\u00farala una sola vez.",

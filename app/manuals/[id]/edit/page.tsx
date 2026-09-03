@@ -13,6 +13,7 @@ import { computeCompletion, isDraft } from '@/lib/completion';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, Locale } from '@/lib/types';
 import { checkFieldName, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
+import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,6 +52,7 @@ import {
   ArrowDown,
   FolderOpen,
   Link2,
+  ArrowUpRight,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -726,6 +728,15 @@ export default function EditManualPage() {
                     ? t('edit.completion.allFilled')
                     : t('edit.completion.missing', { count: completion.missing.length })}
                 </p>
+                <a
+                  href={EXAMPLE_MANUAL_URL}
+                  target="_blank"
+                  rel="noopener"
+                  className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground/70 transition-colors hover:text-muted-foreground"
+                >
+                  {t('manuals.seeExample')}
+                  <ArrowUpRight className="h-3 w-3" />
+                </a>
               </div>
             </div>
             <div className="w-24 sm:w-40">
