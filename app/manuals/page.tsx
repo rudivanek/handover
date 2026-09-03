@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, Lock, AlertTriangle } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, Lock, AlertTriangle, Link2 } from 'lucide-react';
 
 type ManualWithChildren = Manual & {
   accounts?: Account[];
@@ -214,6 +214,25 @@ export default function ManualsPage() {
     }
   };
 
+  const copyManualLink = async (manual: ManualWithChildren) => {
+    const url = `${window.location.origin}/m/${manual.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: t('manuals.linkCopied'), description: t('manuals.linkCopiedDesc') });
+    } catch {
+      toast({ title: t('manuals.linkCopyFailed'), description: url });
+    }
+  };
+
+  const handleCopyLinkClick = (manual: ManualWithChildren) => {
+    const completion = computeCompletion(manual, manual.accounts || [], manual.edit_blocks || [], manual.coverage || [], manual.custom_fields || [], locale);
+    if (isDraft(completion.percentage)) {
+      setShareWarnManual(manual);
+    } else {
+      copyManualLink(manual);
+    }
+  };
+
   if (loading || loadingList) {
     return (
       <AppShell>
@@ -344,6 +363,15 @@ export default function ManualsPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() => handleCopyLinkClick(manual)}
+                      title={t('manuals.copyLink')}
+                    >
+                      <Link2 className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1.5">{t('manuals.copyLink')}</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => handleDuplicate(manual)}
                       title={t('manuals.duplicate')}
                     >
@@ -408,11 +436,16 @@ export default function ManualsPage() {
               {t('manuals.draftWarn.goBack')}
             </Button>
             {shareWarnManual && (
-              <Button asChild>
-                <Link href={`/m/${shareWarnManual.slug}`} target="_blank" onClick={() => setShareWarnManual(null)}>
-                  {t('manuals.draftWarn.openAnyway')}
-                </Link>
-              </Button>
+              <>
+                <Button onClick={() => { copyManualLink(shareWarnManual); setShareWarnManual(null); }}>
+                  {t('manuals.draftWarn.copyAnyway')}
+                </Button>
+                <Button asChild>
+                  <Link href={`/m/${shareWarnManual.slug}`} target="_blank" onClick={() => setShareWarnManual(null)}>
+                    {t('manuals.draftWarn.openAnyway')}
+                  </Link>
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>

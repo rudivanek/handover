@@ -50,6 +50,7 @@ import {
   ArrowUp,
   ArrowDown,
   FolderOpen,
+  Link2,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -548,6 +549,25 @@ export default function EditManualPage() {
     }
   };
 
+  const copyManualLink = async () => {
+    if (!manual) return;
+    const url = `${window.location.origin}/m/${manual.slug}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: t('manuals.linkCopied'), description: t('manuals.linkCopiedDesc') });
+    } catch {
+      toast({ title: t('manuals.linkCopyFailed'), description: url });
+    }
+  };
+
+  const handleCopyLinkClick = () => {
+    if (draft) {
+      setShareWarnOpen(true);
+    } else {
+      copyManualLink();
+    }
+  };
+
   const localeLabel = (l: Locale) => l === 'es' ? 'Espa\u00f1ol' : 'English';
 
   // Render custom field rows for a builtin section
@@ -678,6 +698,10 @@ export default function EditManualPage() {
                 {t('common.preview')}
               </Link>
             </Button>
+            <Button variant="outline" onClick={handleCopyLinkClick}>
+              <Link2 className="mr-2 h-4 w-4" />
+              {t('manuals.copyLink')}
+            </Button>
           </div>
         </div>
       </div>
@@ -740,6 +764,9 @@ export default function EditManualPage() {
           <DialogFooter>
             <Button variant="ghost" onClick={() => setShareWarnOpen(false)}>
               {t('edit.draftWarn.keepEditing')}
+            </Button>
+            <Button onClick={() => { copyManualLink(); setShareWarnOpen(false); }}>
+              {t('manuals.draftWarn.copyAnyway')}
             </Button>
             <Button asChild>
               <Link href={`/m/${manual.slug}`} target="_blank" onClick={() => setShareWarnOpen(false)}>

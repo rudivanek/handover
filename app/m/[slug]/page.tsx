@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault } from '@/lib/defaults';
+import { MARKETING_URL } from '@/lib/utils';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, Locale } from '@/lib/types';
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
@@ -250,6 +251,7 @@ export default function PublicManualPage() {
 
   return (
     <div className="min-h-screen bg-secondary/20">
+      <meta name="referrer" content="no-referrer" />
       {/* Top bar - hidden on print */}
       <div className="no-print sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-3 sm:px-6">
@@ -672,7 +674,9 @@ export default function PublicManualPage() {
             <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
               <HandoverMark size={13} />
               <a
-                href="https://handover.app"
+                href={MARKETING_URL}
+                target="_blank"
+                rel="noopener"
                 className="underline transition-colors hover:text-foreground"
                 style={linkStyle}
               >

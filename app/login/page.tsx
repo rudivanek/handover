@@ -18,6 +18,7 @@ import enMessages from '@/locales/en.json';
 import esMessages from '@/locales/es.json';
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
+import { MARKETING_URL } from '@/lib/utils';
 
 const messages: Record<Locale, Record<string, string>> = {
   en: enMessages,
@@ -141,6 +142,14 @@ export default function LoginPage() {
       <p className="mt-8 text-xs text-muted-foreground">
         {t('login.tagline')}
       </p>
+      <a
+        href={MARKETING_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mt-3 text-xs text-muted-foreground underline transition-colors hover:text-foreground"
+      >
+        {t('login.whatIs')}
+      </a>
     </div>
   );
 }
