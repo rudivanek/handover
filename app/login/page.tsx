@@ -13,10 +13,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Mail, Lock, ArrowRight, FileText, Globe } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Globe } from 'lucide-react';
 import enMessages from '@/locales/en.json';
 import esMessages from '@/locales/es.json';
 import type { Locale } from '@/lib/types';
+import { HandoverLogo } from '@/components/Logo';
 
 const messages: Record<Locale, Record<string, string>> = {
   en: enMessages,
@@ -55,9 +56,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/30 px-4">
-      <div className="mb-8 flex items-center gap-2 text-primary">
-        <FileText className="h-7 w-7" strokeWidth={1.5} />
-        <span className="font-serif text-2xl tracking-tight">{t('app.name')}</span>
+      <div className="mb-8">
+        <HandoverLogo size={26} />
       </div>
 
       <Card className="w-full max-w-md shadow-sm">

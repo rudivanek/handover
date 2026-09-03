@@ -8,6 +8,7 @@ import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, 
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
 import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen } from 'lucide-react';
+import { HandoverMark } from '@/components/Logo';
 import enMessages from '@/locales/en.json';
 import esMessages from '@/locales/es.json';
 
@@ -675,7 +676,8 @@ export default function PublicManualPage() {
         {/* Footer - hidden for paid accounts */}
         {showFooter && (
           <footer className="mt-12 border-t border-border pt-4 text-center sm:mt-16 sm:pt-6">
-            <p className="text-xs text-muted-foreground sm:text-sm">
+            <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
+              <HandoverMark size={13} />
               <a
                 href="https://handover.app"
                 className="underline transition-colors hover:text-foreground"

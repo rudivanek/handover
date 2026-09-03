@@ -10,8 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { FileText, Settings, LogOut, BookOpen, ChevronDown, Globe } from 'lucide-react';
+import { Settings, LogOut, BookOpen, ChevronDown, Globe } from 'lucide-react';
 import type { Locale } from '@/lib/types';
+import { HandoverLogo } from '@/components/Logo';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut } = useAuth();
@@ -28,9 +29,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-secondary/30">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <Link href="/manuals" className="flex items-center gap-2 text-primary">
-            <FileText className="h-5 w-5" strokeWidth={1.5} />
-            <span className="font-serif text-lg tracking-tight">{t('app.name')}</span>
+          <Link href="/manuals">
+            <HandoverLogo />
           </Link>
 
           <div className="flex items-center gap-2">
