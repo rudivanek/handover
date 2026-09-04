@@ -155,8 +155,10 @@ export default function PublicManualPage() {
     support_hours: agency.support_hours,
   };
 
-  const renderInterpolated = (key: string) =>
-    interpolate(getDefault(key, locale), manual, profileForInterpolate, locale);
+  const renderInterpolated = (key: string): string | null => {
+    const { text, complete } = interpolate(getDefault(key, locale), manual, profileForInterpolate, locale);
+    return complete ? text : null;
+  };
 
   const dateLocale = locale === 'es' ? 'es-MX' : 'en-US';
 
@@ -318,9 +320,11 @@ export default function PublicManualPage() {
 
         {/* Intro */}
         <div className="manual-section mb-8 sm:mb-10">
-          <p className="text-sm leading-relaxed text-foreground sm:text-base">
-            {renderInterpolated('site_intro')}
-          </p>
+          {renderInterpolated('site_intro') && (
+            <p className="text-sm leading-relaxed text-foreground sm:text-base">
+              {renderInterpolated('site_intro')}
+            </p>
+          )}
         </div>
 
         {/* Site & Stack */}
@@ -330,10 +334,10 @@ export default function PublicManualPage() {
             {t('public.sections.site')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('site_overview')}</p>
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('platform')}</p>
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('framework_or_theme')}</p>
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('key_plugins')}</p>
+            {renderInterpolated('site_overview') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('site_overview')}</p>}
+            {renderInterpolated('platform') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('platform')}</p>}
+            {renderInterpolated('framework_or_theme') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('framework_or_theme')}</p>}
+            {renderInterpolated('key_plugins') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('key_plugins')}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -372,9 +376,9 @@ export default function PublicManualPage() {
             {t('public.sections.domain')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain')}</p>
-            {manual.domain_owner && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain_owner')}</p>}
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('nameservers')}</p>
+            {renderInterpolated('domain') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain')}</p>}
+            {manual.domain_owner && renderInterpolated('domain_owner') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain_owner')}</p>}
+            {renderInterpolated('nameservers') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('nameservers')}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -409,9 +413,9 @@ export default function PublicManualPage() {
             {t('public.sections.hosting')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host')}</p>
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host_renewal')}</p>
-            <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('email_provider')}</p>
+            {renderInterpolated('host') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host')}</p>}
+            {renderInterpolated('host_renewal') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host_renewal')}</p>}
+            {renderInterpolated('email_provider') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('email_provider')}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -445,7 +449,7 @@ export default function PublicManualPage() {
             <Users className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             {t('public.sections.accounts')}
           </h2>
-          <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('accounts_intro')}</p>
+          {renderInterpolated('accounts_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('accounts_intro')}</p>}
 
           {accounts.length > 0 ? (
             <div className="overflow-x-auto rounded-lg border border-border">
@@ -499,7 +503,7 @@ export default function PublicManualPage() {
               <PencilLine className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               {t('public.sections.edit')}
             </h2>
-            <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('edit_blocks_intro')}</p>
+            {renderInterpolated('edit_blocks_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('edit_blocks_intro')}</p>}
             <div className="space-y-3 sm:space-y-4">
               {editBlocks.map((block, i) => (
                 <div key={i} className="rounded-lg border border-border p-3 sm:p-5">
@@ -527,7 +531,7 @@ export default function PublicManualPage() {
               <CheckSquare className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               {t('public.sections.coverage')}
             </h2>
-            <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('coverage_intro')}</p>
+            {renderInterpolated('coverage_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('coverage_intro')}</p>}
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               {includedItems.length > 0 && (
                 <div>
@@ -583,8 +587,8 @@ export default function PublicManualPage() {
             <Phone className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             {t('public.sections.emergency')}
           </h2>
-          <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_intro')}</p>
-          <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_contact')}</p>
+          {renderInterpolated('emergency_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_intro')}</p>}
+          {renderInterpolated('emergency_contact') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_contact')}</p>}
 
           <div className="rounded-lg border border-border p-3 sm:p-5">
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">

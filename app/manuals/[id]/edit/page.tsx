@@ -536,7 +536,7 @@ export default function EditManualPage() {
   }
 
   const previewInterpolated = (key: string) => {
-    return interpolate(getDefault(key, manualLocale), manual, profile, manualLocale);
+    return interpolate(getDefault(key, manualLocale), manual, profile, manualLocale).text;
   };
 
   const pluginsString = (manual.key_plugins || []).join(', ');
