@@ -269,7 +269,7 @@
   "edit.fields.addAsset": "Add asset",
   "edit.assetsEmpty": "No files or assets recorded yet.",
   "edit.assetUrlInvalid": "Links must start with http:// or https://.",
-  "edit.assetUrlShareWarning": "This looks like a share link. Anyone who can open this manual will be able to open this file.",
+  "edit.assetUrlShareWarning": "This looks like a share link \u2014 anyone who can open this manual can open this file. If that is not what you want, record where the file lives instead of linking to it.",
   "settings.logoUpload": "Upload logo",
   "settings.logoReplace": "Replace",
   "settings.logoRemove": "Remove",

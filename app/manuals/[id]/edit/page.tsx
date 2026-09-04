@@ -620,7 +620,7 @@ export default function EditManualPage() {
                 <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
               )}
               {fieldCheckResults[field.id] === 'warn' && (
-                <p className="text-xs text-muted-foreground">{t('secretName.warned')}</p>
+                <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
               )}
               <Textarea
                 value={field.value}
@@ -1055,7 +1055,7 @@ export default function EditManualPage() {
                           <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
                         )}
                         {assetCheckResults[asset.id] === 'warn' && (
-                          <p className="text-xs text-muted-foreground">{t('secretName.warned')}</p>
+                          <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
                         )}
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
@@ -1069,7 +1069,7 @@ export default function EditManualPage() {
                             className="text-sm"
                           />
                           {assetCheckResults[asset.id] === 'warn' && asset.url && checkAssetUrl(asset.url).level === 'warn' && (
-                            <p className="text-xs text-muted-foreground">{t('edit.assetUrlShareWarning')}</p>
+                            <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('edit.assetUrlShareWarning')}</span></p>
                           )}
                         </div>
                         <div className="space-y-1">
@@ -1266,7 +1266,7 @@ export default function EditManualPage() {
                   <p className="mt-1 px-1 text-xs text-destructive">{t('secretName.blocked')}</p>
                 )}
                 {sectionCheckResults[section.id] === 'warn' && (
-                  <p className="mt-1 px-1 text-xs text-muted-foreground">{t('secretName.warned')}</p>
+                  <p className="mt-1 flex items-start gap-1.5 px-1 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
                 )}
               </div>
             </div>
@@ -1299,7 +1299,7 @@ export default function EditManualPage() {
                         <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
                       )}
                       {fieldCheckResults[field.id] === 'warn' && (
-                        <p className="text-xs text-muted-foreground">{t('secretName.warned')}</p>
+                        <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
                       )}
                       <Textarea value={field.value} onChange={(e) => updateCustomField(field.id, 'value', e.target.value)} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldValuePlaceholder')} rows={2} className="text-sm" />
                     </div>

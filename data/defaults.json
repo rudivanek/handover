@@ -88,8 +88,8 @@
     "es": "Para preguntas del d\u00eda a d\u00eda y solicitudes no urgentes, escribe a {support_email}. El horario de soporte es {support_hours}. Buscamos responder dentro de un d\u00eda h\u00e1bil."
   },
   "assets_note": {
-    "en": "Some of the links in this section may open the file for anyone who has them. If a link should not be shared, replace it with a note saying where the file is kept and who to ask for access.",
-    "es": "Algunos de los enlaces en esta secci\u00f3n pueden abrir el archivo para cualquiera que los tenga. Si un enlace no deber\u00eda compartirse, reempl\u00e1zalo con una nota que diga d\u00f3nde se guarda el archivo y a qui\u00e9n pedir acceso."
+    "en": "Some of the links here will open the file for anyone who has them. If a link should not be shared that way, ask us and we will record where the file is kept instead.",
+    "es": "Algunos de los enlaces aqu\u00ed abrir\u00e1n el archivo para cualquiera que los tenga. Si un enlace no deber\u00eda compartirse as\u00ed, p\u00eddenoslo y anotaremos d\u00f3nde se guarda el archivo en su lugar."
   },
   "print_note": {
     "en": "This manual can be saved as a PDF at any time using the Print / Save as PDF button at the top of the page.",
