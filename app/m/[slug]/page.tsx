@@ -160,6 +160,23 @@ export default function PublicManualPage() {
     return complete ? text : null;
   };
 
+  const siteIntro = renderInterpolated('site_intro');
+  const siteOverview = renderInterpolated('site_overview');
+  const platformText = renderInterpolated('platform');
+  const frameworkText = renderInterpolated('framework_or_theme');
+  const keyPluginsText = renderInterpolated('key_plugins');
+  const domainText = renderInterpolated('domain');
+  const domainOwnerText = renderInterpolated('domain_owner');
+  const nameserversText = renderInterpolated('nameservers');
+  const hostText = renderInterpolated('host');
+  const hostRenewalText = renderInterpolated('host_renewal');
+  const emailProviderText = renderInterpolated('email_provider');
+  const accountsIntroText = renderInterpolated('accounts_intro');
+  const editBlocksIntroText = renderInterpolated('edit_blocks_intro');
+  const coverageIntroText = renderInterpolated('coverage_intro');
+  const emergencyIntroText = renderInterpolated('emergency_intro');
+  const emergencyContactText = renderInterpolated('emergency_contact');
+
   const dateLocale = locale === 'es' ? 'es-MX' : 'en-US';
 
   const fmtDate = (val: string | null) => {
@@ -319,13 +336,13 @@ export default function PublicManualPage() {
         </div>
 
         {/* Intro */}
-        <div className="manual-section mb-8 sm:mb-10">
-          {renderInterpolated('site_intro') && (
+        {siteIntro && (
+          <div className="manual-section mb-8 sm:mb-10">
             <p className="text-sm leading-relaxed text-foreground sm:text-base">
-              {renderInterpolated('site_intro')}
+              {siteIntro}
             </p>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Site & Stack */}
         <section className="manual-section mb-8 sm:mb-10">
@@ -334,10 +351,10 @@ export default function PublicManualPage() {
             {t('public.sections.site')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {renderInterpolated('site_overview') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('site_overview')}</p>}
-            {renderInterpolated('platform') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('platform')}</p>}
-            {renderInterpolated('framework_or_theme') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('framework_or_theme')}</p>}
-            {renderInterpolated('key_plugins') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('key_plugins')}</p>}
+            {siteOverview && <p className="text-sm leading-relaxed sm:text-base">{siteOverview}</p>}
+            {platformText && <p className="text-sm leading-relaxed sm:text-base">{platformText}</p>}
+            {frameworkText && <p className="text-sm leading-relaxed sm:text-base">{frameworkText}</p>}
+            {keyPluginsText && <p className="text-sm leading-relaxed sm:text-base">{keyPluginsText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -376,9 +393,9 @@ export default function PublicManualPage() {
             {t('public.sections.domain')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {renderInterpolated('domain') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain')}</p>}
-            {manual.domain_owner && renderInterpolated('domain_owner') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('domain_owner')}</p>}
-            {renderInterpolated('nameservers') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('nameservers')}</p>}
+            {domainText && <p className="text-sm leading-relaxed sm:text-base">{domainText}</p>}
+            {manual.domain_owner && domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
+            {nameserversText && <p className="text-sm leading-relaxed sm:text-base">{nameserversText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -413,9 +430,9 @@ export default function PublicManualPage() {
             {t('public.sections.hosting')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {renderInterpolated('host') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host')}</p>}
-            {renderInterpolated('host_renewal') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('host_renewal')}</p>}
-            {renderInterpolated('email_provider') && <p className="text-sm leading-relaxed sm:text-base">{renderInterpolated('email_provider')}</p>}
+            {hostText && <p className="text-sm leading-relaxed sm:text-base">{hostText}</p>}
+            {hostRenewalText && <p className="text-sm leading-relaxed sm:text-base">{hostRenewalText}</p>}
+            {emailProviderText && <p className="text-sm leading-relaxed sm:text-base">{emailProviderText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -449,7 +466,7 @@ export default function PublicManualPage() {
             <Users className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             {t('public.sections.accounts')}
           </h2>
-          {renderInterpolated('accounts_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('accounts_intro')}</p>}
+          {accountsIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{accountsIntroText}</p>}
 
           {accounts.length > 0 ? (
             <div className="overflow-x-auto rounded-lg border border-border">
@@ -503,7 +520,7 @@ export default function PublicManualPage() {
               <PencilLine className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               {t('public.sections.edit')}
             </h2>
-            {renderInterpolated('edit_blocks_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('edit_blocks_intro')}</p>}
+            {editBlocksIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{editBlocksIntroText}</p>}
             <div className="space-y-3 sm:space-y-4">
               {editBlocks.map((block, i) => (
                 <div key={i} className="rounded-lg border border-border p-3 sm:p-5">
@@ -531,7 +548,7 @@ export default function PublicManualPage() {
               <CheckSquare className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               {t('public.sections.coverage')}
             </h2>
-            {renderInterpolated('coverage_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('coverage_intro')}</p>}
+            {coverageIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{coverageIntroText}</p>}
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               {includedItems.length > 0 && (
                 <div>
@@ -587,8 +604,8 @@ export default function PublicManualPage() {
             <Phone className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             {t('public.sections.emergency')}
           </h2>
-          {renderInterpolated('emergency_intro') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_intro')}</p>}
-          {renderInterpolated('emergency_contact') && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{renderInterpolated('emergency_contact')}</p>}
+          {emergencyIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyIntroText}</p>}
+          {emergencyContactText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyContactText}</p>}
 
           <div className="rounded-lg border border-border p-3 sm:p-5">
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
