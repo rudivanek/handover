@@ -97,6 +97,18 @@ export type Asset = {
   created_at: string;
 };
 
+export type ManualContact = {
+  id: string;
+  manual_id: string;
+  contact_name: string;
+  contact_role: string;
+  contact_email: string;
+  contact_phone: string;
+  notes: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type ManualWithRelations = Manual & {
   accounts: Account[];
   edit_blocks: EditBlock[];
@@ -104,4 +116,5 @@ export type ManualWithRelations = Manual & {
   custom_sections: CustomSection[];
   custom_fields: CustomField[];
   assets: Asset[];
+  manual_contacts: ManualContact[];
 };

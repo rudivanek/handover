@@ -299,5 +299,14 @@
   "public.lastUpdated": "\u00daltima actualizaci\u00f3n",
   "edit.sendToClient": "Enviar al cliente",
   "edit.sendToClientSubject": "{client_name} \u2014 manual del propietario del sitio web",
-  "edit.sendToClientBody": "Hola,\n\nAqu\u00ed tienes el enlace a tu manual del propietario del sitio web:\n{url}\n\nDinos si tienes alguna pregunta."
+  "edit.sendToClientBody": "Hola,\n\nAqu\u00ed tienes el enlace a tu manual del propietario del sitio web:\n{url}\n\nDinos si tienes alguna pregunta.",
+  "edit.sections.contacts": "Contactos del cliente (privado)",
+  "edit.contactsPrivacy": "Solo t\u00fa puedes ver esto. Estos datos no se muestran en el manual.",
+  "edit.fields.contactName": "Nombre",
+  "edit.fields.contactRole": "Rol",
+  "edit.fields.contactEmail": "Correo",
+  "edit.fields.contactPhone": "Tel\u00e9fono",
+  "edit.fields.contactNotes": "Notas",
+  "edit.fields.addContact": "Agregar contacto",
+  "edit.contactsEmpty": "A\u00fan no hay contactos registrados."
 }

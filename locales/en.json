@@ -298,5 +298,14 @@
   "public.lastUpdated": "Last updated",
   "edit.sendToClient": "Send to client",
   "edit.sendToClientSubject": "{client_name} \u2014 website owner's manual",
-  "edit.sendToClientBody": "Hi,\n\nHere is the link to your website owner's manual:\n{url}\n\nLet us know if you have any questions."
+  "edit.sendToClientBody": "Hi,\n\nHere is the link to your website owner's manual:\n{url}\n\nLet us know if you have any questions.",
+  "edit.sections.contacts": "Client contacts (private)",
+  "edit.contactsPrivacy": "Only you can see this. These details are not shown on the manual.",
+  "edit.fields.contactName": "Name",
+  "edit.fields.contactRole": "Role",
+  "edit.fields.contactEmail": "Email",
+  "edit.fields.contactPhone": "Phone",
+  "edit.fields.contactNotes": "Notes",
+  "edit.fields.addContact": "Add contact",
+  "edit.contactsEmpty": "No contacts recorded yet."
 }

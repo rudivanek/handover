@@ -10,7 +10,7 @@ import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, Locale } from '@/lib/types';
 import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
@@ -53,6 +53,7 @@ import {
   FolderOpen,
   Link2,
   ArrowUpRight,
+  Lock,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -80,6 +81,8 @@ export default function EditManualPage() {
   const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [assets, setAssets] = useState<Asset[]>([]);
+  const [contacts, setContacts] = useState<ManualContact[]>([]);
+  const [contactCheckResults, setContactCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openSection, setOpenSection] = useState<string>('site');
@@ -94,7 +97,7 @@ export default function EditManualPage() {
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
 
   const fetchData = useCallback(async () => {
-    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes] = await Promise.all([
+    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes] = await Promise.all([
       supabase.from('manuals').select('*').eq('id', id).maybeSingle(),
       supabase.from('accounts').select('*').eq('manual_id', id).order('created_at'),
       supabase.from('edit_blocks').select('*').eq('manual_id', id).order('created_at'),
@@ -102,8 +105,8 @@ export default function EditManualPage() {
       supabase.from('custom_sections').select('*').eq('manual_id', id).order('position'),
       supabase.from('custom_fields').select('*').eq('manual_id', id).order('position'),
       supabase.from('assets').select('*').eq('manual_id', id).order('sort_order'),
+      supabase.from('manual_contacts').select('*').eq('manual_id', id).order('sort_order'),
     ]);
-
     if (manualRes.data) setManual(manualRes.data as Manual);
     setAccounts((accountsRes.data as Account[]) || []);
     setEditBlocks((blocksRes.data as EditBlock[]) || []);
@@ -111,6 +114,7 @@ export default function EditManualPage() {
     setCustomSections((sectionsRes.data as CustomSection[]) || []);
     setCustomFields((fieldsRes.data as CustomField[]) || []);
     setAssets((assetsRes.data as Asset[]) || []);
+    setContacts((contactsRes.data as ManualContact[]) || []);
     setFetching(false);
   }, [id]);
 
@@ -349,6 +353,70 @@ export default function EditManualPage() {
       if (a.id === assetA.id) return { ...a, sort_order: posB };
       if (a.id === assetB.id) return { ...a, sort_order: posA };
       return a;
+    }));
+  };
+
+  // Contacts (private — not shown on public manual)
+  const addContact = async () => {
+    const sortOrder = contacts.length;
+    const { data } = await supabase.from('manual_contacts').insert({
+      manual_id: id,
+      contact_name: '',
+      contact_role: '',
+      contact_email: '',
+      contact_phone: '',
+      notes: '',
+      sort_order: sortOrder,
+    }).select().single();
+    if (data) {
+      setContacts((prev) => [...prev, data as ManualContact]);
+    }
+  };
+
+  const updateContact = (contactId: string, field: keyof ManualContact, value: string) => {
+    setContacts((prev) => prev.map((c) => (c.id === contactId ? { ...c, [field]: value } : c)));
+  };
+
+  const saveContact = async (contactId: string) => {
+    const c = contacts.find((x) => x.id === contactId);
+    if (!c) return;
+    const roleCheck = checkFieldName(c.contact_role);
+    const notesCheck = checkFieldName(c.notes);
+    const level: NameCheckLevel = roleCheck.level === 'block' || notesCheck.level === 'block' ? 'block' : roleCheck.level === 'warn' || notesCheck.level === 'warn' ? 'warn' : 'ok';
+    setContactCheckResults((prev) => ({ ...prev, [contactId]: level }));
+    if (level === 'block') return;
+    await supabase.from('manual_contacts').update({
+      contact_name: c.contact_name,
+      contact_role: c.contact_role,
+      contact_email: c.contact_email,
+      contact_phone: c.contact_phone,
+      notes: c.notes,
+    }).eq('id', contactId);
+  };
+
+  const removeContact = async (contactId: string) => {
+    await supabase.from('manual_contacts').delete().eq('id', contactId);
+    setContacts((prev) => prev.filter((c) => c.id !== contactId));
+  };
+
+  const moveContact = async (contactId: string, direction: 'up' | 'down') => {
+    const sorted = [...contacts].sort((a, b) => a.sort_order - b.sort_order);
+    const idx = sorted.findIndex((c) => c.id === contactId);
+    if (idx === -1) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= sorted.length) return;
+    const contactA = sorted[idx];
+    const contactB = sorted[swapIdx];
+    const posA = contactA.sort_order;
+    const posB = contactB.sort_order;
+    await Promise.all([
+      supabase.from('manual_contacts').update({ sort_order: posB }).eq('id', contactA.id),
+      supabase.from('manual_contacts').update({ sort_order: posA }).eq('id', contactB.id),
+    ]);
+    setContacts((prev) => prev.map((c) => {
+      if (c.id === contactA.id) return { ...c, sort_order: posB };
+      if (c.id === contactB.id) return { ...c, sort_order: posA };
+      return c;
     }));
   };
 
@@ -1248,6 +1316,125 @@ export default function EditManualPage() {
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.emergency)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.emergency)}
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Client contacts (private) */}
+        <AccordionItem value="contacts" className="rounded-lg border border-border bg-muted/30">
+          <AccordionTrigger className="px-5 py-4 hover:no-underline">
+            <span className="flex items-center gap-2 text-lg">
+              <Lock className="h-5 w-5 text-muted-foreground" />
+              {t('edit.sections.contacts')}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-5 pb-5">
+            <div className="mb-4 rounded-lg border border-border bg-background p-3">
+              <p className="text-xs text-muted-foreground">{t('edit.contactsPrivacy')}</p>
+            </div>
+            {contacts.length === 0 && (
+              <p className="mb-3 text-sm text-muted-foreground">{t('edit.contactsEmpty')}</p>
+            )}
+            <div className="space-y-3">
+              {[...contacts].sort((a, b) => a.sort_order - b.sort_order).map((contact, i, sortedArr) => (
+                <div key={contact.id} className="rounded-lg border border-border bg-background p-4">
+                  <div className="flex items-start gap-2">
+                    <div className="flex flex-col gap-0.5 pt-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === 0} onClick={() => moveContact(contact.id, 'up')}>
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === sortedArr.length - 1} onClick={() => moveContact(contact.id, 'down')}>
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('edit.fields.contactName')}</Label>
+                          <Input
+                            value={contact.contact_name}
+                            onChange={(e) => updateContact(contact.id, 'contact_name', e.target.value)}
+                            onBlur={() => saveContact(contact.id)}
+                            placeholder="Jane Smith"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('edit.fields.contactRole')}</Label>
+                          <Input
+                            value={contact.contact_role}
+                            onChange={(e) => {
+                              updateContact(contact.id, 'contact_role', e.target.value);
+                              if (contactCheckResults[contact.id]) {
+                                setContactCheckResults((prev) => { const next = { ...prev }; delete next[contact.id]; return next; });
+                              }
+                            }}
+                            onBlur={() => saveContact(contact.id)}
+                            placeholder="Marketing director"
+                            className={`text-sm ${contactCheckResults[contact.id] === 'block' ? 'border-destructive' : ''}`}
+                          />
+                          {contactCheckResults[contact.id] === 'block' && (
+                            <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
+                          )}
+                          {contactCheckResults[contact.id] === 'warn' && (
+                            <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('edit.fields.contactEmail')}</Label>
+                          <Input
+                            type="email"
+                            value={contact.contact_email}
+                            onChange={(e) => updateContact(contact.id, 'contact_email', e.target.value)}
+                            onBlur={() => saveContact(contact.id)}
+                            placeholder="jane@acme.com"
+                            className="text-sm"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('edit.fields.contactPhone')}</Label>
+                          <Input
+                            value={contact.contact_phone}
+                            onChange={(e) => updateContact(contact.id, 'contact_phone', e.target.value)}
+                            onBlur={() => saveContact(contact.id)}
+                            placeholder="+1 555 0100"
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">{t('edit.fields.contactNotes')}</Label>
+                        <Textarea
+                          value={contact.notes}
+                          onChange={(e) => {
+                            updateContact(contact.id, 'notes', e.target.value);
+                            if (contactCheckResults[contact.id]) {
+                              setContactCheckResults((prev) => { const next = { ...prev }; delete next[contact.id]; return next; });
+                            }
+                          }}
+                          onBlur={() => saveContact(contact.id)}
+                          placeholder=""
+                          rows={2}
+                          className={`text-sm ${contactCheckResults[contact.id] === 'block' ? 'border-destructive' : ''}`}
+                        />
+                        {contactCheckResults[contact.id] === 'block' && (
+                          <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
+                        )}
+                        {contactCheckResults[contact.id] === 'warn' && (
+                          <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                        )}
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeContact(contact.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button variant="outline" size="sm" className="mt-4" onClick={addContact}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('edit.fields.addContact')}
+            </Button>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
