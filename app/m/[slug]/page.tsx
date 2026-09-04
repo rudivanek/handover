@@ -179,6 +179,7 @@ export default function PublicManualPage() {
   const emergencyIntroText = renderInterpolated('emergency_intro');
   const emergencyContactText = renderInterpolated('emergency_contact');
   const supportGeneralText = renderInterpolated('support_general');
+  const assetsNoteText = renderInterpolated('assets_note');
 
   const hasEmergencyCard = !!(
     manual.emergency_name || manual.emergency_role ||
@@ -697,6 +698,7 @@ export default function PublicManualPage() {
                 </tbody>
               </table>
             </div>
+            {assetsNoteText && <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:mt-4">{assetsNoteText}</p>}
           </section>
         )}
 

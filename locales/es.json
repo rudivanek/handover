@@ -270,6 +270,7 @@
   "edit.fields.addAsset": "A\u00f1adir recurso",
   "edit.assetsEmpty": "A\u00fan no se han registrado archivos o recursos.",
   "edit.assetUrlInvalid": "Los enlaces deben empezar con http:// o https://.",
+  "edit.assetUrlShareWarning": "Esto parece un enlace compartido. Cualquiera que pueda abrir este manual podr\u00e1 abrir este archivo.",
   "settings.logoUpload": "Subir logo",
   "settings.logoReplace": "Reemplazar",
   "settings.logoRemove": "Quitar",

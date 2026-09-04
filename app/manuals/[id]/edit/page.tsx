@@ -11,7 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import { computeCompletion, isDraft } from '@/lib/completion';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, Locale } from '@/lib/types';
-import { checkFieldName, isSecretConstraintError } from '@/lib/secret-names';
+import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -305,9 +305,11 @@ export default function EditManualPage() {
   const saveAsset = async (assetId: string) => {
     const a = assets.find((x) => x.id === assetId);
     if (!a) return;
-    const check = checkFieldName(a.label);
-    setAssetCheckResults((prev) => ({ ...prev, [assetId]: check.level }));
-    if (check.level === 'block') return;
+    const labelCheck = checkFieldName(a.label);
+    const urlCheck = a.url ? checkAssetUrl(a.url) : { level: 'ok' as NameCheckLevel };
+    const level: NameCheckLevel = labelCheck.level === 'block' ? 'block' : urlCheck.level === 'warn' ? 'warn' : labelCheck.level === 'warn' ? 'warn' : 'ok';
+    setAssetCheckResults((prev) => ({ ...prev, [assetId]: level }));
+    if (labelCheck.level === 'block') return;
     let url = a.url;
     if (url && url.trim() && !url.match(/^[a-z]+:\/\//i) && !url.includes('@')) {
       url = `https://${url.trim()}`;
@@ -1066,6 +1068,9 @@ export default function EditManualPage() {
                             placeholder="https://drive.google.com/..."
                             className="text-sm"
                           />
+                          {assetCheckResults[asset.id] === 'warn' && asset.url && checkAssetUrl(asset.url).level === 'warn' && (
+                            <p className="text-xs text-muted-foreground">{t('edit.assetUrlShareWarning')}</p>
+                          )}
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">{t('edit.fields.assetOwner')}</Label>

@@ -87,6 +87,10 @@
     "en": "For day-to-day questions and non-urgent requests, email {support_email}. Support hours are {support_hours}. We aim to respond within one business day.",
     "es": "Para preguntas del d\u00eda a d\u00eda y solicitudes no urgentes, escribe a {support_email}. El horario de soporte es {support_hours}. Buscamos responder dentro de un d\u00eda h\u00e1bil."
   },
+  "assets_note": {
+    "en": "Some of the links in this section may open the file for anyone who has them. If a link should not be shared, replace it with a note saying where the file is kept and who to ask for access.",
+    "es": "Algunos de los enlaces en esta secci\u00f3n pueden abrir el archivo para cualquiera que los tenga. Si un enlace no deber\u00eda compartirse, reempl\u00e1zalo con una nota que diga d\u00f3nde se guarda el archivo y a qui\u00e9n pedir acceso."
+  },
   "print_note": {
     "en": "This manual can be saved as a PDF at any time using the Print / Save as PDF button at the top of the page.",
     "es": "Este manual se puede guardar como PDF en cualquier momento usando el bot\u00f3n Imprimir / Guardar como PDF en la parte superior de la p\u00e1gina."
