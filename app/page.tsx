@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { HandoverMark } from '@/components/Logo';
+import { HandoverLogo } from '@/components/Logo';
 
 export default function Home() {
   const { user, loading } = useAuth();
@@ -20,9 +20,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-secondary/30">
-      <div className="flex items-center gap-2 text-primary animate-pulse">
-        <HandoverMark size={24} />
-        <span className="text-xl font-semibold">Handover</span>
+      <div className="animate-pulse">
+        <HandoverLogo size={28} />
       </div>
     </div>
   );

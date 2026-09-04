@@ -672,7 +672,7 @@ export default function PublicManualPage() {
         {showFooter && (
           <footer className="mt-12 border-t border-border pt-4 text-center sm:mt-16 sm:pt-6">
             <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
-              <HandoverMark size={13} />
+              <HandoverMark size={13} color="currentColor" />
               <a
                 href={MARKETING_URL}
                 target="_blank"

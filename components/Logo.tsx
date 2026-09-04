@@ -1,6 +1,6 @@
-type MarkProps = { size?: number; className?: string }
+type MarkProps = { size?: number; color?: string; className?: string }
 
-export function HandoverMark({ size = 20, className }: MarkProps) {
+export function HandoverMark({ size = 20, color = '#e34432', className }: MarkProps) {
   return (
     <svg
       width={size}
@@ -8,6 +8,7 @@ export function HandoverMark({ size = 20, className }: MarkProps) {
       viewBox="0 0 24 24"
       fill="none"
       className={className}
+      style={{ color }}
       aria-hidden="true"
       focusable="false"
     >
@@ -30,13 +31,12 @@ export function HandoverMark({ size = 20, className }: MarkProps) {
   )
 }
 
-export function HandoverLogo({ size = 19, textSize, markClassName }: { size?: number; textSize?: number; markClassName?: string }) {
+export function HandoverLogo({ size = 28, textSize, markClassName }: { size?: number; textSize?: number; markClassName?: string }) {
   return (
-    <span className="inline-flex items-center gap-2 text-[#1A1F27]">
-      <HandoverMark size={size} className={markClassName} />
+    <span className="inline-flex items-center gap-[10px]">
+      <HandoverMark size={size} color="#e34432" className={markClassName} />
       <span
-        className="font-semibold"
-        style={{ fontSize: textSize ?? size * 0.79, letterSpacing: '-0.01em' }}
+        style={{ fontSize: textSize ?? size * 0.786, fontWeight: 600, letterSpacing: '-0.022em', color: '#25221e' }}
       >
         Handover
       </span>

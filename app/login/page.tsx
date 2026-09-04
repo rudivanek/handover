@@ -120,7 +120,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-secondary/30 px-4">
       <div className="mb-8">
-        <HandoverLogo size={26} />
+        <HandoverLogo size={28} />
       </div>
 
       <Card className="w-full max-w-md shadow-sm">
