@@ -381,10 +381,11 @@ export default function EditManualPage() {
     const c = contacts.find((x) => x.id === contactId);
     if (!c) return;
     const roleCheck = checkFieldName(c.contact_role);
-    const notesCheck = checkFieldName(c.notes);
-    const level: NameCheckLevel = roleCheck.level === 'block' || notesCheck.level === 'block' ? 'block' : roleCheck.level === 'warn' || notesCheck.level === 'warn' ? 'warn' : 'ok';
+    const notesRaw = checkFieldName(c.notes);
+    const notesLevel: NameCheckLevel = notesRaw.level === 'block' ? 'warn' : notesRaw.level;
+    const level: NameCheckLevel = roleCheck.level === 'block' ? 'block' : roleCheck.level === 'warn' || notesLevel === 'warn' ? 'warn' : 'ok';
     setContactCheckResults((prev) => ({ ...prev, [contactId]: level }));
-    if (level === 'block') return;
+    if (roleCheck.level === 'block') return;
     await supabase.from('manual_contacts').update({
       contact_name: c.contact_name,
       contact_role: c.contact_role,
