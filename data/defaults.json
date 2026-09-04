@@ -20,8 +20,12 @@
     "es": "Tu sitio usa los siguientes plugins para a\u00f1adir funcionalidad: {key_plugins}. Los plugins deben mantenerse actualizados y desactivarse solo despu\u00e9s de consultar con tu agencia, ya que quitar uno puede eliminar funciones o contenido del sitio en vivo."
   },
   "domain": {
-    "en": "Your domain is registered with {registrar} and renews on {domain_expiry}. If it expires, your website and email both stop working the same day.",
-    "es": "Tu dominio est\u00e1 registrado con {registrar} y se renueva el {domain_expiry}. Si expira, tu sitio web y tu correo dejan de funcionar el mismo d\u00eda."
+    "en": "Your domain is registered with {registrar}. The registrar is the company that holds your domain name and manages its renewal.",
+    "es": "Tu dominio est\u00e1 registrado con {registrar}. El registrador es la empresa que mantiene tu nombre de dominio y gestiona su renovaci\u00f3n."
+  },
+  "domain_expiry": {
+    "en": "Your domain renews on {domain_expiry}. If it expires, your website and email both stop working the same day.",
+    "es": "Tu dominio se renueva el {domain_expiry}. Si expira, tu sitio web y tu correo dejan de funcionar el mismo d\u00eda."
   },
   "domain_owner": {
     "en": "The domain is owned by {domain_owner}. Only the owner (or someone they authorize) can renew, transfer, or make changes to the domain registration.",
@@ -32,8 +36,12 @@
     "es": "Tu dominio apunta a estos nameservers: {nameservers}. Los nameservers le dicen a internet d\u00f3nde viven tu sitio web y tu correo. Si se cambian de forma incorrecta, tu sitio y tu correo se quedar\u00e1n sin servicio."
   },
   "host": {
-    "en": "Your website is hosted with {host} on the {host_plan} plan. Hosting is the computer your website lives on; without it, the site has nowhere to serve pages from.",
-    "es": "Tu sitio web est\u00e1 alojado con {host} en el plan {host_plan}. El hosting es la computadora donde vive tu sitio web; sin \u00e9l, el sitio no tiene d\u00f3nde servir sus p\u00e1ginas."
+    "en": "Your website is hosted with {host}. Hosting is the computer your website lives on; without it, the site has nowhere to serve pages from.",
+    "es": "Tu sitio web est\u00e1 alojado con {host}. El hosting es la computadora donde vive tu sitio web; sin \u00e9l, el sitio no tiene d\u00f3nde servir sus p\u00e1ginas."
+  },
+  "host_plan": {
+    "en": "Your hosting plan is {host_plan}. The plan determines how much traffic your site can handle and what resources are available to it.",
+    "es": "Tu plan de hosting es {host_plan}. El plan determina cu\u00e1nto tr\u00e1fico puede manejar tu sitio y qu\u00e9 recursos tiene disponibles."
   },
   "host_renewal": {
     "en": "Your hosting renews on {host_renewal}. If hosting lapses, your website goes offline. Renewal is typically handled by your agency unless you have been told otherwise.",
@@ -68,12 +76,12 @@
     "es": "Los siguientes art\u00edculos no est\u00e1n incluidos y se facturan por separado cuando se solicitan:"
   },
   "emergency_intro": {
-    "en": "If something urgent happens \u2014 your site goes down, you suspect a hack, or email stops working \u2014 use the contacts below. For anything non-urgent, email {support_email} during support hours ({support_hours}).",
-    "es": "Si ocurre algo urgente \u2014 tu sitio se cae, sospechas un hackeo o el correo deja de funcionar \u2014 usa los contactos a continuaci\u00f3n. Para cualquier cosa no urgente, escribe a {support_email} durante el horario de soporte ({support_hours})."
+    "en": "If something urgent happens \u2014 your site goes down, you suspect a hack, or email stops working \u2014 use the contacts below.",
+    "es": "Si ocurre algo urgente \u2014 tu sitio se cae, sospechas un hackeo o el correo deja de funcionar \u2014 usa los contactos a continuaci\u00f3n."
   },
   "emergency_contact": {
-    "en": "For emergencies, call {emergency_name} ({emergency_role}) at {emergency_phone} or email {emergency_email}. Use this only for situations where your website or email is down or compromised.",
-    "es": "Para emergencias, llama a {emergency_name} ({emergency_role}) al {emergency_phone} o escribe a {emergency_email}. Usa esto solo para situaciones en las que tu sitio web o correo est\u00e9n ca\u00eddos o comprometidos."
+    "en": "For emergencies, call {emergency_name} at {emergency_phone}. Use this only for situations where your website or email is down or compromised.",
+    "es": "Para emergencias, llama a {emergency_name} al {emergency_phone}. Usa esto solo para situaciones en las que tu sitio web o correo est\u00e9n ca\u00eddos o comprometidos."
   },
   "support_general": {
     "en": "For day-to-day questions and non-urgent requests, email {support_email}. Support hours are {support_hours}. We aim to respond within one business day.",

@@ -166,9 +166,11 @@ export default function PublicManualPage() {
   const frameworkText = renderInterpolated('framework_or_theme');
   const keyPluginsText = renderInterpolated('key_plugins');
   const domainText = renderInterpolated('domain');
+  const domainExpiryText = renderInterpolated('domain_expiry');
   const domainOwnerText = renderInterpolated('domain_owner');
   const nameserversText = renderInterpolated('nameservers');
   const hostText = renderInterpolated('host');
+  const hostPlanText = renderInterpolated('host_plan');
   const hostRenewalText = renderInterpolated('host_renewal');
   const emailProviderText = renderInterpolated('email_provider');
   const accountsIntroText = renderInterpolated('accounts_intro');
@@ -176,6 +178,13 @@ export default function PublicManualPage() {
   const coverageIntroText = renderInterpolated('coverage_intro');
   const emergencyIntroText = renderInterpolated('emergency_intro');
   const emergencyContactText = renderInterpolated('emergency_contact');
+  const supportGeneralText = renderInterpolated('support_general');
+
+  const hasEmergencyCard = !!(
+    manual.emergency_name || manual.emergency_role ||
+    manual.emergency_phone || manual.emergency_email ||
+    agency.support_email
+  );
 
   const dateLocale = locale === 'es' ? 'es-MX' : 'en-US';
 
@@ -394,6 +403,7 @@ export default function PublicManualPage() {
           </h2>
           <div className="space-y-3 sm:space-y-4">
             {domainText && <p className="text-sm leading-relaxed sm:text-base">{domainText}</p>}
+            {domainExpiryText && <p className="text-sm leading-relaxed sm:text-base">{domainExpiryText}</p>}
             {manual.domain_owner && domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
             {nameserversText && <p className="text-sm leading-relaxed sm:text-base">{nameserversText}</p>}
 
@@ -431,6 +441,7 @@ export default function PublicManualPage() {
           </h2>
           <div className="space-y-3 sm:space-y-4">
             {hostText && <p className="text-sm leading-relaxed sm:text-base">{hostText}</p>}
+            {hostPlanText && <p className="text-sm leading-relaxed sm:text-base">{hostPlanText}</p>}
             {hostRenewalText && <p className="text-sm leading-relaxed sm:text-base">{hostRenewalText}</p>}
             {emailProviderText && <p className="text-sm leading-relaxed sm:text-base">{emailProviderText}</p>}
 
@@ -606,7 +617,9 @@ export default function PublicManualPage() {
           </h2>
           {emergencyIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyIntroText}</p>}
           {emergencyContactText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyContactText}</p>}
+          {supportGeneralText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{supportGeneralText}</p>}
 
+          {hasEmergencyCard && (
           <div className="rounded-lg border border-border p-3 sm:p-5">
             <div className="grid gap-3 sm:gap-4 sm:grid-cols-2">
               <div>
@@ -631,6 +644,7 @@ export default function PublicManualPage() {
               </div>
             </div>
           </div>
+          )}
 
           {emergencyCustomFields.length > 0 && (
             <div className="mt-4 overflow-hidden rounded-lg border border-border">

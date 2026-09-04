@@ -915,6 +915,7 @@ export default function EditManualPage() {
             <div className="mt-4 rounded-lg bg-secondary/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
               <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain')}</p>
+              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain_expiry')}</p>
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.domain)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.domain)}
@@ -952,6 +953,7 @@ export default function EditManualPage() {
               <div className="rounded-lg bg-secondary/50 p-4">
                 <p className="text-xs font-medium text-muted-foreground">{t('edit.hostingPreview')}</p>
                 <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host')}</p>
+                <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host_plan')}</p>
               </div>
               <div className="rounded-lg bg-secondary/50 p-4">
                 <p className="text-xs font-medium text-muted-foreground">{t('edit.emailPreview')}</p>
@@ -1225,7 +1227,9 @@ export default function EditManualPage() {
             </div>
             <div className="mt-4 rounded-lg bg-secondary/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
+              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_intro')}</p>
               <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_contact')}</p>
+              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('support_general')}</p>
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.emergency)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.emergency)}
