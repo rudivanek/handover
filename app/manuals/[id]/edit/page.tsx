@@ -706,6 +706,16 @@ export default function EditManualPage() {
               <Link2 className="mr-2 h-4 w-4" />
               {t('manuals.copyLink')}
             </Button>
+            {manual && (
+              <Button variant="outline" asChild>
+                <a
+                  href={`mailto:?subject=${encodeURIComponent(t('edit.sendToClientSubject', { client_name: manual.client_name }))}&body=${encodeURIComponent(t('edit.sendToClientBody', { url: `${typeof window !== 'undefined' ? window.location.origin : ''}/m/${manual.slug}` }))}`}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t('edit.sendToClient')}
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -294,5 +294,9 @@
   "settings.typefacePreviewBody": "The quick brown fox jumps over the lazy dog.",
   "public.sections.assets": "Files & assets",
   "public.fields.assetOwner": "Owner",
-  "public.fields.assetNotes": "Notes"
+  "public.fields.assetNotes": "Notes",
+  "public.lastUpdated": "Last updated",
+  "edit.sendToClient": "Send to client",
+  "edit.sendToClientSubject": "{client_name} \u2014 website owner's manual",
+  "edit.sendToClientBody": "Hi,\n\nHere is the link to your website owner's manual:\n{url}\n\nLet us know if you have any questions."
 }

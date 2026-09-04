@@ -342,6 +342,11 @@ export default function PublicManualPage() {
           <p className="mt-2 text-lg text-muted-foreground sm:mt-3 sm:text-xl">
             {t('public.websiteOwnersManual')}
           </p>
+          {manual.updated_at && (
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t('public.lastUpdated')} {fmtDate(manual.updated_at)}
+            </p>
+          )}
           <div className="mt-4 h-px w-full sm:mt-6" style={sectionRuleStyle} />
         </div>
 

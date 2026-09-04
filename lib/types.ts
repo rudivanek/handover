@@ -42,6 +42,7 @@ export type Manual = {
   emergency_email: string | null;
   locale: Locale;
   created_at: string;
+  updated_at: string;
 };
 
 export type Account = {

@@ -295,5 +295,9 @@
   "settings.typefacePreviewBody": "El r\u00e1pido zorro marr\u00f3n salta sobre el perro perezoso.",
   "public.sections.assets": "Archivos y recursos",
   "public.fields.assetOwner": "Titular",
-  "public.fields.assetNotes": "Notas"
+  "public.fields.assetNotes": "Notas",
+  "public.lastUpdated": "\u00daltima actualizaci\u00f3n",
+  "edit.sendToClient": "Enviar al cliente",
+  "edit.sendToClientSubject": "{client_name} \u2014 manual del propietario del sitio web",
+  "edit.sendToClientBody": "Hola,\n\nAqu\u00ed tienes el enlace a tu manual del propietario del sitio web:\n{url}\n\nDinos si tienes alguna pregunta."
 }
