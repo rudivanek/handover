@@ -962,7 +962,7 @@ export default function EditManualPage() {
             {manual.is_published ? (
               <div className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
                 <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="text-xs font-medium text-green-700">{t('edit.published')}</span>
+                <span className="text-xs font-medium text-green-700">{t('edit.live')}</span>
                 <Button
                   variant="ghost"
                   size="sm"

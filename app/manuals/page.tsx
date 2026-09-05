@@ -96,7 +96,6 @@ export default function ManualsPage() {
       .insert({
         slug,
         client_name: newClientName.trim(),
-        site_name: newClientName.trim(),
         locale: manualLocale,
       })
       .select()
@@ -323,19 +322,17 @@ export default function ManualsPage() {
                     <Link href={`/manuals/${manual.id}/edit`} className="block">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg hover:underline">{manual.client_name || t('manuals.untitled')}</h3>
-                        {draft && (
-                          <Badge variant="secondary" className="bg-[#f3f4f6] text-[#dc2828] border-amber-200">
-                            {t('manuals.incomplete')}
-                          </Badge>
-                        )}
-                        {manual.archived_at && (
+                        {manual.archived_at ? (
                           <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
                             {t('manuals.archived')}
                           </Badge>
-                        )}
-                        {!manual.is_published && (
+                        ) : manual.is_published ? (
+                          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                            {t('manuals.live')}
+                          </Badge>
+                        ) : (
                           <Badge variant="secondary" className="bg-muted text-muted-foreground">
-                            {t('manuals.notPublished')}
+                            {t('manuals.draftState')}
                           </Badge>
                         )}
                       </div>
@@ -354,7 +351,10 @@ export default function ManualsPage() {
                             })}
                           </span>
                         )}
-                        <span className="text-xs">{t('manuals.complete', { percent: completion.percentage })}</span>
+                        <span className="text-xs">
+                          {t('manuals.complete', { percent: completion.percentage })}
+                          {draft && <span className="ml-1 text-amber-600">· {t('manuals.incomplete')}</span>}
+                        </span>
                       </div>
                     </Link>
                   </div>
