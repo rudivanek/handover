@@ -2,6 +2,7 @@
   "app.name": "Handover",
   "nav.manuals": "Manuals",
   "nav.settings": "Settings",
+  "nav.help": "Help",
   "nav.agencySettings": "Agency settings",
   "nav.signOut": "Sign out",
   "nav.scripts": "Scripts",

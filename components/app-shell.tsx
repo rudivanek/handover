@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail } from 'lucide-react';
+import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail, HelpCircle } from 'lucide-react';
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
 
@@ -51,6 +51,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Settings className="mr-1.5 h-4 w-4" />
                 <span className="hidden sm:inline">{t('nav.settings')}</span>
               </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <a href="https://handover.agency/help.html" target="_blank" rel="noopener noreferrer">
+                <HelpCircle className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">{t('nav.help')}</span>
+              </a>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
