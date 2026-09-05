@@ -59,12 +59,10 @@
     margin: 0 !important;
   }
   .manual-section {
-    page-break-before: always;
-    break-before: page;
+    break-inside: avoid;
   }
   .manual-section-first {
-    page-break-before: avoid;
-    break-before: auto;
+    break-inside: avoid;
   }
   .manual-contents {
     break-after: page;

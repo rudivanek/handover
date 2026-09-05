@@ -320,6 +320,18 @@ export default function PublicManualPage() {
     return t('maintenance.owner.shared');
   };
 
+  const handlePrint = () => {
+    const previous = document.title;
+    const d = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
+    document.title = `${manual.slug}-${stamp}`;
+    const restore = () => { document.title = previous; window.removeEventListener('afterprint', restore); };
+    window.addEventListener('afterprint', restore);
+    window.print();
+    setTimeout(restore, 1000);
+  };
+
   return (
     <div className="min-h-screen bg-secondary/20">
       <meta name="referrer" content="no-referrer" />
@@ -329,7 +341,7 @@ export default function PublicManualPage() {
           <span className="truncate text-sm text-muted-foreground">
             {manual.client_name} {'\u2014'} {t('public.websiteOwnersManual')}
           </span>
-          <Button variant="outline" size="sm" onClick={() => window.print()} className="shrink-0">
+          <Button variant="outline" size="sm" onClick={handlePrint} className="shrink-0">
             <Printer className="mr-2 h-4 w-4" />
             <span className="hidden sm:inline">{t('public.print')}</span>
             <span className="sm:hidden">{t('public.printShort')}</span>
@@ -392,6 +404,15 @@ export default function PublicManualPage() {
           <div className="mt-4 h-px w-full sm:mt-6" style={sectionRuleStyle} />
         </div>
 
+        {/* Intro */}
+        {siteIntro && (
+          <div className="manual-intro mb-8 sm:mb-10">
+            <p className="text-sm leading-relaxed text-foreground sm:text-base">
+              {siteIntro}
+            </p>
+          </div>
+        )}
+
         {/* Table of contents */}
         {sectionList.length >= 4 && (
           <div className="manual-contents mb-8 sm:mb-10">
@@ -411,15 +432,6 @@ export default function PublicManualPage() {
                 </li>
               ))}
             </ol>
-          </div>
-        )}
-
-        {/* Intro */}
-        {siteIntro && (
-          <div className="manual-section manual-section-first mb-8 sm:mb-10">
-            <p className="text-sm leading-relaxed text-foreground sm:text-base">
-              {siteIntro}
-            </p>
           </div>
         )}
 
