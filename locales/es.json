@@ -100,7 +100,6 @@
   "settings.identityDescription": "El nombre y logo de tu agencia tal como aparecen en los manuales.",
   "settings.agencyName": "Nombre de la agencia",
   "settings.logoUrl": "URL del logo",
-  "settings.logoUrlHelp": "Pega un enlace a tu imagen de logo. Aparecer\u00e1 en la parte superior de cada manual.",
   "settings.agencyWebsite": "Sitio web de la agencia",
   "settings.agencyWebsiteHelp": "Tu logo enlazar\u00e1 aqu\u00ed en cada manual que publiques.",
   "settings.logoModeUpload": "Subir un archivo",
@@ -345,5 +344,9 @@
   "scripts.copiedBodyDesc": "El cuerpo del correo est\u00e1 en tu portapapeles.",
   "scripts.copyFailed": "No se pudo copiar",
   "scripts.copyFailedDesc": "Selecciona el texto manualmente y c\u00f3pialo.",
+  "scripts.stage.presale": "Antes de la venta",
+  "scripts.stage.launch": "En el lanzamiento",
+  "scripts.stage.postlaunch": "Un mes despu\u00e9s del lanzamiento",
+  "scripts.stage.renewal": "Renovaci\u00f3n del plan",
   "edit.emailScripts": "Correos para clientes"
 }

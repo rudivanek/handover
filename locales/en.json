@@ -100,7 +100,6 @@
   "settings.identityDescription": "Your agency's name and logo as they appear on manuals.",
   "settings.agencyName": "Agency name",
   "settings.logoUrl": "Logo URL",
-  "settings.logoUrlHelp": "Paste a link to your logo image. It will appear at the top of every manual.",
   "settings.agencyWebsite": "Agency website",
   "settings.agencyWebsiteHelp": "Your logo links here on every manual you publish.",
   "settings.logoModeUpload": "Upload a file",
@@ -344,5 +343,9 @@
   "scripts.copiedBodyDesc": "The email body is in your clipboard.",
   "scripts.copyFailed": "Couldn't copy",
   "scripts.copyFailedDesc": "Select the text manually and copy.",
+  "scripts.stage.presale": "Before the sale",
+  "scripts.stage.launch": "At launch",
+  "scripts.stage.postlaunch": "One month after launch",
+  "scripts.stage.renewal": "Care plan renewal",
   "edit.emailScripts": "Email scripts"
 }

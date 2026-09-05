@@ -70,6 +70,7 @@ export function fillScript(
   return { key: script.key, subject, body };
 }
 
-export function scriptToPlainText(script: EmailScript): string {
-  return `Subject: ${script.subject}\n\n${script.body}`;
+export function scriptToPlainText(script: EmailScript, locale: Locale): string {
+  const label = locale === 'es' ? 'Asunto' : 'Subject';
+  return `${label}: ${script.subject}\n\n${script.body}`;
 }

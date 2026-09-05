@@ -6,7 +6,7 @@ import { useRequireAuth } from '@/lib/use-require-auth';
 import { useI18n } from '@/lib/i18n';
 import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
-import type { Manual, Profile, Locale } from '@/lib/types';
+import type { Manual, Locale } from '@/lib/types';
 import { getScripts, fillScript, scriptToPlainText, type EmailScript } from '@/lib/email-scripts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, Copy, FileText, Globe, ChevronDown } from 'lucide-react';
+import { Mail, Copy, FileText } from 'lucide-react';
+import enMessages from '@/locales/en.json';
+import esMessages from '@/locales/es.json';
+
+const localeMessages: Record<Locale, Record<string, string>> = {
+  en: enMessages,
+  es: esMessages,
+};
 
 type ManualOption = {
   id: string;
@@ -27,21 +34,6 @@ type ManualOption = {
   slug: string;
   locale: Locale;
   updated_at: string;
-};
-
-const stageLabels: Record<Locale, Record<string, string>> = {
-  en: {
-    presale: 'Before the sale',
-    launch: 'At launch',
-    postlaunch: 'One month after launch',
-    renewal: 'Care plan renewal',
-  },
-  es: {
-    presale: 'Antes de la venta',
-    launch: 'En el lanzamiento',
-    postlaunch: 'Un mes despues del lanzamiento',
-    renewal: 'Renovacion del plan',
-  },
 };
 
 export default function ScriptsPage() {
@@ -103,7 +95,7 @@ export default function ScriptsPage() {
 
   const copyAll = async (script: EmailScript) => {
     try {
-      await navigator.clipboard.writeText(scriptToPlainText(script));
+      await navigator.clipboard.writeText(scriptToPlainText(script, scriptLocale));
       toast({ title: t('scripts.copied'), description: t('scripts.copiedDesc') });
     } catch {
       toast({ title: t('scripts.copyFailed'), description: t('scripts.copyFailedDesc') });
@@ -119,7 +111,6 @@ export default function ScriptsPage() {
     }
   };
 
-  const selectedOption = manuals.find((m) => m.id === selectedId);
 
   return (
     <AppShell>
@@ -194,7 +185,7 @@ export default function ScriptsPage() {
                     <span className="flex h-6 w-6 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-muted-foreground">
                       {idx + 1}
                     </span>
-                    <span className="text-sm text-muted-foreground">{stageLabels[scriptLocale][script.key]}</span>
+                    <span className="text-sm text-muted-foreground">{localeMessages[scriptLocale][`scripts.stage.${script.key}`]}</span>
                   </div>
                   <CardTitle className="text-base font-semibold leading-snug">
                     {script.subject}
