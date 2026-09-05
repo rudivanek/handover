@@ -254,7 +254,7 @@ export default function PublicManualPage() {
     if (fields.length === 0) return null;
 
     return (
-      <section key={section.id} id={`custom-${section.id}`} className="manual-section mb-8 sm:mb-10">
+      <section key={section.id} id={`custom-${section.id}`} className="manual-section mb-8 sm:mb-10 scroll-mt-20">
         <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
           <FileText className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
           <span className="text-sm font-normal text-muted-foreground sm:text-base">{num}.</span>
@@ -327,7 +327,7 @@ export default function PublicManualPage() {
       <div className="no-print sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-3 sm:px-6">
           <span className="truncate text-sm text-muted-foreground">
-            {manual.client_name} \u2014 {t('public.websiteOwnersManual')}
+            {manual.client_name} {'\u2014'} {t('public.websiteOwnersManual')}
           </span>
           <Button variant="outline" size="sm" onClick={() => window.print()} className="shrink-0">
             <Printer className="mr-2 h-4 w-4" />
@@ -424,7 +424,7 @@ export default function PublicManualPage() {
         )}
 
         {/* Site & Stack */}
-        <section id="site" className="manual-section mb-8 sm:mb-10">
+        <section id="site" className={`manual-section ${siteIntro ? '' : 'manual-section-first'} mb-8 sm:mb-10 scroll-mt-20`}>
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Globe className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('site')}.</span>
@@ -467,7 +467,7 @@ export default function PublicManualPage() {
         </section>
 
         {/* Domain & DNS */}
-        <section id="domain" className="manual-section mb-8 sm:mb-10">
+        <section id="domain" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Globe className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('domain')}.</span>
@@ -506,7 +506,7 @@ export default function PublicManualPage() {
         </section>
 
         {/* Hosting & Email */}
-        <section id="hosting" className="manual-section mb-8 sm:mb-10">
+        <section id="hosting" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Server className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('hosting')}.</span>
@@ -545,7 +545,7 @@ export default function PublicManualPage() {
         </section>
 
         {/* Accounts & Ownership */}
-        <section id="accounts" className="manual-section mb-8 sm:mb-10">
+        <section id="accounts" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Users className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('accounts')}.</span>
@@ -600,7 +600,7 @@ export default function PublicManualPage() {
 
         {/* How To Edit */}
         {editBlocks.length > 0 && (
-          <section id="edit" className="manual-section mb-8 sm:mb-10">
+          <section id="edit" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <PencilLine className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('edit')}.</span>
@@ -629,7 +629,7 @@ export default function PublicManualPage() {
 
         {/* What's Covered */}
         {(includedItems.length > 0 || excludedItems.length > 0 || coverageCustomFields.length > 0) && (
-          <section id="coverage" className="manual-section mb-8 sm:mb-10">
+          <section id="coverage" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <CheckSquare className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('coverage')}.</span>
@@ -687,7 +687,7 @@ export default function PublicManualPage() {
 
         {/* Maintenance schedule */}
         {maintenanceTasks.length > 0 && (
-          <section id="maintenance" className="manual-section mb-8 sm:mb-10">
+          <section id="maintenance" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <CalendarCheck className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('maintenance')}.</span>
@@ -745,7 +745,7 @@ export default function PublicManualPage() {
         )}
 
         {/* Emergency Contacts */}
-        <section id="emergency" className="manual-section mb-8 sm:mb-10">
+        <section id="emergency" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Phone className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('emergency')}.</span>
@@ -800,7 +800,7 @@ export default function PublicManualPage() {
 
         {/* Files & assets */}
         {assets.length > 0 && (
-          <section id="assets" className="manual-section mb-8 sm:mb-10">
+          <section id="assets" className="manual-section mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <FolderOpen className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('assets')}.</span>
