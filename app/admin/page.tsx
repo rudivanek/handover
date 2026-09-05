@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/lib/auth-context';
+import { AppShell } from '@/components/app-shell';
 import { FileText } from 'lucide-react';
 
 type AdminRow = {
@@ -14,30 +16,42 @@ type AdminRow = {
 };
 
 export default function AdminPage() {
+  const { loading: authLoading, user } = useAuth();
   const [rows, setRows] = useState<AdminRow[] | null>(null);
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
     (async () => {
       const { data, error } = await supabase.rpc('admin_overview');
-      if (error || !data || (data as AdminRow[]).length === 0) {
+      if (error) {
+        setError(true);
         setRows(null);
       } else {
-        setRows(data as AdminRow[]);
+        setError(false);
+        setRows((data as AdminRow[]) ?? []);
       }
       setLoading(false);
     })();
-  }, []);
+  }, [authLoading, user]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-secondary/30">
-        <p className="text-muted-foreground">Loading…</p>
-      </div>
+      <AppShell>
+        <div className="flex min-h-[60vh] items-center justify-center">
+          <p className="text-muted-foreground">Loading…</p>
+        </div>
+      </AppShell>
     );
   }
 
-  if (!rows) {
+  if (!user || error) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-secondary/30 px-4">
         <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" strokeWidth={1} />
@@ -47,8 +61,8 @@ export default function AdminPage() {
     );
   }
 
-  const totalAccounts = rows.length;
-  const totalManuals = rows.reduce((sum, r) => sum + (r.manual_count || 0), 0);
+  const totalAccounts = rows?.length ?? 0;
+  const totalManuals = rows?.reduce((sum, r) => sum + (r.manual_count || 0), 0) ?? 0;
 
   const fmtDate = (val: string | null) => {
     if (!val) return '—';
@@ -62,7 +76,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <AppShell>
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <h1 className="text-3xl tracking-tight">Admin</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -96,7 +110,7 @@ export default function AdminPage() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((r, i) => (
+              {rows?.map((r, i) => (
                 <tr key={i} className="border-b border-border last:border-0">
                   <td className="px-4 py-3">{r.email || '—'}</td>
                   <td className="px-4 py-3">{r.agency_name || '—'}</td>
@@ -118,6 +132,6 @@ export default function AdminPage() {
           </table>
         </div>
       </div>
-    </div>
+    </AppShell>
   );
 }
