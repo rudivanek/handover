@@ -327,6 +327,7 @@
   "edit.fields.addStandardSchedule": "Agregar el calendario est\u00e1ndar",
   "edit.maintenanceStandardHint": "Veintiuna tareas que un sitio t\u00edpico necesita, cada una con un responsable sugerido. Puedes editarlas, reasignarlas o eliminarlas.",
   "public.sections.maintenance": "Calendario de mantenimiento",
+  "public.contents": "Contenido",
 
   "scripts.title": "Correos para clientes",
   "scripts.subtitle": "Correos listos para enviar en cada etapa de la relaci\u00f3n con un cliente. Elige un manual y los correos se llenan autom\u00e1ticamente.",

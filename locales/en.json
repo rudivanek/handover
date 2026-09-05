@@ -326,6 +326,7 @@
   "edit.fields.addStandardSchedule": "Add the standard schedule",
   "edit.maintenanceStandardHint": "Twenty-one tasks a typical site needs, with a suggested owner on each. Edit, reassign or delete any of them.",
   "public.sections.maintenance": "Maintenance schedule",
+  "public.contents": "Contents",
 
   "scripts.title": "Client email scripts",
   "scripts.subtitle": "Ready-to-send emails for each stage of a client relationship. Pick a manual and the scripts fill in automatically.",

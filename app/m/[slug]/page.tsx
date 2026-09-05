@@ -246,7 +246,7 @@ export default function PublicManualPage() {
     ));
   };
 
-  const renderCustomSection = (section: CustomSection) => {
+  const renderCustomSection = (section: CustomSection, num: number) => {
     const fields = customFields
       .filter((f) => f.section_type === 'custom' && f.section_key === section.id && f.label && f.label.trim() && f.value && f.value.trim())
       .sort((a, b) => a.position - b.position);
@@ -254,9 +254,10 @@ export default function PublicManualPage() {
     if (fields.length === 0) return null;
 
     return (
-      <section key={section.id} className="manual-section mb-8 sm:mb-10">
+      <section key={section.id} id={`custom-${section.id}`} className="manual-section mb-8 sm:mb-10">
         <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
           <FileText className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+          <span className="text-sm font-normal text-muted-foreground sm:text-base">{num}.</span>
           {section.title}
         </h2>
         <div className="space-y-3 sm:space-y-4">
@@ -282,6 +283,31 @@ export default function PublicManualPage() {
   const coverageCustomFields = getFilledBuiltinFields('coverage');
   const emergencyCustomFields = getFilledBuiltinFields('emergency');
   const maintenanceCustomFields = getFilledBuiltinFields('maintenance');
+
+  const customSectionsInOrder = [...customSections].sort((a, b) => a.position - b.position);
+  const hasFieldsFor = (section: CustomSection): boolean => {
+    return customFields.some(
+      (f) => f.section_type === 'custom' && f.section_key === section.id && f.label && f.label.trim() && f.value && f.value.trim()
+    );
+  };
+
+  const sectionList = [
+    { id: 'site',        label: t('public.sections.site'),        present: true },
+    { id: 'domain',      label: t('public.sections.domain'),      present: true },
+    { id: 'hosting',     label: t('public.sections.hosting'),     present: true },
+    { id: 'accounts',    label: t('public.sections.accounts'),    present: accounts.length > 0 || accountsCustomFields.length > 0 },
+    { id: 'edit',        label: t('public.sections.edit'),        present: editBlocks.length > 0 || editCustomFields.length > 0 },
+    { id: 'coverage',    label: t('public.sections.coverage'),    present: includedItems.length > 0 || excludedItems.length > 0 || coverageCustomFields.length > 0 },
+    { id: 'maintenance', label: t('public.sections.maintenance'), present: maintenanceTasks.length > 0 },
+    { id: 'emergency',   label: t('public.sections.emergency'),   present: true },
+    { id: 'assets',      label: t('public.sections.assets'),      present: assets.length > 0 },
+    ...customSectionsInOrder.map((s) => ({ id: `custom-${s.id}`, label: s.title, present: hasFieldsFor(s) })),
+  ].filter((s) => s.present);
+
+  const sectionNumber = (id: string): number => {
+    const idx = sectionList.findIndex((s) => s.id === id);
+    return idx >= 0 ? idx + 1 : 0;
+  };
 
   const maintenanceCadenceOrder: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];
   const maintenanceByCadence = maintenanceCadenceOrder
@@ -366,9 +392,31 @@ export default function PublicManualPage() {
           <div className="mt-4 h-px w-full sm:mt-6" style={sectionRuleStyle} />
         </div>
 
+        {/* Table of contents */}
+        {sectionList.length >= 4 && (
+          <div className="manual-contents mb-8 sm:mb-10">
+            <h2 className="mb-3 text-lg font-medium text-muted-foreground sm:mb-4 sm:text-xl">
+              {t('public.contents')}
+            </h2>
+            <ol className="space-y-1.5 sm:space-y-2">
+              {sectionList.map((s, i) => (
+                <li key={s.id}>
+                  <a
+                    href={`#${s.id}`}
+                    className="text-sm underline transition-colors hover:opacity-80 sm:text-base"
+                    style={linkStyle}
+                  >
+                    {i + 1}. {s.label}
+                  </a>
+                </li>
+              ))}
+            </ol>
+          </div>
+        )}
+
         {/* Intro */}
         {siteIntro && (
-          <div className="manual-section mb-8 sm:mb-10">
+          <div className="manual-section manual-section-first mb-8 sm:mb-10">
             <p className="text-sm leading-relaxed text-foreground sm:text-base">
               {siteIntro}
             </p>
@@ -376,9 +424,10 @@ export default function PublicManualPage() {
         )}
 
         {/* Site & Stack */}
-        <section className="manual-section mb-8 sm:mb-10">
+        <section id="site" className="manual-section mb-8 sm:mb-10">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Globe className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+            <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('site')}.</span>
             {t('public.sections.site')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
@@ -418,9 +467,10 @@ export default function PublicManualPage() {
         </section>
 
         {/* Domain & DNS */}
-        <section className="manual-section mb-8 sm:mb-10">
+        <section id="domain" className="manual-section mb-8 sm:mb-10">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Globe className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+            <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('domain')}.</span>
             {t('public.sections.domain')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
@@ -456,9 +506,10 @@ export default function PublicManualPage() {
         </section>
 
         {/* Hosting & Email */}
-        <section className="manual-section mb-8 sm:mb-10">
+        <section id="hosting" className="manual-section mb-8 sm:mb-10">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Server className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+            <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('hosting')}.</span>
             {t('public.sections.hosting')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
@@ -494,9 +545,10 @@ export default function PublicManualPage() {
         </section>
 
         {/* Accounts & Ownership */}
-        <section className="manual-section mb-8 sm:mb-10">
+        <section id="accounts" className="manual-section mb-8 sm:mb-10">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Users className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+            <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('accounts')}.</span>
             {t('public.sections.accounts')}
           </h2>
           {accountsIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{accountsIntroText}</p>}
@@ -548,9 +600,10 @@ export default function PublicManualPage() {
 
         {/* How To Edit */}
         {editBlocks.length > 0 && (
-          <section className="manual-section mb-8 sm:mb-10">
+          <section id="edit" className="manual-section mb-8 sm:mb-10">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <PencilLine className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+              <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('edit')}.</span>
               {t('public.sections.edit')}
             </h2>
             {editBlocksIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{editBlocksIntroText}</p>}
@@ -576,9 +629,10 @@ export default function PublicManualPage() {
 
         {/* What's Covered */}
         {(includedItems.length > 0 || excludedItems.length > 0 || coverageCustomFields.length > 0) && (
-          <section className="manual-section mb-8 sm:mb-10">
+          <section id="coverage" className="manual-section mb-8 sm:mb-10">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <CheckSquare className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+              <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('coverage')}.</span>
               {t('public.sections.coverage')}
             </h2>
             {coverageIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{coverageIntroText}</p>}
@@ -633,9 +687,10 @@ export default function PublicManualPage() {
 
         {/* Maintenance schedule */}
         {maintenanceTasks.length > 0 && (
-          <section className="manual-section mb-8 sm:mb-10">
+          <section id="maintenance" className="manual-section mb-8 sm:mb-10">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <CalendarCheck className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+              <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('maintenance')}.</span>
               {t('public.sections.maintenance')}
             </h2>
             {maintenanceIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{maintenanceIntroText}</p>}
@@ -690,9 +745,10 @@ export default function PublicManualPage() {
         )}
 
         {/* Emergency Contacts */}
-        <section className="manual-section mb-8 sm:mb-10">
+        <section id="emergency" className="manual-section mb-8 sm:mb-10">
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Phone className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+            <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('emergency')}.</span>
             {t('public.sections.emergency')}
           </h2>
           {emergencyIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyIntroText}</p>}
@@ -744,9 +800,10 @@ export default function PublicManualPage() {
 
         {/* Files & assets */}
         {assets.length > 0 && (
-          <section className="manual-section mb-8 sm:mb-10">
+          <section id="assets" className="manual-section mb-8 sm:mb-10">
             <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
               <FolderOpen className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+              <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('assets')}.</span>
               {t('public.sections.assets')}
             </h2>
             <div className="overflow-hidden rounded-lg border border-border">
@@ -782,7 +839,7 @@ export default function PublicManualPage() {
         )}
 
         {/* Custom sections */}
-        {[...customSections].sort((a, b) => a.position - b.position).map((section) => renderCustomSection(section))}
+        {customSectionsInOrder.map((section) => renderCustomSection(section, sectionNumber(`custom-${section.id}`)))}
 
         {/* Footer - hidden for paid accounts */}
         {showFooter && (

@@ -39,6 +39,9 @@
 
 /* Print styles for the public manual page */
 @media print {
+  @page {
+    margin: 18mm 14mm;
+  }
   .no-print {
     display: none !important;
   }
@@ -59,16 +62,40 @@
     page-break-before: always;
     break-before: page;
   }
-  .manual-section:first-of-type {
+  .manual-section-first {
     page-break-before: avoid;
     break-before: auto;
+  }
+  .manual-contents {
+    break-after: page;
   }
   .manual-header {
     page-break-after: avoid;
     break-after: avoid;
   }
+  thead {
+    display: table-header-group;
+  }
+  tr,
+  .manual-section h2 + *,
+  .rounded-lg {
+    break-inside: avoid;
+  }
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+  [data-manual] {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
   a[href]:after {
     content: "";
+  }
+  .manual-section p a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.9em;
+    word-break: break-all;
   }
   .print-only {
     display: block !important;
