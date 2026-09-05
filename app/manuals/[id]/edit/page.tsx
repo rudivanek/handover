@@ -65,6 +65,8 @@ import {
   CalendarCheck,
   EyeOff,
   Send,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -102,6 +104,9 @@ export default function EditManualPage() {
   const [openSection, setOpenSection] = useState<string>('site');
   const [shareWarnOpen, setShareWarnOpen] = useState(false);
   const [publishWarnOpen, setPublishWarnOpen] = useState(false);
+  const [planLimitOpen, setPlanLimitOpen] = useState(false);
+  const [planLimitInfo, setPlanLimitInfo] = useState<{ count: number; plan: string }>({ count: 0, plan: 'free' });
+  const [archiving, setArchiving] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [deleteSectionId, setDeleteSectionId] = useState<string | null>(null);
   const [localeWarnOpen, setLocaleWarnOpen] = useState(false);
@@ -769,7 +774,19 @@ export default function EditManualPage() {
       .eq('id', manual.id);
     setPublishing(false);
     if (error) {
-      toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      if (error.message.includes('PLAN_LIMIT')) {
+        const plan = profile?.plan || 'free';
+        const { count } = await supabase
+          .from('manuals')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', manual.user_id)
+          .eq('is_published', true)
+          .is('archived_at', null);
+        setPlanLimitInfo({ count: count || 0, plan });
+        setPlanLimitOpen(true);
+      } else {
+        toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      }
       return;
     }
     setManual((prev) => prev ? { ...prev, is_published: true } : prev);
@@ -790,6 +807,52 @@ export default function EditManualPage() {
       return;
     }
     setManual((prev) => prev ? { ...prev, is_published: false } : prev);
+  };
+
+  const isArchived = !!manual?.archived_at;
+
+  const handleArchive = async () => {
+    if (!manual) return;
+    setArchiving(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', manual.id);
+    setArchiving(false);
+    if (error) {
+      toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    setManual((prev) => prev ? { ...prev, archived_at: new Date().toISOString() } : prev);
+    toast({ title: t('edit.archive'), description: t('edit.archivedState') });
+  };
+
+  const handleRestore = async () => {
+    if (!manual) return;
+    setArchiving(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ archived_at: null })
+      .eq('id', manual.id);
+    setArchiving(false);
+    if (error) {
+      if (error.message.includes('PLAN_LIMIT')) {
+        const plan = profile?.plan || 'free';
+        const { count } = await supabase
+          .from('manuals')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', manual.user_id)
+          .eq('is_published', true)
+          .is('archived_at', null);
+        setPlanLimitInfo({ count: count || 0, plan });
+        setPlanLimitOpen(true);
+      } else {
+        toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      }
+      return;
+    }
+    setManual((prev) => prev ? { ...prev, archived_at: null } : prev);
+    toast({ title: t('edit.restore') });
   };
 
   const localeLabel = (l: Locale) => l === 'es' ? 'Espa\u00f1ol' : 'English';
@@ -909,12 +972,35 @@ export default function EditManualPage() {
                   <Link2 className="mr-1 h-3 w-3" />
                   {t('manuals.copyLink')}
                 </Button>
+                {!isArchived ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={handleArchive}
+                    disabled={archiving}
+                  >
+                    <Archive className="mr-1 h-3 w-3" />
+                    {t('edit.archive')}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={handleRestore}
+                    disabled={archiving}
+                  >
+                    <ArchiveRestore className="mr-1 h-3 w-3" />
+                    {t('edit.restore')}
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-7 px-2 text-xs"
                   onClick={handleUnpublish}
-                  disabled={publishing}
+                  disabled={publishing || isArchived}
                 >
                   <EyeOff className="mr-1 h-3 w-3" />
                   {t('edit.unpublish')}
@@ -1029,6 +1115,38 @@ export default function EditManualPage() {
         </CardContent>
       </Card>
 
+      {/* Plan limit dialog */}
+      <Dialog open={planLimitOpen} onOpenChange={setPlanLimitOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t('planLimit.title')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('planLimit.body', { n: planLimitInfo.count, plan: planLimitInfo.plan })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="ghost" onClick={() => setPlanLimitOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button asChild>
+              <Link href="/manuals">
+                {t('planLimit.archive')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <a href="https://handover.agency/pricing" target="_blank" rel="noopener noreferrer">
+                {planLimitInfo.plan === 'free'
+                  ? t('planLimit.upgradeFree')
+                  : t('planLimit.upgradeFreelancer')}
+              </a>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Publish warning dialog */}
       <Dialog open={publishWarnOpen} onOpenChange={setPublishWarnOpen}>
         <DialogContent>
@@ -1126,6 +1244,13 @@ export default function EditManualPage() {
         </DialogContent>
       </Dialog>
 
+      {isArchived && (
+        <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+          <Archive className="h-5 w-5 text-amber-600" />
+          <span className="text-sm text-amber-900">{t('edit.archivedState')}</span>
+        </div>
+      )}
+
       <Accordion
         type="single"
         collapsible
@@ -1145,27 +1270,27 @@ export default function EditManualPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="client_name">{t('edit.fields.clientName')}</Label>
-                <Input id="client_name" value={manual.client_name || ''} onChange={(e) => updateManual('client_name', e.target.value)} />
+                <Input id="client_name" value={manual.client_name || ''} onChange={(e) => updateManual('client_name', e.target.value)} disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="site_name">{t('edit.fields.siteName')}</Label>
-                <Input id="site_name" value={manual.site_name || ''} onChange={(e) => updateManual('site_name', e.target.value)} placeholder="Acme Corporation Website" />
+                <Input id="site_name" value={manual.site_name || ''} onChange={(e) => updateManual('site_name', e.target.value)} placeholder="Acme Corporation Website" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="site_url">{t('edit.fields.siteUrl')}</Label>
-                <Input id="site_url" value={manual.site_url || ''} onChange={(e) => updateManual('site_url', e.target.value)} placeholder="https://acme.com" />
+                <Input id="site_url" value={manual.site_url || ''} onChange={(e) => updateManual('site_url', e.target.value)} placeholder="https://acme.com" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="platform">{t('edit.fields.platform')}</Label>
-                <Input id="platform" value={manual.platform || ''} onChange={(e) => updateManual('platform', e.target.value)} placeholder="WordPress" />
+                <Input id="platform" value={manual.platform || ''} onChange={(e) => updateManual('platform', e.target.value)} placeholder="WordPress" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="framework_or_theme">{t('edit.fields.frameworkOrTheme')}</Label>
-                <Input id="framework_or_theme" value={manual.framework_or_theme || ''} onChange={(e) => updateManual('framework_or_theme', e.target.value)} placeholder="Astra Theme" />
+                <Input id="framework_or_theme" value={manual.framework_or_theme || ''} onChange={(e) => updateManual('framework_or_theme', e.target.value)} placeholder="Astra Theme" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="key_plugins">{t('edit.fields.keyPlugins')}</Label>
-                <Input id="key_plugins" value={pluginsString} onChange={(e) => updateManual('key_plugins', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="WooCommerce, Yoast SEO, WP Rocket" />
+                <Input id="key_plugins" value={pluginsString} onChange={(e) => updateManual('key_plugins', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="WooCommerce, Yoast SEO, WP Rocket" disabled={isArchived} />
               </div>
             </div>
             {(() => {
@@ -1195,19 +1320,19 @@ export default function EditManualPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="registrar">{t('edit.fields.registrar')}</Label>
-                <Input id="registrar" value={manual.registrar || ''} onChange={(e) => updateManual('registrar', e.target.value)} placeholder="GoDaddy" />
+                <Input id="registrar" value={manual.registrar || ''} onChange={(e) => updateManual('registrar', e.target.value)} placeholder="GoDaddy" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="domain_expiry">{t('edit.fields.domainExpiry')}</Label>
-                <Input id="domain_expiry" type="date" value={manual.domain_expiry || ''} onChange={(e) => updateManual('domain_expiry', e.target.value)} />
+                <Input id="domain_expiry" type="date" value={manual.domain_expiry || ''} onChange={(e) => updateManual('domain_expiry', e.target.value)} disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="domain_owner">{t('edit.fields.domainOwner')}</Label>
-                <Input id="domain_owner" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="Client owns the domain" />
+                <Input id="domain_owner" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="Client owns the domain" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="nameservers">{t('edit.fields.nameservers')}</Label>
-                <Input id="nameservers" value={manual.nameservers || ''} onChange={(e) => updateManual('nameservers', e.target.value)} placeholder="ns1.example.com, ns2.example.com" />
+                <Input id="nameservers" value={manual.nameservers || ''} onChange={(e) => updateManual('nameservers', e.target.value)} placeholder="ns1.example.com, ns2.example.com" disabled={isArchived} />
               </div>
             </div>
             {(() => {
@@ -1239,19 +1364,19 @@ export default function EditManualPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="host">{t('edit.fields.host')}</Label>
-                <Input id="host" value={manual.host || ''} onChange={(e) => updateManual('host', e.target.value)} placeholder="Kinsta" />
+                <Input id="host" value={manual.host || ''} onChange={(e) => updateManual('host', e.target.value)} placeholder="Kinsta" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="host_plan">{t('edit.fields.hostPlan')}</Label>
-                <Input id="host_plan" value={manual.host_plan || ''} onChange={(e) => updateManual('host_plan', e.target.value)} placeholder="Starter" />
+                <Input id="host_plan" value={manual.host_plan || ''} onChange={(e) => updateManual('host_plan', e.target.value)} placeholder="Starter" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="host_renewal">{t('edit.fields.hostRenewal')}</Label>
-                <Input id="host_renewal" type="date" value={manual.host_renewal || ''} onChange={(e) => updateManual('host_renewal', e.target.value)} />
+                <Input id="host_renewal" type="date" value={manual.host_renewal || ''} onChange={(e) => updateManual('host_renewal', e.target.value)} disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email_provider">{t('edit.fields.emailProvider')}</Label>
-                <Input id="email_provider" value={manual.email_provider || ''} onChange={(e) => updateManual('email_provider', e.target.value)} placeholder="Google Workspace" />
+                <Input id="email_provider" value={manual.email_provider || ''} onChange={(e) => updateManual('email_provider', e.target.value)} placeholder="Google Workspace" disabled={isArchived} />
               </div>
             </div>
             {(() => {
@@ -1641,19 +1766,19 @@ export default function EditManualPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="emergency_name">{t('edit.fields.emergencyName')}</Label>
-                <Input id="emergency_name" value={manual.emergency_name || ''} onChange={(e) => updateManual('emergency_name', e.target.value)} placeholder="Jane Smith" />
+                <Input id="emergency_name" value={manual.emergency_name || ''} onChange={(e) => updateManual('emergency_name', e.target.value)} placeholder="Jane Smith" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency_role">{t('edit.fields.emergencyRole')}</Label>
-                <Input id="emergency_role" value={manual.emergency_role || ''} onChange={(e) => updateManual('emergency_role', e.target.value)} placeholder="Lead Developer" />
+                <Input id="emergency_role" value={manual.emergency_role || ''} onChange={(e) => updateManual('emergency_role', e.target.value)} placeholder="Lead Developer" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency_phone">{t('edit.fields.emergencyPhone')}</Label>
-                <Input id="emergency_phone" value={manual.emergency_phone || ''} onChange={(e) => updateManual('emergency_phone', e.target.value)} placeholder="+44 20 1234 5678" />
+                <Input id="emergency_phone" value={manual.emergency_phone || ''} onChange={(e) => updateManual('emergency_phone', e.target.value)} placeholder="+44 20 1234 5678" disabled={isArchived} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emergency_email">{t('edit.fields.emergencyEmail')}</Label>
-                <Input id="emergency_email" type="email" value={manual.emergency_email || ''} onChange={(e) => updateManual('emergency_email', e.target.value)} placeholder="urgent@youragency.com" />
+                <Input id="emergency_email" type="email" value={manual.emergency_email || ''} onChange={(e) => updateManual('emergency_email', e.target.value)} placeholder="urgent@youragency.com" disabled={isArchived} />
               </div>
             </div>
             {(() => {

@@ -65,7 +65,7 @@
   "manuals.empty": "A\u00fan no hay manuales",
   "manuals.emptyDescription": "Crea tu primer manual de cliente. Vas a llenar los detalles y nosotros generaremos un documento profesional que tu cliente puede leer e imprimir.",
   "manuals.createFirst": "Crea tu primer manual",
-  "manuals.draft": "Borrador",
+  "manuals.incomplete": "Incompleto",
   "manuals.view": "Ver",
   "manuals.edit": "Editar",
   "manuals.duplicate": "Duplicar",
@@ -339,7 +339,10 @@
   "edit.publishWarn.body": "Publicarlo ahora significa que tu cliente verá un manual con información faltante. Puedes publicarlo de todos modos — esto es solo un aviso.",
   "edit.publishWarn.confirm": "Publicar de todos modos",
   "manuals.notPublished": "No publicado",
+  "manuals.archived": "Archivado",
   "manuals.copyLinkNotLive": "Este manual aún no está publicado. Publícalo primero para que el enlace funcione.",
+  "manuals.liveCount": "{live} de {limit} manuales publicados",
+  "manuals.liveCountUnlimited": "{live} manuales publicados",
 
   "scripts.title": "Correos para clientes",
   "scripts.subtitle": "Correos listos para enviar en cada etapa de la relaci\u00f3n con un cliente. Elige un manual y los correos se llenan autom\u00e1ticamente.",
@@ -361,5 +364,14 @@
   "scripts.stage.launch": "En el lanzamiento",
   "scripts.stage.postlaunch": "Un mes despu\u00e9s del lanzamiento",
   "scripts.stage.renewal": "Renovaci\u00f3n del plan",
-  "edit.emailScripts": "Correos para clientes"
+  "edit.emailScripts": "Correos para clientes",
+  "edit.archive": "Archivar",
+  "edit.restore": "Restaurar",
+  "edit.archivedState": "Archivado · aún en línea para tu cliente, solo lectura",
+  "planLimit.title": "Límite de plan alcanzado",
+  "planLimit.body": "Tienes {n} manuales publicados en el plan {plan}. Archiva uno para publicar este — un manual archivado sigue en línea para tu cliente y se vuelve de solo lectura — o mejora de plan.",
+  "planLimit.archive": "Archivar un manual",
+  "planLimit.upgrade": "Mejorar de plan",
+  "planLimit.upgradeFree": "3 manuales publicados por $19/mes",
+  "planLimit.upgradeFreelancer": "ilimitado por $79/mes"
 }

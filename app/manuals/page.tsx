@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, Lock, AlertTriangle, Link2, ArrowUpRight } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight } from 'lucide-react';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 
 type ManualWithChildren = Manual & {
@@ -50,10 +50,10 @@ export default function ManualsPage() {
   const [shareWarnManual, setShareWarnManual] = useState<ManualWithChildren | null>(null);
   const [notPublishedCopyManual, setNotPublishedCopyManual] = useState<ManualWithChildren | null>(null);
 
-  const isFree = !profile || profile.plan !== 'paid';
-  const manualLimit = isFree ? 1 : Infinity;
-  const atLimit = manuals.length >= manualLimit;
-  const stripeLink = process.env.NEXT_PUBLIC_STRIPE_LINK;
+  const plan = profile?.plan || 'free';
+  const liveManuals = manuals.filter((m) => m.is_published && !m.archived_at);
+  const liveCount = liveManuals.length;
+  const planLimit = plan === 'free' ? 1 : plan === 'freelancer' ? 3 : null;
 
   const fetchManuals = useCallback(async () => {
     const { data, error } = await supabase
@@ -85,7 +85,6 @@ export default function ManualsPage() {
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClientName.trim()) return;
-    if (atLimit) return;
     setCreating(true);
 
     const existingSlugs = manuals.map((m) => m.slug);
@@ -106,12 +105,7 @@ export default function ManualsPage() {
     setCreating(false);
 
     if (error) {
-      const msg = error.message || '';
-      if (msg.includes('FREE_PLAN_LIMIT')) {
-        toast({ title: t('manuals.limitReached'), description: t('manuals.limitDescription'), variant: 'destructive' });
-      } else {
-        toast({ title: t('manuals.couldNotCreate'), description: msg, variant: 'destructive' });
-      }
+      toast({ title: t('manuals.couldNotCreate'), description: error.message, variant: 'destructive' });
       return;
     }
 
@@ -282,41 +276,17 @@ export default function ManualsPage() {
             <ArrowUpRight className="h-3 w-3" />
           </a>
         </div>
-        {atLimit ? (
-          <Button disabled title={isFree ? t('manuals.limitReached') : undefined}>
-            <Lock className="mr-2 h-4 w-4" />
-            {t('manuals.new')}
-          </Button>
-        ) : (
-          <Button onClick={() => setNewOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('manuals.new')}
-          </Button>
-        )}
+        {(() => {
+          if (planLimit === null) {
+            return <span className="text-sm text-muted-foreground">{t('manuals.liveCountUnlimited', { live: liveCount })}</span>;
+          }
+          return <span className="text-sm text-muted-foreground">{t('manuals.liveCount', { live: liveCount, limit: planLimit })}</span>;
+        })()}
+        <Button onClick={() => setNewOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          {t('manuals.new')}
+        </Button>
       </div>
-
-      {atLimit && isFree && (
-        <Card className="mb-6 border-amber-200 bg-amber-50">
-          <CardContent className="flex items-center justify-between gap-4 py-5">
-            <div className="flex items-start gap-3">
-              <Lock className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-              <div>
-                <p className="text-sm font-medium text-amber-900">{t('manuals.limitReached')}</p>
-                <p className="text-sm text-amber-800">
-                  {t('manuals.limitDescription')}
-                </p>
-              </div>
-            </div>
-            {stripeLink && (
-              <Button asChild size="sm">
-                <a href={stripeLink} target="_blank" rel="noopener noreferrer">
-                  {t('manuals.upgrade')}
-                </a>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {manuals.length === 0 ? (
         <Card className="border-dashed">
@@ -335,12 +305,10 @@ export default function ManualsPage() {
               {t('manuals.seeExample')}
               <ArrowUpRight className="h-3.5 w-3.5" />
             </a>
-            {!atLimit && (
-              <Button className="mt-4" onClick={() => setNewOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('manuals.createFirst')}
-              </Button>
-            )}
+            <Button className="mt-4" onClick={() => setNewOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('manuals.createFirst')}
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -357,7 +325,12 @@ export default function ManualsPage() {
                         <h3 className="text-lg hover:underline">{manual.client_name || t('manuals.untitled')}</h3>
                         {draft && (
                           <Badge variant="secondary" className="bg-[#f3f4f6] text-[#dc2828] border-amber-200">
-                            {t('manuals.draft')}
+                            {t('manuals.incomplete')}
+                          </Badge>
+                        )}
+                        {manual.archived_at && (
+                          <Badge variant="secondary" className="bg-amber-100 text-amber-800 border-amber-200">
+                            {t('manuals.archived')}
                           </Badge>
                         )}
                         {!manual.is_published && (

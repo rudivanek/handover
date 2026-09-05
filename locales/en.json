@@ -65,7 +65,7 @@
   "manuals.empty": "No manuals yet",
   "manuals.emptyDescription": "Create your first client manual. You'll fill in the details, and we'll generate a professional document your client can read and print.",
   "manuals.createFirst": "Create your first manual",
-  "manuals.draft": "Draft",
+  "manuals.incomplete": "Incomplete",
   "manuals.view": "View",
   "manuals.edit": "Edit",
   "manuals.duplicate": "Duplicate",
@@ -338,7 +338,10 @@
   "edit.publishWarn.body": "Publishing now means your client will see a manual with missing information. You can still publish — this is just a heads up.",
   "edit.publishWarn.confirm": "Publish anyway",
   "manuals.notPublished": "Not published",
+  "manuals.archived": "Archived",
   "manuals.copyLinkNotLive": "This manual isn't published yet. Publish it first so the link works.",
+  "manuals.liveCount": "{live} of {limit} live manuals",
+  "manuals.liveCountUnlimited": "{live} live manuals",
 
   "scripts.title": "Client email scripts",
   "scripts.subtitle": "Ready-to-send emails for each stage of a client relationship. Pick a manual and the scripts fill in automatically.",
@@ -360,5 +363,14 @@
   "scripts.stage.launch": "At launch",
   "scripts.stage.postlaunch": "One month after launch",
   "scripts.stage.renewal": "Care plan renewal",
-  "edit.emailScripts": "Email scripts"
+  "edit.emailScripts": "Email scripts",
+  "edit.archive": "Archive",
+  "edit.restore": "Restore",
+  "edit.archivedState": "Archived · still online for your client, read-only",
+  "planLimit.title": "Plan limit reached",
+  "planLimit.body": "You have {n} live manuals on the {plan} plan. Archive one to publish this — an archived manual stays online for your client and becomes read-only — or move up a plan.",
+  "planLimit.archive": "Archive a manual",
+  "planLimit.upgrade": "Move up a plan",
+  "planLimit.upgradeFree": "3 live manuals for $19/month",
+  "planLimit.upgradeFreelancer": "unlimited for $79/month"
 }

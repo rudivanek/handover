@@ -45,6 +45,7 @@ export type Manual = {
   updated_at: string;
   is_published: boolean;
   published_at: string | null;
+  archived_at: string | null;
 };
 
 export type Account = {
