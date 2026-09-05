@@ -52,18 +52,85 @@ export default function PublicManualPage() {
   const [data, setData] = useState<PublicManualData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [isDraftPreview, setIsDraftPreview] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data: rpcData, error } = await supabase.rpc('get_public_manual', { p_slug: slug });
 
-      if (error || !rpcData) {
+      if (!error && rpcData) {
+        setData(rpcData as unknown as PublicManualData);
+        setLoading(false);
+        return;
+      }
+
+      // RPC returned nothing — the manual may be unpublished.
+      // Try one ordinary authenticated read; RLS limits it to the owner.
+      const { data: manualRow } = await supabase
+        .from('manuals')
+        .select('id, slug')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (!manualRow) {
         setNotFound(true);
         setLoading(false);
         return;
       }
 
-      setData(rpcData as unknown as PublicManualData);
+      const manualId = manualRow.id;
+      const { data: manualFull } = await supabase
+        .from('manuals')
+        .select('*')
+        .eq('id', manualId)
+        .maybeSingle();
+
+      if (!manualFull) {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
+      const manualFullData = manualFull as Manual;
+      const [accountsRes, editBlocksRes, coverageRes, customSectionsRes, customFieldsRes, assetsRes, maintenanceRes, profileRes] = await Promise.all([
+        supabase.from('accounts').select('*').eq('manual_id', manualId).order('created_at'),
+        supabase.from('edit_blocks').select('*').eq('manual_id', manualId).order('created_at'),
+        supabase.from('coverage').select('*').eq('manual_id', manualId).order('created_at'),
+        supabase.from('custom_sections').select('*').eq('manual_id', manualId).order('position'),
+        supabase.from('custom_fields').select('*').eq('manual_id', manualId).order('position'),
+        supabase.from('assets').select('*').eq('manual_id', manualId).order('sort_order'),
+        supabase.from('maintenance_tasks').select('*').eq('manual_id', manualId).order('sort_order'),
+        supabase.from('profiles').select('agency_name, agency_website, logo_url, brand_color, support_email, support_hours, emergency_phone, plan, heading_font_key, body_font_key, custom_font_name, custom_font_url').eq('user_id', manualFullData.user_id).maybeSingle(),
+      ]);
+
+      const profile = profileRes.data as Record<string, unknown> | null;
+      const agencyData: Agency = {
+        agency_name: (profile?.agency_name as string) ?? null,
+        agency_website: (profile?.agency_website as string) ?? null,
+        logo_url: (profile?.logo_url as string) ?? null,
+        brand_color: (profile?.brand_color as string) ?? null,
+        support_email: (profile?.support_email as string) ?? null,
+        support_hours: (profile?.support_hours as string) ?? null,
+        emergency_phone: (profile?.emergency_phone as string) ?? null,
+        show_footer: (profile?.plan as string) ? ((profile?.plan as string) === 'free') : true,
+        heading_font_key: (profile?.heading_font_key as string) ?? null,
+        body_font_key: (profile?.body_font_key as string) ?? null,
+        custom_font_name: (profile?.custom_font_name as string) ?? null,
+        custom_font_url: (profile?.custom_font_url as string) ?? null,
+      };
+
+      setData({
+        manual: manualFullData,
+        agency: agencyData,
+        accounts: (accountsRes.data as Account[]) || [],
+        edit_blocks: (editBlocksRes.data as EditBlock[]) || [],
+        coverage: (coverageRes.data as Coverage[]) || [],
+        custom_sections: (customSectionsRes.data as CustomSection[]) || [],
+        custom_fields: (customFieldsRes.data as CustomField[]) || [],
+        assets: (assetsRes.data as Asset[]) || [],
+        maintenance_tasks: (maintenanceRes.data as MaintenanceTask[]) || [],
+      });
+      setIsDraftPreview(true);
       setLoading(false);
     })();
   }, [slug]);
@@ -345,6 +412,17 @@ export default function PublicManualPage() {
   return (
     <div className="min-h-screen bg-secondary/20">
       <meta name="referrer" content="no-referrer" />
+      {/* Draft banner - hidden on print */}
+      {isDraftPreview && (
+        <div className="no-print sticky top-0 z-40 border-b border-amber-200 bg-amber-50">
+          <div className="mx-auto flex h-12 max-w-3xl items-center px-3 sm:px-6">
+            <p className="text-sm text-amber-900">
+              {t('public.draftBanner')}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top bar - hidden on print */}
       <div className="no-print sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-3 sm:px-6">

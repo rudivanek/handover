@@ -43,6 +43,8 @@ export type Manual = {
   locale: Locale;
   created_at: string;
   updated_at: string;
+  is_published: boolean;
+  published_at: string | null;
 };
 
 export type Account = {

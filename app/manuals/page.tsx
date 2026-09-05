@@ -48,6 +48,7 @@ export default function ManualsPage() {
   const [newClientName, setNewClientName] = useState('');
   const [creating, setCreating] = useState(false);
   const [shareWarnManual, setShareWarnManual] = useState<ManualWithChildren | null>(null);
+  const [notPublishedCopyManual, setNotPublishedCopyManual] = useState<ManualWithChildren | null>(null);
 
   const isFree = !profile || profile.plan !== 'paid';
   const manualLimit = isFree ? 1 : Infinity;
@@ -244,6 +245,8 @@ export default function ManualsPage() {
     const completion = computeCompletion(manual, manual.accounts || [], manual.edit_blocks || [], manual.coverage || [], manual.custom_fields || [], locale);
     if (isDraft(completion.percentage)) {
       setShareWarnManual(manual);
+    } else if (!manual.is_published) {
+      setNotPublishedCopyManual(manual);
     } else {
       copyManualLink(manual);
     }
@@ -355,6 +358,11 @@ export default function ManualsPage() {
                         {draft && (
                           <Badge variant="secondary" className="bg-[#f3f4f6] text-[#dc2828] border-amber-200">
                             {t('manuals.draft')}
+                          </Badge>
+                        )}
+                        {!manual.is_published && (
+                          <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                            {t('manuals.notPublished')}
                           </Badge>
                         )}
                       </div>
@@ -481,6 +489,28 @@ export default function ManualsPage() {
                 </Button>
               </>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!notPublishedCopyManual} onOpenChange={(open) => !open && setNotPublishedCopyManual(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t('manuals.notPublished')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('manuals.copyLinkNotLive')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setNotPublishedCopyManual(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={() => { if (notPublishedCopyManual) copyManualLink(notPublishedCopyManual); setNotPublishedCopyManual(null); }}>
+              {t('manuals.draftWarn.copyAnyway')}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

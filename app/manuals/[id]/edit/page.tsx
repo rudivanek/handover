@@ -63,6 +63,8 @@ import {
   ArrowUpRight,
   Lock,
   CalendarCheck,
+  EyeOff,
+  Send,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -99,6 +101,8 @@ export default function EditManualPage() {
   const [saving, setSaving] = useState(false);
   const [openSection, setOpenSection] = useState<string>('site');
   const [shareWarnOpen, setShareWarnOpen] = useState(false);
+  const [publishWarnOpen, setPublishWarnOpen] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [deleteSectionId, setDeleteSectionId] = useState<string | null>(null);
   const [localeWarnOpen, setLocaleWarnOpen] = useState(false);
   const [pendingLocale, setPendingLocale] = useState<Locale | null>(null);
@@ -746,6 +750,47 @@ export default function EditManualPage() {
     }
   };
 
+  const handlePublish = async () => {
+    if (!manual) return;
+    if (draft) {
+      setPublishWarnOpen(true);
+      return;
+    }
+    await doPublish();
+  };
+
+  const doPublish = async () => {
+    if (!manual) return;
+    setPublishing(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ is_published: true })
+      .eq('id', manual.id);
+    setPublishing(false);
+    if (error) {
+      toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    setManual((prev) => prev ? { ...prev, is_published: true } : prev);
+    setPublishWarnOpen(false);
+    toast({ title: t('edit.published'), description: t('manuals.linkCopiedDesc') });
+  };
+
+  const handleUnpublish = async () => {
+    if (!manual) return;
+    setPublishing(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ is_published: false })
+      .eq('id', manual.id);
+    setPublishing(false);
+    if (error) {
+      toast({ title: t('edit.couldNotSave'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    setManual((prev) => prev ? { ...prev, is_published: false } : prev);
+  };
+
   const localeLabel = (l: Locale) => l === 'es' ? 'Espa\u00f1ol' : 'English';
 
   // Render custom field rows for a builtin section
@@ -850,6 +895,37 @@ export default function EditManualPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {/* Publish control */}
+            {manual.is_published ? (
+              <div className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <span className="text-xs font-medium text-green-700">{t('edit.published')}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={handleCopyLinkClick}
+                >
+                  <Link2 className="mr-1 h-3 w-3" />
+                  {t('manuals.copyLink')}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={handleUnpublish}
+                  disabled={publishing}
+                >
+                  <EyeOff className="mr-1 h-3 w-3" />
+                  {t('edit.unpublish')}
+                </Button>
+              </div>
+            ) : (
+              <Button variant="default" size="sm" onClick={handlePublish} disabled={publishing}>
+                <Send className="mr-2 h-4 w-4" />
+                {t('edit.publish')}
+              </Button>
+            )}
             {/* Manual locale selector */}
             <div className="flex items-center gap-1 rounded-lg border border-border p-1">
               <Globe className="h-4 w-4 text-muted-foreground ml-1" />
@@ -951,6 +1027,29 @@ export default function EditManualPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Publish warning dialog */}
+      <Dialog open={publishWarnOpen} onOpenChange={setPublishWarnOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t('edit.publishWarn.title')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('edit.publishWarn.body')}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setPublishWarnOpen(false)}>
+              {t('edit.draftWarn.keepEditing')}
+            </Button>
+            <Button onClick={doPublish}>
+              {t('edit.publishWarn.confirm')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Share warning dialog */}
       <Dialog open={shareWarnOpen} onOpenChange={setShareWarnOpen}>
