@@ -16,6 +16,7 @@ import {
 import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail, HelpCircle } from 'lucide-react';
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
+import { APP_VERSION } from '@/lib/version';
 
 const PLAN_LABELS: Record<string, { en: string; es: string }> = {
   free: { en: 'Free', es: 'Gratis' },
@@ -87,8 +88,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-secondary/30">
       <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
-          <a href="https://handover.agency/">
+          <a href="https://handover.agency/" className="flex items-center">
             <HandoverLogo size={28} />
+            <span className="ml-2 hidden sm:inline text-xs text-muted-foreground" title={`Version ${APP_VERSION}`}>
+              v. {APP_VERSION}
+            </span>
           </a>
 
           <div className="flex items-center gap-2">
