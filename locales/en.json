@@ -320,6 +320,8 @@
   "maintenance.columns.who": "Who does it",
   "maintenance.columns.notes": "Notes",
   "edit.maintenanceEmpty": "No maintenance tasks yet.",
+  "edit.maintenanceGroupEmpty": "Nothing scheduled at this interval.",
+  "maintenance.warned": "This mentions a credential. Nothing here is stored as a secret, and this section is public — don't write anything you wouldn't hand to the client.",
   "edit.fields.addMaintenanceTask": "Add task",
   "edit.fields.addStandardSchedule": "Add the standard schedule",
   "edit.maintenanceStandardHint": "Twenty-one tasks a typical site needs, with a suggested owner on each. Edit, reassign or delete any of them.",

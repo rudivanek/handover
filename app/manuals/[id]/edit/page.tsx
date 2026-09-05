@@ -440,7 +440,7 @@ export default function EditManualPage() {
 
   const addMaintenanceTask = async (cadence: MaintenanceCadence) => {
     const groupTasks = maintenanceTasks.filter((t) => t.cadence === cadence);
-    const sortOrder = groupTasks.length;
+    const sortOrder = Math.max(-1, ...groupTasks.map((t) => t.sort_order)) + 1;
     const { data } = await supabase.from('maintenance_tasks').insert({
       manual_id: id,
       task: '',
@@ -507,14 +507,19 @@ export default function EditManualPage() {
   const addStandardSchedule = async () => {
     const rows = (maintenancePresets as Array<{ cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>);
     const localeKey = manualLocale === 'es' ? 'es' : 'en';
-    const insertRows = rows.map((row, i) => ({
-      manual_id: id,
-      task: row[localeKey],
-      cadence: row.cadence,
-      owner: row.owner,
-      notes: '',
-      sort_order: i,
-    }));
+    const cadenceCounters: Record<string, number> = {};
+    const insertRows = rows.map((row) => {
+      const idx = cadenceCounters[row.cadence] ?? 0;
+      cadenceCounters[row.cadence] = idx + 1;
+      return {
+        manual_id: id,
+        task: row[localeKey],
+        cadence: row.cadence,
+        owner: row.owner,
+        notes: '',
+        sort_order: idx,
+      };
+    });
     const { data } = await supabase.from('maintenance_tasks').insert(insertRows).select();
     if (data) {
       setMaintenanceTasks(data as MaintenanceTask[]);
@@ -1406,12 +1411,14 @@ export default function EditManualPage() {
                   const groupTasks = maintenanceTasks
                     .filter((task) => task.cadence === cadence)
                     .sort((a, b) => a.sort_order - b.sort_order);
-                  if (groupTasks.length === 0) return null;
                   return (
                     <div key={cadence}>
                       <h4 className="mb-2 text-sm font-medium" style={{ color: profile?.brand_color || '#1f2937' }}>
                         {t(`maintenance.cadence.${cadence}`)}
                       </h4>
+                      {groupTasks.length === 0 ? (
+                        <p className="mb-2 text-sm text-muted-foreground">{t('edit.maintenanceGroupEmpty')}</p>
+                      ) : (
                       <div className="space-y-2">
                         {groupTasks.map((task, i) => (
                           <div key={task.id} className="flex items-start gap-2 rounded-lg border border-border p-3">
@@ -1467,7 +1474,7 @@ export default function EditManualPage() {
                                 className="text-sm"
                               />
                               {maintenanceCheckResults[task.id] === 'warn' && (
-                                <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                                <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('maintenance.warned')}</span></p>
                               )}
                             </div>
                             <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeMaintenanceTask(task.id)}>
@@ -1476,6 +1483,7 @@ export default function EditManualPage() {
                           </div>
                         ))}
                       </div>
+                      )}
                       <Button variant="outline" size="sm" className="mt-2" onClick={() => addMaintenanceTask(cadence)}>
                         <Plus className="mr-2 h-4 w-4" />
                         {t('edit.fields.addMaintenanceTask')}
