@@ -715,8 +715,9 @@ export default function EditManualPage() {
     );
   }
 
-  const previewInterpolated = (key: string) => {
-    return interpolate(getDefault(key, manualLocale), manual, profile, manualLocale).text;
+  const previewInterpolated = (key: string): string | null => {
+    const { text, complete } = interpolate(getDefault(key, manualLocale), manual, profile, manualLocale);
+    return complete ? text : null;
   };
 
   const pluginsString = (manual.key_plugins || []).join(', ');
@@ -886,15 +887,15 @@ export default function EditManualPage() {
             {t('common.allManuals')}
           </Link>
         </Button>
-        <div className="flex items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
             <h1 className="text-3xl tracking-tight-app">{manual.client_name}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {t('edit.subtitle')}
               {saving ? `  ${t('edit.savingStatus')}` : `  ${t('edit.savedStatus')}`}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Publish control */}
             {manual.is_published ? (
               <div className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
@@ -994,7 +995,9 @@ export default function EditManualPage() {
                 <p className="text-xs text-muted-foreground">
                   {completion.missing.length === 0
                     ? t('edit.completion.allFilled')
-                    : t('edit.completion.missing', { count: completion.missing.length })}
+                    : completion.missing.length === 1
+                      ? t('edit.completion.missingOne')
+                      : t('edit.completion.missingMany', { count: completion.missing.length })}
                 </p>
                 <a
                   href={EXAMPLE_MANUAL_URL}
@@ -1169,7 +1172,7 @@ export default function EditManualPage() {
             </div>
             <div className="mt-4 rounded-lg bg-secondary/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('site_overview')}</p>
+              {previewInterpolated('site_overview') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('site_overview')}</p>}
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.site)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.site)}
@@ -1205,8 +1208,8 @@ export default function EditManualPage() {
             </div>
             <div className="mt-4 rounded-lg bg-secondary/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain_expiry')}</p>
+              {previewInterpolated('domain') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain')}</p>}
+              {previewInterpolated('domain_expiry') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain_expiry')}</p>}
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.domain)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.domain)}
@@ -1243,12 +1246,12 @@ export default function EditManualPage() {
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg bg-secondary/50 p-4">
                 <p className="text-xs font-medium text-muted-foreground">{t('edit.hostingPreview')}</p>
-                <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host')}</p>
-                <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host_plan')}</p>
+                {previewInterpolated('host') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host')}</p>}
+                {previewInterpolated('host_plan') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host_plan')}</p>}
               </div>
               <div className="rounded-lg bg-secondary/50 p-4">
                 <p className="text-xs font-medium text-muted-foreground">{t('edit.emailPreview')}</p>
-                <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('email_provider')}</p>
+                {previewInterpolated('email_provider') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('email_provider')}</p>}
               </div>
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.hosting)}
@@ -1632,9 +1635,9 @@ export default function EditManualPage() {
             </div>
             <div className="mt-4 rounded-lg bg-secondary/50 p-4">
               <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_intro')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_contact')}</p>
-              <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('support_general')}</p>
+              {previewInterpolated('emergency_intro') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_intro')}</p>}
+              {previewInterpolated('emergency_contact') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_contact')}</p>}
+              {previewInterpolated('support_general') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('support_general')}</p>}
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.emergency)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.emergency)}

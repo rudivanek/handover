@@ -17,7 +17,7 @@ export async function generateMetadata(
   }
 
   if (!data?.manual) {
-    return { ...base, title: 'Not found', icons: { icon: [] } };
+    return { ...base, title: 'Manual', icons: { icon: [] } };
   }
 
   const m = data.manual;
