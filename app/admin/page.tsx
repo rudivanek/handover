@@ -31,6 +31,7 @@ export default function AdminPage() {
     (async () => {
       const { data, error } = await supabase.rpc('admin_overview');
       if (error) {
+        console.error('admin_overview RPC error:', error);
         setError(true);
         setRows(null);
       } else {
