@@ -230,6 +230,9 @@ export default function PublicManualPage() {
   };
 
   const siteIntro = renderInterpolated('site_intro');
+  const welcomePreparedBy = renderInterpolated('welcome_prepared_by');
+  const welcomeUse = renderInterpolated('welcome_use');
+  const hasIntro = !!(siteIntro || welcomePreparedBy || welcomeUse);
   const siteOverview = renderInterpolated('site_overview');
   const platformText = renderInterpolated('platform');
   const frameworkText = renderInterpolated('framework_or_theme');
@@ -493,11 +496,23 @@ export default function PublicManualPage() {
         </div>
 
         {/* Intro */}
-        {siteIntro && (
-          <div className="manual-intro mb-8 sm:mb-10">
-            <p className="text-sm leading-relaxed text-foreground sm:text-base">
-              {siteIntro}
-            </p>
+        {hasIntro && (
+          <div className="manual-intro mb-8 sm:mb-10 space-y-3 sm:space-y-4">
+            {siteIntro && (
+              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+                {siteIntro}
+              </p>
+            )}
+            {welcomePreparedBy && (
+              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+                {welcomePreparedBy}
+              </p>
+            )}
+            {welcomeUse && (
+              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+                {welcomeUse}
+              </p>
+            )}
           </div>
         )}
 
@@ -524,7 +539,7 @@ export default function PublicManualPage() {
         )}
 
         {/* Site & Stack */}
-        <section id="site" className={`manual-section ${siteIntro ? '' : 'manual-section-first'} mb-8 sm:mb-10 scroll-mt-20`}>
+        <section id="site" className={`manual-section ${hasIntro ? '' : 'manual-section-first'} mb-8 sm:mb-10 scroll-mt-20`}>
           <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
             <Globe className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('site')}.</span>

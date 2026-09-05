@@ -1,7 +1,15 @@
 {
   "site_intro": {
-    "en": "This manual documents everything you need to know to keep {site_name} running smoothly. It was prepared by {agency_name} and covers your website's technology, domain, hosting, accounts, and day-to-day editing.",
-    "es": "Este manual documenta todo lo que necesitas saber para mantener {site_name} funcionando sin problemas. Fue preparado por {agency_name} y cubre la tecnolog\u00eda de tu sitio web, dominio, hosting, cuentas y edici\u00f3n del d\u00eda a d\u00eda."
+    "en": "Congratulations on your new website. This manual is yours: it explains how the site is put together, where everything lives, who owns what, and what to do when something needs changing.",
+    "es": "Felicidades por tu nuevo sitio web. Este manual es tuyo: explica cómo está armado el sitio, dónde está cada cosa, quién es titular de qué y qué hacer cuando algo necesite cambiar."
+  },
+  "welcome_prepared_by": {
+    "en": "{agency_name} prepared it for you, so that nothing about your website exists only in someone else's head.",
+    "es": "{agency_name} lo preparó para ti, para que nada de tu sitio web exista solamente en la cabeza de alguien más."
+  },
+  "welcome_use": {
+    "en": "You don't need to read it end to end. Have a skim now so you know what's in it, then come back to it when you need something.",
+    "es": "No hace falta que lo leas de principio a fin. Dale una hojeada ahora para saber qué contiene y vuelve a él cuando necesites algo."
   },
   "site_overview": {
     "en": "{site_name} is your organization's website, hosted at {site_url}.",
