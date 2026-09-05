@@ -90,7 +90,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-4 sm:px-6">
           <a href="https://handover.agency/" className="flex items-center">
             <HandoverLogo size={28} />
-            <span className="ml-2 hidden sm:inline text-xs text-muted-foreground" title={`Version ${APP_VERSION}`}>
+            <span className="ml-2 hidden sm:inline text-[11px] text-right text-muted-foreground" title={`Version ${APP_VERSION}`}>
               v. {APP_VERSION}
             </span>
           </a>

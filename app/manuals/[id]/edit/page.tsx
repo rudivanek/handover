@@ -1074,7 +1074,7 @@ export default function EditManualPage() {
               <div>
                 <p className="text-sm font-medium">
                   {t('edit.completion.complete', { percent: completion.percentage })}
-                  {draft && <span className="ml-2 text-amber-600">{t('edit.completion.draft')}</span>}
+                  {draft && <span className="ml-1 text-muted-foreground">· {t('manuals.incomplete')}</span>}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {completion.missing.length === 0
