@@ -365,6 +365,7 @@
   "scripts.stage.postlaunch": "Un mes despu\u00e9s del lanzamiento",
   "scripts.stage.renewal": "Renovaci\u00f3n del plan",
   "edit.emailScripts": "Correos para clientes",
+  "admin.overLimit": "excede el límite",
   "edit.archive": "Archivar",
   "edit.restore": "Restaurar",
   "edit.archivedState": "Archivado · aún en línea para tu cliente, solo lectura",
@@ -373,5 +374,11 @@
   "planLimit.archive": "Archivar un manual",
   "planLimit.upgrade": "Mejorar de plan",
   "planLimit.upgradeFree": "3 manuales publicados por $19/mes",
-  "planLimit.upgradeFreelancer": "ilimitado por $79/mes"
+  "planLimit.upgradeFreelancer": "ilimitado por $79/mes",
+  "plan.name.free": "Gratis",
+  "plan.name.freelancer": "Freelancer",
+  "plan.name.agency": "Agencia",
+  "plan.overLimit": "excede el límite",
+  "plan.liveCount": "{live}/{limit}",
+  "plan.liveCountUnlimited": "{live} publicados"
 }

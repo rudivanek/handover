@@ -1,18 +1,33 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { AppShell } from '@/components/app-shell';
 import { FileText } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 type AdminRow = {
+  user_id: string;
   email: string | null;
   agency_name: string | null;
   plan: string | null;
   signed_up_at: string | null;
   manual_count: number | null;
   manual_dates: string[] | null;
+  live_count: number | null;
+};
+
+const PLAN_LIMITS: Record<string, number | null> = {
+  free: 1,
+  freelancer: 3,
+  agency: null,
 };
 
 export default function AdminPage() {
@@ -21,6 +36,19 @@ export default function AdminPage() {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const fetchOverview = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_overview');
+    if (error) {
+      console.error('admin_overview RPC error:', error);
+      setError(true);
+      setRows(null);
+    } else {
+      setError(false);
+      setRows((data as AdminRow[]) ?? []);
+    }
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -28,19 +56,23 @@ export default function AdminPage() {
       return;
     }
     setLoading(true);
-    (async () => {
-      const { data, error } = await supabase.rpc('admin_overview');
-      if (error) {
-        console.error('admin_overview RPC error:', error);
-        setError(true);
-        setRows(null);
-      } else {
-        setError(false);
-        setRows((data as AdminRow[]) ?? []);
-      }
-      setLoading(false);
-    })();
-  }, [authLoading, user]);
+    fetchOverview();
+  }, [authLoading, user, fetchOverview]);
+
+  const handlePlanChange = async (userId: string, newPlan: string, prevPlan: string) => {
+    const { error } = await supabase.rpc('admin_set_plan', {
+      p_user_id: userId,
+      p_plan: newPlan,
+    });
+    if (error) {
+      console.error('admin_set_plan RPC error:', error);
+      setRows((prev) =>
+        prev ? prev.map((r) => (r.user_id === userId ? { ...r, plan: prevPlan } : r)) : prev,
+      );
+      return;
+    }
+    fetchOverview();
+  };
 
   if (loading || authLoading) {
     return (
@@ -76,12 +108,18 @@ export default function AdminPage() {
     }
   };
 
+  const isOverLimit = (plan: string | null, liveCount: number) => {
+    const limit = plan ? PLAN_LIMITS[plan] : null;
+    if (limit === null || limit === undefined) return false;
+    return liveCount > limit;
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
         <h1 className="text-3xl tracking-tight">Admin</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Aggregate overview of all accounts. Read-only.
+          Aggregate overview of all accounts.
         </p>
 
         <div className="mt-6 flex gap-6">
@@ -95,10 +133,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <p className="mt-4 text-xs text-muted-foreground">
-          Plan is set manually; it does not read from Stripe.
-        </p>
-
         <div className="mt-6 overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
@@ -108,27 +142,53 @@ export default function AdminPage() {
                 <th className="px-4 py-3 text-left font-medium">Plan</th>
                 <th className="px-4 py-3 text-left font-medium">Signed up</th>
                 <th className="px-4 py-3 text-left font-medium">Manuals</th>
+                <th className="px-4 py-3 text-left font-medium">Live</th>
               </tr>
             </thead>
             <tbody>
-              {rows?.map((r, i) => (
-                <tr key={i} className="border-b border-border last:border-0">
-                  <td className="px-4 py-3">{r.email || '—'}</td>
-                  <td className="px-4 py-3">{r.agency_name || '—'}</td>
-                  <td className="px-4 py-3">{r.plan || '—'}</td>
-                  <td className="px-4 py-3 whitespace-nowrap">{fmtDate(r.signed_up_at)}</td>
-                  <td className="px-4 py-3 align-top">
-                    <span className="font-medium">{r.manual_count || 0}</span>
-                    {r.manual_dates && r.manual_dates.length > 0 && (
-                      <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
-                        {r.manual_dates.map((d, j) => (
-                          <li key={j}>{fmtDate(d)}</li>
-                        ))}
-                      </ul>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {rows?.map((r) => {
+                const overLimit = isOverLimit(r.plan, r.live_count || 0);
+                return (
+                  <tr key={r.user_id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3">{r.email || '—'}</td>
+                    <td className="px-4 py-3">{r.agency_name || '—'}</td>
+                    <td className="px-4 py-3">
+                      <Select
+                        value={r.plan || 'free'}
+                        onValueChange={(value) => handlePlanChange(r.user_id, value, r.plan || 'free')}
+                      >
+                        <SelectTrigger className="h-8 w-32 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="free">Free</SelectItem>
+                          <SelectItem value="freelancer">Freelancer</SelectItem>
+                          <SelectItem value="agency">Agency</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">{fmtDate(r.signed_up_at)}</td>
+                    <td className="px-4 py-3 align-top">
+                      <span className="font-medium">{r.manual_count || 0}</span>
+                      {r.manual_dates && r.manual_dates.length > 0 && (
+                        <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                          {r.manual_dates.map((d, j) => (
+                            <li key={j}>{fmtDate(d)}</li>
+                          ))}
+                        </ul>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="font-medium">{r.live_count || 0}</span>
+                      {overLimit && (
+                        <span className="ml-2 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                          over limit
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

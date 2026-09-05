@@ -364,6 +364,7 @@
   "scripts.stage.postlaunch": "One month after launch",
   "scripts.stage.renewal": "Care plan renewal",
   "edit.emailScripts": "Email scripts",
+  "admin.overLimit": "over limit",
   "edit.archive": "Archive",
   "edit.restore": "Restore",
   "edit.archivedState": "Archived · still online for your client, read-only",
@@ -372,5 +373,11 @@
   "planLimit.archive": "Archive a manual",
   "planLimit.upgrade": "Move up a plan",
   "planLimit.upgradeFree": "3 live manuals for $19/month",
-  "planLimit.upgradeFreelancer": "unlimited for $79/month"
+  "planLimit.upgradeFreelancer": "unlimited for $79/month",
+  "plan.name.free": "Free",
+  "plan.name.freelancer": "Freelancer",
+  "plan.name.agency": "Agency",
+  "plan.overLimit": "over limit",
+  "plan.liveCount": "{live}/{limit}",
+  "plan.liveCountUnlimited": "{live} live"
 }

@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { useI18n, persistUiLocale } from '@/lib/i18n';
+import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,15 +17,70 @@ import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail, HelpCircle } from
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
 
+const PLAN_LABELS: Record<string, { en: string; es: string }> = {
+  free: { en: 'Free', es: 'Gratis' },
+  freelancer: { en: 'Freelancer', es: 'Freelancer' },
+  agency: { en: 'Agency', es: 'Agencia' },
+};
+
+const PLAN_LIMITS: Record<string, number | null> = {
+  free: 1,
+  freelancer: 3,
+  agency: null,
+};
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut } = useAuth();
   const { locale, setLocale, t } = useI18n();
+  const pathname = usePathname();
+  const [liveCount, setLiveCount] = useState<number | null>(null);
+
+  const fetchLiveCount = async () => {
+    if (!user) return;
+    const { count } = await supabase
+      .from('manuals')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .eq('is_published', true)
+      .is('archived_at', null);
+    setLiveCount(count ?? 0);
+  };
+
+  useEffect(() => {
+    fetchLiveCount();
+  }, [user, pathname]);
 
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale);
     if (user) {
       persistUiLocale(user.id, newLocale);
     }
+  };
+
+  const plan = profile?.plan || 'free';
+  const planLimit = PLAN_LIMITS[plan] ?? null;
+  const planLabel = PLAN_LABELS[plan]?.[locale] || plan;
+  const atOrOverLimit = planLimit !== null && liveCount !== null && liveCount >= planLimit;
+
+  const renderPlanIndicator = () => {
+    if (liveCount === null) return null;
+    const countText = planLimit === null
+      ? `${liveCount} ${locale === 'es' ? 'publicados' : 'live'}`
+      : `${liveCount}/${planLimit}`;
+    const fullText = `${planLabel} · ${countText}`;
+    const shortText = planLabel;
+
+    return (
+      <span
+        className={`hidden sm:inline text-xs font-medium px-2 py-1 rounded ${
+          atOrOverLimit
+            ? 'bg-amber-100 text-amber-800'
+            : 'bg-secondary text-muted-foreground'
+        }`}
+      >
+        {fullText}
+      </span>
+    );
   };
 
   return (
@@ -58,6 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <span className="hidden sm:inline">{t('nav.help')}</span>
               </a>
             </Button>
+            {renderPlanIndicator()}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1">
