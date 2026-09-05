@@ -320,12 +320,22 @@ export default function PublicManualPage() {
     return t('maintenance.owner.shared');
   };
 
+  const slugifyName = (s: string) =>
+    s.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+     .toLowerCase()
+     .replace(/[^a-z0-9]+/g, '-')
+     .replace(/^-+|-+$/g, '')
+     .slice(0, 40);
+
   const handlePrint = () => {
     const previous = document.title;
     const d = new Date();
     const p = (n: number) => String(n).padStart(2, '0');
     const stamp = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`;
-    document.title = `${manual.slug}-${stamp}`;
+    const agencySlug = slugifyName(agency?.agency_name || '');
+    const kind = locale === 'es' ? 'manual-del-sitio' : 'website-manual';
+    const name = [agencySlug, kind, manual.slug, stamp].filter(Boolean).join('-');
+    document.title = name;
     const restore = () => { document.title = previous; window.removeEventListener('afterprint', restore); };
     window.addEventListener('afterprint', restore);
     window.print();
