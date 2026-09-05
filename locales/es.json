@@ -4,6 +4,7 @@
   "nav.settings": "Ajustes",
   "nav.agencySettings": "Ajustes de la agencia",
   "nav.signOut": "Cerrar sesi\u00f3n",
+  "nav.scripts": "Correos",
   "nav.language": "Idioma",
 
   "common.loading": "Cargando\u2026",
@@ -326,5 +327,23 @@
   "edit.fields.addMaintenanceTask": "Agregar tarea",
   "edit.fields.addStandardSchedule": "Agregar el calendario est\u00e1ndar",
   "edit.maintenanceStandardHint": "Veintiuna tareas que un sitio t\u00edpico necesita, cada una con un responsable sugerido. Puedes editarlas, reasignarlas o eliminarlas.",
-  "public.sections.maintenance": "Calendario de mantenimiento"
+  "public.sections.maintenance": "Calendario de mantenimiento",
+
+  "scripts.title": "Correos para clientes",
+  "scripts.subtitle": "Correos listos para enviar en cada etapa de la relaci\u00f3n con un cliente. Elige un manual y los correos se llenan autom\u00e1ticamente.",
+  "scripts.selectManual": "Manual",
+  "scripts.noManual": "Selecciona un manual\u2026",
+  "scripts.noManualSelected": "Ning\u00fan manual seleccionado \u2014 los campos muestran marcadores. Elige un manual para llenarlos.",
+  "scripts.noManualsHint": "Crea un manual primero y vuelve aqu\u00ed para generar correos de cliente.",
+  "scripts.language": "Idioma del correo",
+  "scripts.tokensFrom": "Llenando con {client} ({site}).",
+  "scripts.copy": "Copiar",
+  "scripts.copyBody": "Solo cuerpo",
+  "scripts.copied": "Copiado",
+  "scripts.copiedDesc": "El asunto y el cuerpo est\u00e1n en tu portapapeles.",
+  "scripts.copiedBody": "Cuerpo copiado",
+  "scripts.copiedBodyDesc": "El cuerpo del correo est\u00e1 en tu portapapeles.",
+  "scripts.copyFailed": "No se pudo copiar",
+  "scripts.copyFailedDesc": "Selecciona el texto manualmente y c\u00f3pialo.",
+  "edit.emailScripts": "Correos para clientes"
 }

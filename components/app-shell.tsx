@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Settings, LogOut, BookOpen, ChevronDown, Globe } from 'lucide-react';
+import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail } from 'lucide-react';
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
 
@@ -38,6 +38,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <Link href="/manuals">
                 <BookOpen className="mr-1.5 h-4 w-4" />
                 <span className="hidden sm:inline">{t('nav.manuals')}</span>
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/scripts">
+                <Mail className="mr-1.5 h-4 w-4" />
+                <span className="hidden sm:inline">{t('nav.scripts')}</span>
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>

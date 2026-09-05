@@ -4,6 +4,7 @@
   "nav.settings": "Settings",
   "nav.agencySettings": "Agency settings",
   "nav.signOut": "Sign out",
+  "nav.scripts": "Scripts",
   "nav.language": "Language",
 
   "common.loading": "Loading\u2026",
@@ -325,5 +326,23 @@
   "edit.fields.addMaintenanceTask": "Add task",
   "edit.fields.addStandardSchedule": "Add the standard schedule",
   "edit.maintenanceStandardHint": "Twenty-one tasks a typical site needs, with a suggested owner on each. Edit, reassign or delete any of them.",
-  "public.sections.maintenance": "Maintenance schedule"
+  "public.sections.maintenance": "Maintenance schedule",
+
+  "scripts.title": "Client email scripts",
+  "scripts.subtitle": "Ready-to-send emails for each stage of a client relationship. Pick a manual and the scripts fill in automatically.",
+  "scripts.selectManual": "Manual",
+  "scripts.noManual": "Select a manual\u2026",
+  "scripts.noManualSelected": "No manual selected \u2014 tokens show as placeholders. Pick a manual to fill them in.",
+  "scripts.noManualsHint": "Create a manual first, then come back here to generate client emails.",
+  "scripts.language": "Script language",
+  "scripts.tokensFrom": "Filling from {client} ({site}).",
+  "scripts.copy": "Copy",
+  "scripts.copyBody": "Body only",
+  "scripts.copied": "Copied",
+  "scripts.copiedDesc": "Subject and body are in your clipboard.",
+  "scripts.copiedBody": "Body copied",
+  "scripts.copiedBodyDesc": "The email body is in your clipboard.",
+  "scripts.copyFailed": "Couldn't copy",
+  "scripts.copyFailedDesc": "Select the text manually and copy.",
+  "edit.emailScripts": "Email scripts"
 }

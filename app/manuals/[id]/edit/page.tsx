@@ -890,6 +890,12 @@ export default function EditManualPage() {
                 </a>
               </Button>
             )}
+            <Button variant="outline" asChild>
+              <Link href="/scripts">
+                <Mail className="mr-2 h-4 w-4" />
+                {t('edit.emailScripts')}
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
