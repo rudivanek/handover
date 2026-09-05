@@ -307,5 +307,21 @@
   "edit.fields.contactPhone": "Phone",
   "edit.fields.contactNotes": "Notes",
   "edit.fields.addContact": "Add contact",
-  "edit.contactsEmpty": "No contacts recorded yet."
+  "edit.contactsEmpty": "No contacts recorded yet.",
+  "edit.sections.maintenance": "Maintenance schedule",
+  "maintenance.cadence.daily": "Daily",
+  "maintenance.cadence.weekly": "Weekly",
+  "maintenance.cadence.monthly": "Monthly",
+  "maintenance.cadence.annual": "Once a year",
+  "maintenance.owner.agency": "Your web team",
+  "maintenance.owner.client": "Your team",
+  "maintenance.owner.shared": "Both",
+  "maintenance.columns.task": "Task",
+  "maintenance.columns.who": "Who does it",
+  "maintenance.columns.notes": "Notes",
+  "edit.maintenanceEmpty": "No maintenance tasks yet.",
+  "edit.fields.addMaintenanceTask": "Add task",
+  "edit.fields.addStandardSchedule": "Add the standard schedule",
+  "edit.maintenanceStandardHint": "Twenty-one tasks a typical site needs, with a suggested owner on each. Edit, reassign or delete any of them.",
+  "public.sections.maintenance": "Maintenance schedule"
 }

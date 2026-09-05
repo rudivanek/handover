@@ -9,7 +9,7 @@ import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { uniqueSlug } from '@/lib/slug';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ type ManualWithChildren = Manual & {
   coverage?: Coverage[];
   custom_fields?: CustomField[];
   assets?: Asset[];
+  maintenance_tasks?: MaintenanceTask[];
 };
 
 export default function ManualsPage() {
@@ -62,7 +63,8 @@ export default function ManualsPage() {
         edit_blocks (*),
         coverage (*),
         custom_fields (*),
-        assets (*)
+        assets (*),
+        maintenance_tasks (*)
       `)
       .order('created_at', { ascending: false });
 
@@ -155,11 +157,12 @@ export default function ManualsPage() {
       return;
     }
 
-    const [accountsRes, blocksRes, coverageRes, assetsRes] = await Promise.all([
+    const [accountsRes, blocksRes, coverageRes, assetsRes, maintenanceRes] = await Promise.all([
       supabase.from('accounts').select('*').eq('manual_id', manual.id),
       supabase.from('edit_blocks').select('*').eq('manual_id', manual.id),
       supabase.from('coverage').select('*').eq('manual_id', manual.id),
       supabase.from('assets').select('*').eq('manual_id', manual.id),
+      supabase.from('maintenance_tasks').select('*').eq('manual_id', manual.id),
     ]);
 
     if (accountsRes.data && accountsRes.data.length > 0) {
@@ -200,6 +203,18 @@ export default function ManualsPage() {
           asset_owner: a.asset_owner,
           notes: a.notes,
           sort_order: a.sort_order,
+        })));
+    }
+    if (maintenanceRes.data && maintenanceRes.data.length > 0) {
+      await supabase
+        .from('maintenance_tasks')
+        .insert(maintenanceRes.data.map((t) => ({
+          manual_id: newManual.id,
+          task: t.task,
+          cadence: t.cadence,
+          owner: t.owner,
+          notes: t.notes,
+          sort_order: t.sort_order,
         })));
     }
 

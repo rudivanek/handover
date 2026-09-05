@@ -1,0 +1,26 @@
+[
+  { "cadence": "daily", "owner": "agency", "en": "Uptime and security monitoring", "es": "Monitoreo de disponibilidad y seguridad" },
+  { "cadence": "daily", "owner": "agency", "en": "Automated backups run", "es": "Copias de seguridad automáticas" },
+  { "cadence": "daily", "owner": "client", "en": "Check that enquiries and form submissions have arrived", "es": "Revisa que hayan llegado las consultas y los envíos de formularios" },
+
+  { "cadence": "weekly", "owner": "agency", "en": "Apply platform, theme and plugin updates, tested on a copy of the site first", "es": "Aplica actualizaciones de plataforma, plantilla y plugins, probadas antes en una copia del sitio" },
+  { "cadence": "weekly", "owner": "agency", "en": "Confirm the week's backups completed", "es": "Confirma que las copias de seguridad de la semana se completaron" },
+  { "cadence": "weekly", "owner": "agency", "en": "Send a test enquiry through each form on the site", "es": "Envía una consulta de prueba por cada formulario del sitio" },
+  { "cadence": "weekly", "owner": "client", "en": "Review and clear spam or pending comments", "es": "Revisa y elimina spam y comentarios pendientes" },
+  { "cadence": "weekly", "owner": "client", "en": "Check that anything newly published looks right on a phone", "es": "Revisa en el celular que lo que publicaste se vea bien" },
+
+  { "cadence": "monthly", "owner": "agency", "en": "Review traffic, most-visited pages and enquiry numbers", "es": "Revisa las visitas, las páginas más vistas y cuántas consultas llegaron" },
+  { "cadence": "monthly", "owner": "agency", "en": "Test every form, booking and payment path from start to finish", "es": "Prueba de principio a fin cada formulario, reserva y pago" },
+  { "cadence": "monthly", "owner": "agency", "en": "Fix broken links and add redirects for pages that have moved", "es": "Corrige enlaces rotos y agrega redirecciones para las páginas que cambiaron de dirección" },
+  { "cadence": "monthly", "owner": "agency", "en": "Review page speed and oversized images", "es": "Revisa la velocidad de carga y las imágenes demasiado pesadas" },
+  { "cadence": "monthly", "owner": "client", "en": "Update anything that has changed: staff, prices, opening hours, photos", "es": "Actualiza lo que haya cambiado: equipo, precios, horarios, fotos" },
+  { "cadence": "monthly", "owner": "client", "en": "Review who can sign in to the site and remove anyone who has left", "es": "Revisa quién puede entrar al sitio y quita a quien ya no trabaje contigo" },
+
+  { "cadence": "annual", "owner": "client", "en": "Renew the domain and confirm the registrant contact details are still current", "es": "Renueva el dominio y confirma que los datos de contacto del titular sigan vigentes" },
+  { "cadence": "annual", "owner": "agency", "en": "Renew hosting and confirm the SSL certificate is valid", "es": "Renueva el hosting y confirma que el certificado SSL esté vigente" },
+  { "cadence": "annual", "owner": "agency", "en": "Renew theme and plugin licences", "es": "Renueva las licencias de plantilla y plugins" },
+  { "cadence": "annual", "owner": "agency", "en": "Restore a backup to a test site, to prove the backups actually work", "es": "Restaura una copia de seguridad en un sitio de prueba, para comprobar que las copias sirven" },
+  { "cadence": "annual", "owner": "client", "en": "Review the privacy policy, cookie notice and terms", "es": "Revisa el aviso de privacidad, el aviso de cookies y los términos" },
+  { "cadence": "annual", "owner": "agency", "en": "Review the site against WCAG 2.2 AA accessibility guidelines", "es": "Revisa el sitio contra las pautas de accesibilidad WCAG 2.2 AA" },
+  { "cadence": "annual", "owner": "shared", "en": "Review what the website achieved this year and plan the next round of work", "es": "Revisa qué logró el sitio este año y planea el siguiente tramo de trabajo" }
+]

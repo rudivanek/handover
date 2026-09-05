@@ -308,5 +308,21 @@
   "edit.fields.contactPhone": "Tel\u00e9fono",
   "edit.fields.contactNotes": "Notas",
   "edit.fields.addContact": "Agregar contacto",
-  "edit.contactsEmpty": "A\u00fan no hay contactos registrados."
+  "edit.contactsEmpty": "A\u00fan no hay contactos registrados.",
+  "edit.sections.maintenance": "Calendario de mantenimiento",
+  "maintenance.cadence.daily": "Diario",
+  "maintenance.cadence.weekly": "Semanal",
+  "maintenance.cadence.monthly": "Mensual",
+  "maintenance.cadence.annual": "Una vez al a\u00f1o",
+  "maintenance.owner.agency": "Tu equipo web",
+  "maintenance.owner.client": "Tu equipo",
+  "maintenance.owner.shared": "Ambos",
+  "maintenance.columns.task": "Tarea",
+  "maintenance.columns.who": "Qui\u00e9n lo hace",
+  "maintenance.columns.notes": "Notas",
+  "edit.maintenanceEmpty": "A\u00fan no hay tareas de mantenimiento.",
+  "edit.fields.addMaintenanceTask": "Agregar tarea",
+  "edit.fields.addStandardSchedule": "Agregar el calendario est\u00e1ndar",
+  "edit.maintenanceStandardHint": "Veintiuna tareas que un sitio t\u00edpico necesita, cada una con un responsable sugerido. Puedes editarlas, reasignarlas o eliminarlas.",
+  "public.sections.maintenance": "Calendario de mantenimiento"
 }

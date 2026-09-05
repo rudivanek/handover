@@ -98,5 +98,13 @@
   "made_with": {
     "en": "Made with Handover",
     "es": "Hecho con Handover"
+  },
+  "maintenance_intro": {
+    "en": "Keeping a website healthy is a series of small, regular jobs rather than one big one. This section lists what needs doing, how often, and who does it.",
+    "es": "Mantener un sitio web sano es una serie de tareas pequeñas y constantes, no un solo trabajo grande. Esta sección indica qué hay que hacer, con qué frecuencia y quién lo hace."
+  },
+  "maintenance_note": {
+    "en": "Each task is assigned to one of us. Anything assigned to us is part of the service we provide. Anything assigned to you needs someone on your team to own it — if nobody does, it stops happening, and most website problems start there.",
+    "es": "Cada tarea tiene un responsable. Lo que nos toca a nosotros es parte del servicio que damos. Lo que te toca a ti necesita a alguien de tu equipo que lo tome como suyo: si nadie lo hace, deja de hacerse, y de ahí nacen casi todos los problemas de un sitio web."
   }
 }

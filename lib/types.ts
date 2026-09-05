@@ -109,6 +109,20 @@ export type ManualContact = {
   created_at: string;
 };
 
+export type MaintenanceCadence = 'daily' | 'weekly' | 'monthly' | 'annual';
+export type MaintenanceOwner = 'agency' | 'client' | 'shared';
+
+export type MaintenanceTask = {
+  id: string;
+  manual_id: string;
+  task: string;
+  cadence: MaintenanceCadence;
+  owner: MaintenanceOwner;
+  notes: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type ManualWithRelations = Manual & {
   accounts: Account[];
   edit_blocks: EditBlock[];
@@ -117,4 +131,5 @@ export type ManualWithRelations = Manual & {
   custom_fields: CustomField[];
   assets: Asset[];
   manual_contacts: ManualContact[];
+  maintenance_tasks: MaintenanceTask[];
 };

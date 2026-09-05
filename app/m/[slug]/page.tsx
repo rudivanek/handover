@@ -5,10 +5,10 @@ import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault } from '@/lib/defaults';
 import { MARKETING_URL } from '@/lib/utils';
-import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, Locale } from '@/lib/types';
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
-import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen } from 'lucide-react';
+import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen, CalendarCheck } from 'lucide-react';
 import { HandoverMark } from '@/components/Logo';
 import enMessages from '@/locales/en.json';
 import esMessages from '@/locales/es.json';
@@ -42,6 +42,7 @@ type PublicManualData = {
   custom_sections: CustomSection[];
   custom_fields: CustomField[];
   assets: Asset[];
+  maintenance_tasks: MaintenanceTask[];
 };
 
 export default function PublicManualPage() {
@@ -75,6 +76,7 @@ export default function PublicManualPage() {
   const customSections = data?.custom_sections ?? [];
   const customFields = data?.custom_fields ?? [];
   const assets = data?.assets ?? [];
+  const maintenanceTasks = data?.maintenance_tasks ?? [];
 
   const locale: Locale = (manual?.locale as Locale) || 'en';
   const t = (key: string, params?: Record<string, string | number>): string => {
@@ -180,6 +182,8 @@ export default function PublicManualPage() {
   const emergencyContactText = renderInterpolated('emergency_contact');
   const supportGeneralText = renderInterpolated('support_general');
   const assetsNoteText = renderInterpolated('assets_note');
+  const maintenanceIntroText = renderInterpolated('maintenance_intro');
+  const maintenanceNoteText = renderInterpolated('maintenance_note');
 
   const hasEmergencyCard = !!(
     manual.emergency_name || manual.emergency_role ||
@@ -277,6 +281,18 @@ export default function PublicManualPage() {
   const editCustomFields = getFilledBuiltinFields('how_to_edit');
   const coverageCustomFields = getFilledBuiltinFields('coverage');
   const emergencyCustomFields = getFilledBuiltinFields('emergency');
+  const maintenanceCustomFields = getFilledBuiltinFields('maintenance');
+
+  const maintenanceCadenceOrder: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];
+  const maintenanceByCadence = maintenanceCadenceOrder
+    .map((cadence) => ({ cadence, tasks: maintenanceTasks.filter((t) => t.cadence === cadence).sort((a, b) => a.sort_order - b.sort_order) }))
+    .filter((group) => group.tasks.length > 0);
+
+  const maintenanceOwnerName = (owner: string): string => {
+    if (owner === 'agency') return agency.agency_name || t('maintenance.owner.agency');
+    if (owner === 'client') return manual.client_name || t('maintenance.owner.client');
+    return t('maintenance.owner.shared');
+  };
 
   return (
     <div className="min-h-screen bg-secondary/20">
@@ -612,6 +628,64 @@ export default function PublicManualPage() {
                 </table>
               </div>
             )}
+          </section>
+        )}
+
+        {/* Maintenance schedule */}
+        {maintenanceTasks.length > 0 && (
+          <section className="manual-section mb-8 sm:mb-10">
+            <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
+              <CalendarCheck className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+              {t('public.sections.maintenance')}
+            </h2>
+            {maintenanceIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{maintenanceIntroText}</p>}
+            <div className="space-y-5 sm:space-y-6">
+              {maintenanceByCadence.map((group) => {
+                const hasNotes = group.tasks.some((t) => t.notes && t.notes.trim());
+                return (
+                  <div key={group.cadence} className="break-inside-avoid">
+                    <h3 className="mb-2 text-sm font-medium sm:mb-3" style={{ color: brandColor }}>
+                      {t(`maintenance.cadence.${group.cadence}`)}
+                    </h3>
+                    <div className="overflow-hidden rounded-lg border border-border">
+                      <table className="w-full text-xs sm:text-sm">
+                        <thead>
+                          <tr className="border-b border-border bg-secondary/30">
+                            <th className="px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('maintenance.columns.task')}</th>
+                            <th className="px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('maintenance.columns.who')}</th>
+                            {hasNotes && <th className="px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('maintenance.columns.notes')}</th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.tasks.map((task, i) => (
+                            <tr key={task.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
+                              <td className="px-3 py-2 sm:px-4 sm:py-2.5">{task.task || '\u2014'}</td>
+                              <td className="px-3 py-2 sm:px-4 sm:py-2.5">{maintenanceOwnerName(task.owner)}</td>
+                              {hasNotes && <td className="whitespace-pre-wrap px-3 py-2 sm:px-4 sm:py-2.5">{task.notes || '\u2014'}</td>}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {maintenanceCustomFields.length > 0 && (
+              <div className="mt-4 overflow-hidden rounded-lg border border-border">
+                <table className="w-full text-xs sm:text-sm">
+                  <tbody>
+                    {maintenanceCustomFields.map((field, i) => (
+                      <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
+                        <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{field.label}</td>
+                        <td className="whitespace-pre-wrap px-3 py-2 sm:px-4 sm:py-2.5">{field.value}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {maintenanceNoteText && <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:mt-4">{maintenanceNoteText}</p>}
           </section>
         )}
 

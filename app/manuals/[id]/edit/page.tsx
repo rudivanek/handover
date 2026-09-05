@@ -9,8 +9,9 @@ import { useI18n } from '@/lib/i18n';
 import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
+import maintenancePresets from '@/data/maintenance-presets.json';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, Locale } from '@/lib/types';
 import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
@@ -25,6 +26,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
@@ -54,6 +62,7 @@ import {
   Link2,
   ArrowUpRight,
   Lock,
+  CalendarCheck,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -63,6 +72,7 @@ const BUILTIN_SECTION_KEYS: Record<string, string> = {
   accounts: 'accounts',
   edit: 'how_to_edit',
   coverage: 'coverage',
+  maintenance: 'maintenance',
   emergency: 'emergency',
 };
 
@@ -83,6 +93,8 @@ export default function EditManualPage() {
   const [assets, setAssets] = useState<Asset[]>([]);
   const [contacts, setContacts] = useState<ManualContact[]>([]);
   const [contactCheckResults, setContactCheckResults] = useState<Record<string, NameCheckLevel>>({});
+  const [maintenanceTasks, setMaintenanceTasks] = useState<MaintenanceTask[]>([]);
+  const [maintenanceCheckResults, setMaintenanceCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openSection, setOpenSection] = useState<string>('site');
@@ -97,7 +109,7 @@ export default function EditManualPage() {
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
 
   const fetchData = useCallback(async () => {
-    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes] = await Promise.all([
+    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes, maintenanceRes] = await Promise.all([
       supabase.from('manuals').select('*').eq('id', id).maybeSingle(),
       supabase.from('accounts').select('*').eq('manual_id', id).order('created_at'),
       supabase.from('edit_blocks').select('*').eq('manual_id', id).order('created_at'),
@@ -106,6 +118,7 @@ export default function EditManualPage() {
       supabase.from('custom_fields').select('*').eq('manual_id', id).order('position'),
       supabase.from('assets').select('*').eq('manual_id', id).order('sort_order'),
       supabase.from('manual_contacts').select('*').eq('manual_id', id).order('sort_order'),
+      supabase.from('maintenance_tasks').select('*').eq('manual_id', id).order('sort_order'),
     ]);
     if (manualRes.data) setManual(manualRes.data as Manual);
     setAccounts((accountsRes.data as Account[]) || []);
@@ -115,6 +128,7 @@ export default function EditManualPage() {
     setCustomFields((fieldsRes.data as CustomField[]) || []);
     setAssets((assetsRes.data as Asset[]) || []);
     setContacts((contactsRes.data as ManualContact[]) || []);
+    setMaintenanceTasks((maintenanceRes.data as MaintenanceTask[]) || []);
     setFetching(false);
   }, [id]);
 
@@ -419,6 +433,92 @@ export default function EditManualPage() {
       if (c.id === contactB.id) return { ...c, sort_order: posA };
       return c;
     }));
+  };
+
+  // Maintenance tasks
+  const maintenanceCadenceOrder: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];
+
+  const addMaintenanceTask = async (cadence: MaintenanceCadence) => {
+    const groupTasks = maintenanceTasks.filter((t) => t.cadence === cadence);
+    const sortOrder = groupTasks.length;
+    const { data } = await supabase.from('maintenance_tasks').insert({
+      manual_id: id,
+      task: '',
+      cadence,
+      owner: 'agency',
+      notes: '',
+      sort_order: sortOrder,
+    }).select().single();
+    if (data) {
+      setMaintenanceTasks((prev) => [...prev, data as MaintenanceTask]);
+    }
+  };
+
+  const updateMaintenanceTask = (taskId: string, field: keyof MaintenanceTask, value: string) => {
+    setMaintenanceTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, [field]: value } : t)));
+  };
+
+  const saveMaintenanceTask = async (taskId: string) => {
+    const t = maintenanceTasks.find((x) => x.id === taskId);
+    if (!t) return;
+    const taskRaw = checkFieldName(t.task);
+    const notesRaw = checkFieldName(t.notes);
+    const taskLevel: NameCheckLevel = taskRaw.level === 'block' ? 'warn' : taskRaw.level;
+    const notesLevel: NameCheckLevel = notesRaw.level === 'block' ? 'warn' : notesRaw.level;
+    const level: NameCheckLevel = taskLevel === 'warn' || notesLevel === 'warn' ? 'warn' : 'ok';
+    setMaintenanceCheckResults((prev) => ({ ...prev, [taskId]: level }));
+    await supabase.from('maintenance_tasks').update({
+      task: t.task,
+      cadence: t.cadence,
+      owner: t.owner,
+      notes: t.notes,
+    }).eq('id', taskId);
+  };
+
+  const removeMaintenanceTask = async (taskId: string) => {
+    await supabase.from('maintenance_tasks').delete().eq('id', taskId);
+    setMaintenanceTasks((prev) => prev.filter((t) => t.id !== taskId));
+  };
+
+  const moveMaintenanceTask = async (taskId: string, direction: 'up' | 'down') => {
+    const t = maintenanceTasks.find((x) => x.id === taskId);
+    if (!t) return;
+    const cadence = t.cadence;
+    const group = maintenanceTasks.filter((x) => x.cadence === cadence).sort((a, b) => a.sort_order - b.sort_order);
+    const idx = group.findIndex((x) => x.id === taskId);
+    if (idx === -1) return;
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= group.length) return;
+    const taskA = group[idx];
+    const taskB = group[swapIdx];
+    const posA = taskA.sort_order;
+    const posB = taskB.sort_order;
+    await Promise.all([
+      supabase.from('maintenance_tasks').update({ sort_order: posB }).eq('id', taskA.id),
+      supabase.from('maintenance_tasks').update({ sort_order: posA }).eq('id', taskB.id),
+    ]);
+    setMaintenanceTasks((prev) => prev.map((x) => {
+      if (x.id === taskA.id) return { ...x, sort_order: posB };
+      if (x.id === taskB.id) return { ...x, sort_order: posA };
+      return x;
+    }));
+  };
+
+  const addStandardSchedule = async () => {
+    const rows = (maintenancePresets as Array<{ cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>);
+    const localeKey = manualLocale === 'es' ? 'es' : 'en';
+    const insertRows = rows.map((row, i) => ({
+      manual_id: id,
+      task: row[localeKey],
+      cadence: row.cadence,
+      owner: row.owner,
+      notes: '',
+      sort_order: i,
+    }));
+    const { data } = await supabase.from('maintenance_tasks').insert(insertRows).select();
+    if (data) {
+      setMaintenanceTasks(data as MaintenanceTask[]);
+    }
   };
 
   // Custom fields (builtin sections)
@@ -1279,6 +1379,114 @@ export default function EditManualPage() {
             </div>
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.coverage)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.coverage)}
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Maintenance schedule */}
+        <AccordionItem value="maintenance" className="rounded-lg border border-border bg-card">
+          <AccordionTrigger className="px-5 py-4 hover:no-underline">
+            <span className="flex items-center gap-2 text-lg">
+              <CalendarCheck className="h-5 w-5 text-muted-foreground" />
+              {t('edit.sections.maintenance')}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-5 pb-5">
+            {maintenanceTasks.length === 0 ? (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">{t('edit.maintenanceEmpty')}</p>
+                <p className="text-xs text-muted-foreground">{t('edit.maintenanceStandardHint')}</p>
+                <Button onClick={addStandardSchedule}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('edit.fields.addStandardSchedule')}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {maintenanceCadenceOrder.map((cadence) => {
+                  const groupTasks = maintenanceTasks
+                    .filter((task) => task.cadence === cadence)
+                    .sort((a, b) => a.sort_order - b.sort_order);
+                  if (groupTasks.length === 0) return null;
+                  return (
+                    <div key={cadence}>
+                      <h4 className="mb-2 text-sm font-medium" style={{ color: profile?.brand_color || '#1f2937' }}>
+                        {t(`maintenance.cadence.${cadence}`)}
+                      </h4>
+                      <div className="space-y-2">
+                        {groupTasks.map((task, i) => (
+                          <div key={task.id} className="flex items-start gap-2 rounded-lg border border-border p-3">
+                            <div className="flex flex-col gap-0.5 pt-1">
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === 0} onClick={() => moveMaintenanceTask(task.id, 'up')}>
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === groupTasks.length - 1} onClick={() => moveMaintenanceTask(task.id, 'down')}>
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={task.task}
+                                onChange={(e) => {
+                                  updateMaintenanceTask(task.id, 'task', e.target.value);
+                                  if (maintenanceCheckResults[task.id]) {
+                                    setMaintenanceCheckResults((prev) => { const next = { ...prev }; delete next[task.id]; return next; });
+                                  }
+                                }}
+                                onBlur={() => saveMaintenanceTask(task.id)}
+                                placeholder={t('maintenance.columns.task')}
+                                className="text-sm"
+                              />
+                              <div className="flex gap-2">
+                                <Select
+                                  value={task.owner}
+                                  onValueChange={(value) => {
+                                    updateMaintenanceTask(task.id, 'owner', value);
+                                    saveMaintenanceTask(task.id);
+                                  }}
+                                >
+                                  <SelectTrigger className="w-40 text-sm">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="agency">{profile?.agency_name || t('maintenance.owner.agency')}</SelectItem>
+                                    <SelectItem value="client">{manual?.client_name || t('maintenance.owner.client')}</SelectItem>
+                                    <SelectItem value="shared">{t('maintenance.owner.shared')}</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              <Input
+                                value={task.notes}
+                                onChange={(e) => {
+                                  updateMaintenanceTask(task.id, 'notes', e.target.value);
+                                  if (maintenanceCheckResults[task.id]) {
+                                    setMaintenanceCheckResults((prev) => { const next = { ...prev }; delete next[task.id]; return next; });
+                                  }
+                                }}
+                                onBlur={() => saveMaintenanceTask(task.id)}
+                                placeholder={t('maintenance.columns.notes')}
+                                className="text-sm"
+                              />
+                              {maintenanceCheckResults[task.id] === 'warn' && (
+                                <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                              )}
+                            </div>
+                            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeMaintenanceTask(task.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                      <Button variant="outline" size="sm" className="mt-2" onClick={() => addMaintenanceTask(cadence)}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        {t('edit.fields.addMaintenanceTask')}
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.maintenance)}
+            {renderAddFieldButton(BUILTIN_SECTION_KEYS.maintenance)}
           </AccordionContent>
         </AccordionItem>
 
