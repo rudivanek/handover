@@ -887,15 +887,14 @@ export default function EditManualPage() {
             {t('common.allManuals')}
           </Link>
         </Button>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-3xl tracking-tight-app">{manual.client_name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {t('edit.subtitle')}
-              {saving ? `  ${t('edit.savingStatus')}` : `  ${t('edit.savedStatus')}`}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
+        <div>
+          <h1 className="text-3xl tracking-tight-app">{manual.client_name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t('edit.subtitle')}
+            {saving ? `  ${t('edit.savingStatus')}` : `  ${t('edit.savedStatus')}`}
+          </p>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
             {/* Publish control */}
             {manual.is_published ? (
               <div className="flex items-center gap-1.5 rounded-lg border border-green-200 bg-green-50 px-3 py-1.5">
@@ -928,7 +927,7 @@ export default function EditManualPage() {
               </Button>
             )}
             {/* Manual locale selector */}
-            <div className="flex items-center gap-1 rounded-lg border border-border p-1">
+            <div className="flex items-center gap-1 rounded-lg border border-border p-1 shrink-0">
               <Globe className="h-4 w-4 text-muted-foreground ml-1" />
               <Button
                 variant={manualLocale === 'en' ? 'default' : 'ghost'}
@@ -974,7 +973,6 @@ export default function EditManualPage() {
               </Link>
             </Button>
           </div>
-        </div>
       </div>
 
       {/* Completion meter */}
@@ -1170,10 +1168,16 @@ export default function EditManualPage() {
                 <Input id="key_plugins" value={pluginsString} onChange={(e) => updateManual('key_plugins', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="WooCommerce, Yoast SEO, WP Rocket" />
               </div>
             </div>
-            <div className="mt-4 rounded-lg bg-secondary/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              {previewInterpolated('site_overview') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('site_overview')}</p>}
-            </div>
+            {(() => {
+              const preview = previewInterpolated('site_overview');
+              if (!preview) return null;
+              return (
+                <div className="mt-4 rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
+                  <p className="mt-1 text-sm leading-relaxed">{preview}</p>
+                </div>
+              );
+            })()}
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.site)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.site)}
           </AccordionContent>
@@ -1206,11 +1210,18 @@ export default function EditManualPage() {
                 <Input id="nameservers" value={manual.nameservers || ''} onChange={(e) => updateManual('nameservers', e.target.value)} placeholder="ns1.example.com, ns2.example.com" />
               </div>
             </div>
-            <div className="mt-4 rounded-lg bg-secondary/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              {previewInterpolated('domain') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain')}</p>}
-              {previewInterpolated('domain_expiry') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('domain_expiry')}</p>}
-            </div>
+            {(() => {
+              const domain = previewInterpolated('domain');
+              const domainExpiry = previewInterpolated('domain_expiry');
+              if (!domain && !domainExpiry) return null;
+              return (
+                <div className="mt-4 rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
+                  {domain && <p className="mt-1 text-sm leading-relaxed">{domain}</p>}
+                  {domainExpiry && <p className="mt-1 text-sm leading-relaxed">{domainExpiry}</p>}
+                </div>
+              );
+            })()}
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.domain)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.domain)}
           </AccordionContent>
@@ -1243,17 +1254,29 @@ export default function EditManualPage() {
                 <Input id="email_provider" value={manual.email_provider || ''} onChange={(e) => updateManual('email_provider', e.target.value)} placeholder="Google Workspace" />
               </div>
             </div>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              <div className="rounded-lg bg-secondary/50 p-4">
-                <p className="text-xs font-medium text-muted-foreground">{t('edit.hostingPreview')}</p>
-                {previewInterpolated('host') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host')}</p>}
-                {previewInterpolated('host_plan') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('host_plan')}</p>}
-              </div>
-              <div className="rounded-lg bg-secondary/50 p-4">
-                <p className="text-xs font-medium text-muted-foreground">{t('edit.emailPreview')}</p>
-                {previewInterpolated('email_provider') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('email_provider')}</p>}
-              </div>
-            </div>
+            {(() => {
+              const host = previewInterpolated('host');
+              const hostPlan = previewInterpolated('host_plan');
+              const emailProvider = previewInterpolated('email_provider');
+              if (!host && !hostPlan && !emailProvider) return null;
+              return (
+                <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                  {(host || hostPlan) && (
+                    <div className="rounded-lg bg-secondary/50 p-4">
+                      <p className="text-xs font-medium text-muted-foreground">{t('edit.hostingPreview')}</p>
+                      {host && <p className="mt-1 text-sm leading-relaxed">{host}</p>}
+                      {hostPlan && <p className="mt-1 text-sm leading-relaxed">{hostPlan}</p>}
+                    </div>
+                  )}
+                  {emailProvider && (
+                    <div className="rounded-lg bg-secondary/50 p-4">
+                      <p className="text-xs font-medium text-muted-foreground">{t('edit.emailPreview')}</p>
+                      <p className="mt-1 text-sm leading-relaxed">{emailProvider}</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.hosting)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.hosting)}
           </AccordionContent>
@@ -1633,12 +1656,20 @@ export default function EditManualPage() {
                 <Input id="emergency_email" type="email" value={manual.emergency_email || ''} onChange={(e) => updateManual('emergency_email', e.target.value)} placeholder="urgent@youragency.com" />
               </div>
             </div>
-            <div className="mt-4 rounded-lg bg-secondary/50 p-4">
-              <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
-              {previewInterpolated('emergency_intro') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_intro')}</p>}
-              {previewInterpolated('emergency_contact') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('emergency_contact')}</p>}
-              {previewInterpolated('support_general') && <p className="mt-1 text-sm leading-relaxed">{previewInterpolated('support_general')}</p>}
-            </div>
+            {(() => {
+              const intro = previewInterpolated('emergency_intro');
+              const contact = previewInterpolated('emergency_contact');
+              const general = previewInterpolated('support_general');
+              if (!intro && !contact && !general) return null;
+              return (
+                <div className="mt-4 rounded-lg bg-secondary/50 p-4">
+                  <p className="text-xs font-medium text-muted-foreground">{t('edit.preview')}</p>
+                  {intro && <p className="mt-1 text-sm leading-relaxed">{intro}</p>}
+                  {contact && <p className="mt-1 text-sm leading-relaxed">{contact}</p>}
+                  {general && <p className="mt-1 text-sm leading-relaxed">{general}</p>}
+                </div>
+              );
+            })()}
             {renderBuiltinCustomFields(BUILTIN_SECTION_KEYS.emergency)}
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.emergency)}
           </AccordionContent>
