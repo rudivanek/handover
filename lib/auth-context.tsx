@@ -10,6 +10,7 @@ type AuthContextType = {
   user: User | null;
   profile: Profile | null;
   loading: boolean;
+  profileLoaded: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   loading: true,
+  profileLoaded: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -28,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -36,21 +39,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (mounted) setLoading(false);
     }, 5000);
 
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       clearTimeout(timeout);
       if (!mounted) return;
       if (error) {
         setSession(null);
         setUser(null);
+        setProfileLoaded(true);
       } else {
         setSession(session);
         setUser(session?.user ?? null);
+        if (session?.user) {
+          await ensureProfile(session.user);
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle();
+          if (mounted) {
+            setProfile(profileData as Profile | null);
+            setProfileLoaded(true);
+          }
+        } else {
+          if (mounted) setProfileLoaded(true);
+        }
       }
       setLoading(false);
     }).catch(() => {
       clearTimeout(timeout);
       if (!mounted) return;
       setLoading(false);
+      setProfileLoaded(true);
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
@@ -66,9 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             .select('*')
             .eq('user_id', session.user.id)
             .maybeSingle();
-          if (mounted) setProfile(data as Profile | null);
+          if (mounted) {
+            setProfile(data as Profile | null);
+            setProfileLoaded(true);
+          }
         } else {
-          if (mounted) setProfile(null);
+          if (mounted) {
+            setProfile(null);
+            setProfileLoaded(true);
+          }
         }
       })();
     });
@@ -118,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, user, profile, loading, profileLoaded, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

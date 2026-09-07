@@ -25,8 +25,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight, Trash2, Archive, ArchiveRestore, BookmarkPlus } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight, Trash2, Archive, ArchiveRestore, BookmarkPlus, MoreHorizontal } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
+import { HIDEABLE_FIELDS, HIDEABLE_SECTIONS, type FieldKey, type SectionKey } from '@/lib/manual-shape';
 
 type ManualWithChildren = Manual & {
   accounts?: Account[];
@@ -38,7 +46,7 @@ type ManualWithChildren = Manual & {
 };
 
 export default function ManualsPage() {
-  const { profile } = useAuth();
+  const { profile, profileLoaded } = useAuth();
   const { loading } = useRequireAuth();
   const { locale, t } = useI18n();
   const { toast } = useToast();
@@ -332,8 +340,8 @@ export default function ManualsPage() {
       .from('manual_templates')
       .insert({
         name: saveAsTplName.trim(),
-        hidden_fields: saveAsTplManual.hidden_fields || [],
-        hidden_sections: saveAsTplManual.hidden_sections || [],
+        hidden_fields: (saveAsTplManual.hidden_fields || []).filter((f) => HIDEABLE_FIELDS.includes(f as FieldKey)),
+        hidden_sections: (saveAsTplManual.hidden_sections || []).filter((s) => HIDEABLE_SECTIONS.includes(s as SectionKey)),
       })
       .select()
       .single();
@@ -517,7 +525,7 @@ export default function ManualsPage() {
     }
   };
 
-  if (loading || loadingList) {
+  if (loading || !profileLoaded || loadingList) {
     return (
       <AppShell>
         <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
@@ -656,58 +664,44 @@ export default function ManualsPage() {
                       <Link2 className="h-4 w-4" />
                       <span className="hidden sm:inline ml-1.5">{t('manuals.copyLink')}</span>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDuplicate(manual)}
-                      title={t('manuals.duplicate')}
-                    >
-                      <Copy className="h-4 w-4" />
-                      <span className="hidden sm:inline ml-1.5">{t('manuals.duplicate')}</span>
-                    </Button>
-                    {plan !== 'free' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => { setSaveAsTplManual(manual); setSaveAsTplName(manual.client_name || ''); }}
-                        title={t('manuals.saveAsTemplate')}
-                      >
-                        <BookmarkPlus className="h-4 w-4" />
-                        <span className="hidden sm:inline ml-1.5">{t('manuals.saveAsTemplate')}</span>
-                      </Button>
-                    )}
-                    {manual.archived_at ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRestore(manual)}
-                        disabled={archiving}
-                        title={t('manuals.restore')}
-                      >
-                        <ArchiveRestore className="h-4 w-4" />
-                        <span className="hidden sm:inline ml-1.5">{t('manuals.restore')}</span>
-                      </Button>
-                    ) : manual.is_published ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setArchiveManual(manual)}
-                        title={t('manuals.archive')}
-                      >
-                        <Archive className="h-4 w-4" />
-                        <span className="hidden sm:inline ml-1.5">{t('manuals.archive')}</span>
-                      </Button>
-                    ) : null}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-destructive"
-                      onClick={() => { setDeleteManual(manual); setDeleteConfirmName(''); }}
-                      title={t('manuals.delete')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="hidden sm:inline ml-1.5">{t('manuals.delete')}</span>
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="px-2">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleDuplicate(manual)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          {t('manuals.duplicate')}
+                        </DropdownMenuItem>
+                        {plan !== 'free' && (
+                          <DropdownMenuItem onClick={() => { setSaveAsTplManual(manual); setSaveAsTplName(manual.client_name || ''); }}>
+                            <BookmarkPlus className="mr-2 h-4 w-4" />
+                            {t('manuals.saveAsTemplate')}
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        {manual.archived_at ? (
+                          <DropdownMenuItem onClick={() => handleRestore(manual)} disabled={archiving}>
+                            <ArchiveRestore className="mr-2 h-4 w-4" />
+                            {t('manuals.restore')}
+                          </DropdownMenuItem>
+                        ) : manual.is_published ? (
+                          <DropdownMenuItem onClick={() => setArchiveManual(manual)}>
+                            <Archive className="mr-2 h-4 w-4" />
+                            {t('manuals.archive')}
+                          </DropdownMenuItem>
+                        ) : null}
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => { setDeleteManual(manual); setDeleteConfirmName(''); }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          {t('manuals.delete')}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>

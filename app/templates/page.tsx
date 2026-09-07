@@ -34,14 +34,14 @@ import type {
   MaintenanceOwner,
   Locale,
 } from '@/lib/types';
-import { SECTION_KEYS, HIDEABLE_SECTIONS, HIDEABLE_FIELDS, fieldsInSection, type SectionKey, type FieldKey } from '@/lib/manual-shape';
+import { SECTION_KEYS, HIDEABLE_SECTIONS, HIDEABLE_FIELDS, fieldsInSection, FIELD_KEYS, type SectionKey, type FieldKey } from '@/lib/manual-shape';
 import maintenancePresets from '@/data/maintenance-presets.json';
 
 const CADENCES: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];
 const OWNERS: MaintenanceOwner[] = ['agency', 'client', 'shared'];
 
 export default function TemplatesPage() {
-  const { profile } = useAuth();
+  const { profile, profileLoaded } = useAuth();
   const { loading } = useRequireAuth();
   const { locale, t } = useI18n();
   const { toast } = useToast();
@@ -311,13 +311,16 @@ export default function TemplatesPage() {
     if (!editName.trim() || !editing) return;
     setSaving(true);
 
+    const safeHiddenFields = editHiddenFields.filter((f) => HIDEABLE_FIELDS.includes(f as FieldKey));
+    const safeHiddenSections = editHiddenSections.filter((s) => HIDEABLE_SECTIONS.includes(s as SectionKey));
+
     if (editing.id) {
       const { error } = await supabase
         .from('manual_templates')
         .update({
           name: editName.trim(),
-          hidden_fields: editHiddenFields,
-          hidden_sections: editHiddenSections,
+          hidden_fields: safeHiddenFields,
+          hidden_sections: safeHiddenSections,
         })
         .eq('id', editing.id);
 
@@ -397,8 +400,8 @@ export default function TemplatesPage() {
         .from('manual_templates')
         .insert({
           name: editName.trim(),
-          hidden_fields: editHiddenFields,
-          hidden_sections: editHiddenSections,
+          hidden_fields: safeHiddenFields,
+          hidden_sections: safeHiddenSections,
         })
         .select()
         .single();
@@ -482,8 +485,8 @@ export default function TemplatesPage() {
       .from('manual_templates')
       .insert({
         name: `${tpl.name} (copy)`,
-        hidden_fields: tpl.hidden_fields || [],
-        hidden_sections: tpl.hidden_sections || [],
+        hidden_fields: (tpl.hidden_fields || []).filter((f) => HIDEABLE_FIELDS.includes(f as FieldKey)),
+        hidden_sections: (tpl.hidden_sections || []).filter((s) => HIDEABLE_SECTIONS.includes(s as SectionKey)),
       })
       .select()
       .single();
@@ -542,7 +545,7 @@ export default function TemplatesPage() {
     fetchTemplates();
   };
 
-  if (loading || loadingList) {
+  if (loading || !profileLoaded || loadingList) {
     return (
       <AppShell>
         <div className="animate-pulse text-muted-foreground">{t('common.loading')}</div>
@@ -661,56 +664,51 @@ export default function TemplatesPage() {
 
               {/* Shape controls */}
               <div className="space-y-3">
-                {HIDEABLE_SECTIONS.map((section) => (
-                  <div key={section} className="rounded-lg border border-border p-3">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id={`section-${section}`}
-                        checked={!editHiddenSections.includes(section)}
-                        onCheckedChange={() => toggleSection(section)}
-                      />
-                      <Label htmlFor={`section-${section}`} className="text-sm font-medium">
-                        {t(`edit.sections.${section}`)}
-                      </Label>
-                    </div>
-                    {!editHiddenSections.includes(section) && (
-                      <div className="mt-2 ml-6 space-y-1.5">
-                        {fieldsInSection(section).map((field) => (
-                          <div key={field} className="flex items-center gap-2">
-                            <Checkbox
-                              id={`field-${field}`}
-                              checked={!editHiddenFields.includes(field)}
-                              onCheckedChange={() => toggleField(field)}
-                            />
-                            <Label htmlFor={`field-${field}`} className="text-sm text-muted-foreground">
-                              {t(`edit.fields.${field.replace(/_./g, (m) => m[1].toUpperCase())}`)}
-                            </Label>
-                          </div>
-                        ))}
+                {SECTION_KEYS.map((section) => {
+                  const isHideable = HIDEABLE_SECTIONS.includes(section);
+                  const isHidden = editHiddenSections.includes(section);
+                  return (
+                    <div key={section} className="rounded-lg border border-border p-3">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`section-${section}`}
+                          checked={isHideable ? !isHidden : true}
+                          disabled={!isHideable}
+                          onCheckedChange={() => isHideable && toggleSection(section)}
+                        />
+                        <Label htmlFor={`section-${section}`} className="text-sm font-medium">
+                          {t(`edit.sections.${section}`)}
+                        </Label>
                       </div>
-                    )}
-                  </div>
-                ))}
-
-                <div className="rounded-lg border border-border p-3">
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="section-emergency" checked disabled />
-                    <Label htmlFor="section-emergency" className="text-sm font-medium">
-                      {t('edit.sections.emergency')}
-                    </Label>
-                  </div>
-                  <p className="ml-6 mt-1 text-xs text-muted-foreground">{t('templates.alwaysOn')}</p>
-                </div>
-
-                <div className="rounded-lg border border-border p-3">
-                  <div className="flex items-center gap-2">
-                    <Checkbox id="field-client_name" checked disabled />
-                    <Label htmlFor="field-client_name" className="text-sm font-medium">
-                      {t('edit.fields.clientName')}
-                    </Label>
-                  </div>
-                  <p className="ml-6 mt-1 text-xs text-muted-foreground">{t('templates.alwaysOn')}</p>
-                </div>
+                      {!isHidden && (
+                        <div className="mt-2 ml-6 space-y-1.5">
+                          {fieldsInSection(section).map((field) => {
+                            const fieldHideable = HIDEABLE_FIELDS.includes(field);
+                            return (
+                              <div key={field} className="flex items-center gap-2">
+                                <Checkbox
+                                  id={`field-${field}`}
+                                  checked={fieldHideable ? !editHiddenFields.includes(field) : true}
+                                  disabled={!fieldHideable}
+                                  onCheckedChange={() => fieldHideable && toggleField(field)}
+                                />
+                                <Label htmlFor={`field-${field}`} className="text-sm text-muted-foreground">
+                                  {t(`edit.fields.${field.replace(/_./g, (m) => m[1].toUpperCase())}`)}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                          {!isHideable && (
+                            <p className="text-xs text-muted-foreground">{t('templates.alwaysOn')}</p>
+                          )}
+                        </div>
+                      )}
+                      {!isHideable && (
+                        <p className="ml-6 mt-1 text-xs text-muted-foreground">{t('templates.alwaysOn')}</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Custom fields */}
