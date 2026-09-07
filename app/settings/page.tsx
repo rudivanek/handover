@@ -11,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Palette, Clock, Mail, Phone, Building2, CreditCard, CheckCircle2, Globe, Upload, X, Link2, Type, ArrowUpRight } from 'lucide-react';
+import { Save, Palette, Clock, Mail, Phone, Building2, CreditCard, CheckCircle2, Globe, Upload, X, Link2, Type, ArrowUpRight, LayoutTemplate } from 'lucide-react';
+import Link from 'next/link';
 import type { Locale } from '@/lib/types';
 import { fonts, sansFontOptions, serifFontOptions, getFontDef, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 
@@ -658,6 +659,24 @@ export default function SettingsPage() {
                 </p>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <LayoutTemplate className="h-5 w-5 text-muted-foreground" />
+              {t('settings.templates')}
+            </CardTitle>
+            <CardDescription>{t('settings.templatesDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline" size="sm">
+              <Link href="/templates">
+                {t('settings.templatesManage')}
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 

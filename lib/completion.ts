@@ -1,4 +1,5 @@
 import type { Manual, Account, EditBlock, Coverage, CustomField, Locale } from '@/lib/types';
+import { isFieldHidden, isSectionHidden, fieldsInSection, type FieldKey, type SectionKey } from '@/lib/manual-shape';
 
 export type CompletionResult = {
   percentage: number;
@@ -16,6 +17,9 @@ export function computeCompletion(
   const missing: string[] = [];
 
   if (!manual) return { percentage: 0, missing: ['Manual data'] };
+
+  const hiddenFields = manual.hidden_fields ?? [];
+  const hiddenSections = manual.hidden_sections ?? [];
 
   const labels = locale === 'es' ? {
     clientName: 'Nombre del cliente',
@@ -63,49 +67,86 @@ export function computeCompletion(
     atLeastOneCoverageItem: 'At least one coverage item',
   };
 
-  const fields: [string, string | string[] | null][] = [
-    [labels.clientName, manual.client_name],
-    [labels.siteName, manual.site_name],
-    [labels.siteUrl, manual.site_url],
-    [labels.platform, manual.platform],
-    [labels.frameworkOrTheme, manual.framework_or_theme],
-    [labels.keyPlugins, manual.key_plugins && manual.key_plugins.length > 0 ? 'filled' : null],
-    [labels.registrar, manual.registrar],
-    [labels.domainExpiry, manual.domain_expiry],
-    [labels.domainOwner, manual.domain_owner],
-    [labels.nameservers, manual.nameservers],
-    [labels.host, manual.host],
-    [labels.hostPlan, manual.host_plan],
-    [labels.hostRenewal, manual.host_renewal],
-    [labels.emailProvider, manual.email_provider],
-    [labels.emergencyName, manual.emergency_name],
-    [labels.emergencyRole, manual.emergency_role],
-    [labels.emergencyPhone, manual.emergency_phone],
-    [labels.emergencyEmail, manual.emergency_email],
-  ];
+  const fieldLabelMap: Record<FieldKey, string> = {
+    client_name: labels.clientName,
+    site_name: labels.siteName,
+    site_url: labels.siteUrl,
+    platform: labels.platform,
+    framework_or_theme: labels.frameworkOrTheme,
+    key_plugins: labels.keyPlugins,
+    registrar: labels.registrar,
+    domain_expiry: labels.domainExpiry,
+    domain_owner: labels.domainOwner,
+    nameservers: labels.nameservers,
+    host: labels.host,
+    host_plan: labels.hostPlan,
+    host_renewal: labels.hostRenewal,
+    email_provider: labels.emailProvider,
+    emergency_name: labels.emergencyName,
+    emergency_role: labels.emergencyRole,
+    emergency_phone: labels.emergencyPhone,
+    emergency_email: labels.emergencyEmail,
+  };
 
-  for (const [label, val] of fields) {
+  const fieldValueMap: Record<FieldKey, string | string[] | null> = {
+    client_name: manual.client_name,
+    site_name: manual.site_name,
+    site_url: manual.site_url,
+    platform: manual.platform,
+    framework_or_theme: manual.framework_or_theme,
+    key_plugins: manual.key_plugins && manual.key_plugins.length > 0 ? 'filled' : null,
+    registrar: manual.registrar,
+    domain_expiry: manual.domain_expiry,
+    domain_owner: manual.domain_owner,
+    nameservers: manual.nameservers,
+    host: manual.host,
+    host_plan: manual.host_plan,
+    host_renewal: manual.host_renewal,
+    email_provider: manual.email_provider,
+    emergency_name: manual.emergency_name,
+    emergency_role: manual.emergency_role,
+    emergency_phone: manual.emergency_phone,
+    emergency_email: manual.emergency_email,
+  };
+
+  const visibleFields: FieldKey[] = (Object.keys(fieldValueMap) as FieldKey[]).filter(
+    (key) => !isFieldHidden(key, hiddenFields, hiddenSections)
+  );
+
+  for (const key of visibleFields) {
+    const val = fieldValueMap[key];
     if (!val || (typeof val === 'string' && !val.trim())) {
-      missing.push(label);
+      missing.push(fieldLabelMap[key]);
     }
   }
 
-  if (accounts.length === 0) missing.push(labels.atLeastOneAccount);
-  else {
-    const hasFilled = accounts.some((a) => a.service || a.account_owner || a.admin_email);
-    if (!hasFilled) missing.push(labels.atLeastOneAccount);
+  let extraChecks = 0;
+
+  if (!isSectionHidden('accounts', hiddenSections)) {
+    if (accounts.length === 0) missing.push(labels.atLeastOneAccount);
+    else {
+      const hasFilled = accounts.some((a) => a.service || a.account_owner || a.admin_email);
+      if (!hasFilled) missing.push(labels.atLeastOneAccount);
+    }
+    extraChecks++;
   }
 
-  if (editBlocks.length === 0) missing.push(labels.atLeastOneEditBlock);
-  else {
-    const hasFilled = editBlocks.some((b) => b.block_name || b.instructions);
-    if (!hasFilled) missing.push(labels.atLeastOneEditBlock);
+  if (!isSectionHidden('edit', hiddenSections)) {
+    if (editBlocks.length === 0) missing.push(labels.atLeastOneEditBlock);
+    else {
+      const hasFilled = editBlocks.some((b) => b.block_name || b.instructions);
+      if (!hasFilled) missing.push(labels.atLeastOneEditBlock);
+    }
+    extraChecks++;
   }
 
-  if (coverage.length === 0) missing.push(labels.atLeastOneCoverageItem);
-  else {
-    const hasFilled = coverage.some((c) => c.item);
-    if (!hasFilled) missing.push(labels.atLeastOneCoverageItem);
+  if (!isSectionHidden('coverage', hiddenSections)) {
+    if (coverage.length === 0) missing.push(labels.atLeastOneCoverageItem);
+    else {
+      const hasFilled = coverage.some((c) => c.item);
+      if (!hasFilled) missing.push(labels.atLeastOneCoverageItem);
+    }
+    extraChecks++;
   }
 
   for (const cf of customFields) {
@@ -114,7 +155,7 @@ export function computeCompletion(
     }
   }
 
-  const totalFields = fields.length + 3 + customFields.length;
+  const totalFields = visibleFields.length + extraChecks + customFields.length;
   const filledFields = totalFields - missing.length;
   const percentage = Math.round((filledFields / totalFields) * 100);
 

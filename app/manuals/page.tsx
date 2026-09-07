@@ -9,7 +9,7 @@ import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { uniqueSlug } from '@/lib/slug';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale, ManualTemplate, TemplateCustomField } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight } from 'lucide-react';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
@@ -47,6 +48,8 @@ export default function ManualsPage() {
   const [newOpen, setNewOpen] = useState(false);
   const [newClientName, setNewClientName] = useState('');
   const [creating, setCreating] = useState(false);
+  const [templates, setTemplates] = useState<ManualTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [shareWarnManual, setShareWarnManual] = useState<ManualWithChildren | null>(null);
   const [notPublishedCopyManual, setNotPublishedCopyManual] = useState<ManualWithChildren | null>(null);
 
@@ -82,6 +85,18 @@ export default function ManualsPage() {
     fetchManuals();
   }, [loading, fetchManuals]);
 
+  useEffect(() => {
+    if (loading) return;
+    if (plan === 'free') return;
+    supabase
+      .from('manual_templates')
+      .select('*, template_custom_fields (*)')
+      .order('name')
+      .then(({ data }: { data: ManualTemplate[] | null }) => {
+        setTemplates(data || []);
+      });
+  }, [loading, plan]);
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newClientName.trim()) return;
@@ -91,15 +106,32 @@ export default function ManualsPage() {
     const slug = uniqueSlug(newClientName, existingSlugs);
     const manualLocale: Locale = (profile?.ui_locale as Locale) || 'en';
 
+    const template = templates.find((t) => t.id === selectedTemplateId);
+
     const { data, error } = await supabase
       .from('manuals')
       .insert({
         slug,
         client_name: newClientName.trim(),
         locale: manualLocale,
+        hidden_fields: template?.hidden_fields || [],
+        hidden_sections: template?.hidden_sections || [],
       })
       .select()
       .single();
+
+    if (!error && data && template?.template_custom_fields) {
+      const cfInserts = template.template_custom_fields.map((cf: TemplateCustomField) => ({
+        manual_id: data.id,
+        section_key: cf.section_key,
+        label: cf.label,
+        position: cf.position,
+        value: '',
+      }));
+      if (cfInserts.length > 0) {
+        await supabase.from('custom_fields').insert(cfInserts);
+      }
+    }
 
     setCreating(false);
 
@@ -111,6 +143,7 @@ export default function ManualsPage() {
     toast({ title: t('manuals.created'), description: t('manuals.createdDesc', { name: newClientName }) });
     setNewOpen(false);
     setNewClientName('');
+    setSelectedTemplateId('');
 
     window.location.href = `/manuals/${data.id}/edit`;
   };
@@ -142,6 +175,8 @@ export default function ManualsPage() {
         emergency_phone: manual.emergency_phone,
         emergency_email: manual.emergency_email,
         locale: manual.locale,
+        hidden_fields: manual.hidden_fields || [],
+        hidden_sections: manual.hidden_sections || [],
       })
       .select()
       .single();
@@ -407,6 +442,22 @@ export default function ManualsPage() {
             <DialogTitle className="text-xl">{t('manuals.newDialog.title')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
+            {templates.length > 0 && (
+              <div className="space-y-2">
+                <Label htmlFor="template">{t('manuals.newDialog.startFrom')}</Label>
+                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                  <SelectTrigger id="template">
+                    <SelectValue placeholder={t('manuals.newDialog.standard')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">{t('manuals.newDialog.standard')}</SelectItem>
+                    {templates.map((tpl) => (
+                      <SelectItem key={tpl.id} value={tpl.id}>{tpl.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="client_name">{t('manuals.newDialog.clientName')}</Label>
               <Input

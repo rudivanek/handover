@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import maintenancePresets from '@/data/maintenance-presets.json';
 import { computeCompletion, isDraft } from '@/lib/completion';
+import { isSectionHidden, isFieldHidden, type FieldKey } from '@/lib/manual-shape';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, Locale } from '@/lib/types';
 import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
@@ -116,6 +117,9 @@ export default function EditManualPage() {
   const [assetCheckResults, setAssetCheckResults] = useState<Record<string, NameCheckLevel>>({});
 
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
+  const hiddenFields = manual?.hidden_fields ?? [];
+  const hiddenSections = manual?.hidden_sections ?? [];
+  const isFieldVisible = (key: FieldKey) => !isFieldHidden(key, hiddenFields, hiddenSections);
 
   const fetchData = useCallback(async () => {
     const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes, maintenanceRes] = await Promise.all([
@@ -1258,7 +1262,7 @@ export default function EditManualPage() {
         onValueChange={setOpenSection}
         className="space-y-3"
       >
-        {/* Site & Stack */}
+        {!isSectionHidden('site', hiddenSections) && (
         <AccordionItem value="site" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1272,26 +1276,36 @@ export default function EditManualPage() {
                 <Label htmlFor="client_name">{t('edit.fields.clientName')}</Label>
                 <Input id="client_name" value={manual.client_name || ''} onChange={(e) => updateManual('client_name', e.target.value)} disabled={isArchived} />
               </div>
+              {isFieldVisible('site_name') && (
               <div className="space-y-2">
                 <Label htmlFor="site_name">{t('edit.fields.siteName')}</Label>
                 <Input id="site_name" value={manual.site_name || ''} onChange={(e) => updateManual('site_name', e.target.value)} placeholder="Acme Corporation Website" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('site_url') && (
               <div className="space-y-2">
                 <Label htmlFor="site_url">{t('edit.fields.siteUrl')}</Label>
                 <Input id="site_url" value={manual.site_url || ''} onChange={(e) => updateManual('site_url', e.target.value)} placeholder="https://acme.com" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('platform') && (
               <div className="space-y-2">
                 <Label htmlFor="platform">{t('edit.fields.platform')}</Label>
                 <Input id="platform" value={manual.platform || ''} onChange={(e) => updateManual('platform', e.target.value)} placeholder="WordPress" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('framework_or_theme') && (
               <div className="space-y-2">
                 <Label htmlFor="framework_or_theme">{t('edit.fields.frameworkOrTheme')}</Label>
                 <Input id="framework_or_theme" value={manual.framework_or_theme || ''} onChange={(e) => updateManual('framework_or_theme', e.target.value)} placeholder="Astra Theme" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('key_plugins') && (
               <div className="space-y-2">
                 <Label htmlFor="key_plugins">{t('edit.fields.keyPlugins')}</Label>
                 <Input id="key_plugins" value={pluginsString} onChange={(e) => updateManual('key_plugins', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="WooCommerce, Yoast SEO, WP Rocket" disabled={isArchived} />
               </div>
+              )}
             </div>
             {(() => {
               const preview = previewInterpolated('site_overview');
@@ -1307,8 +1321,9 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.site)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
-        {/* Domain & DNS */}
+        {!isSectionHidden('domain', hiddenSections) && (
         <AccordionItem value="domain" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1318,22 +1333,30 @@ export default function EditManualPage() {
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <div className="grid gap-4 sm:grid-cols-2">
+              {isFieldVisible('registrar') && (
               <div className="space-y-2">
                 <Label htmlFor="registrar">{t('edit.fields.registrar')}</Label>
                 <Input id="registrar" value={manual.registrar || ''} onChange={(e) => updateManual('registrar', e.target.value)} placeholder="GoDaddy" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('domain_expiry') && (
               <div className="space-y-2">
                 <Label htmlFor="domain_expiry">{t('edit.fields.domainExpiry')}</Label>
                 <Input id="domain_expiry" type="date" value={manual.domain_expiry || ''} onChange={(e) => updateManual('domain_expiry', e.target.value)} disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('domain_owner') && (
               <div className="space-y-2">
                 <Label htmlFor="domain_owner">{t('edit.fields.domainOwner')}</Label>
                 <Input id="domain_owner" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="Client owns the domain" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('nameservers') && (
               <div className="space-y-2">
                 <Label htmlFor="nameservers">{t('edit.fields.nameservers')}</Label>
                 <Input id="nameservers" value={manual.nameservers || ''} onChange={(e) => updateManual('nameservers', e.target.value)} placeholder="ns1.example.com, ns2.example.com" disabled={isArchived} />
               </div>
+              )}
             </div>
             {(() => {
               const domain = previewInterpolated('domain');
@@ -1351,8 +1374,9 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.domain)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
-        {/* Hosting & Email */}
+        {!isSectionHidden('hosting', hiddenSections) && (
         <AccordionItem value="hosting" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1362,22 +1386,30 @@ export default function EditManualPage() {
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <div className="grid gap-4 sm:grid-cols-2">
+              {isFieldVisible('host') && (
               <div className="space-y-2">
                 <Label htmlFor="host">{t('edit.fields.host')}</Label>
                 <Input id="host" value={manual.host || ''} onChange={(e) => updateManual('host', e.target.value)} placeholder="Kinsta" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('host_plan') && (
               <div className="space-y-2">
                 <Label htmlFor="host_plan">{t('edit.fields.hostPlan')}</Label>
                 <Input id="host_plan" value={manual.host_plan || ''} onChange={(e) => updateManual('host_plan', e.target.value)} placeholder="Starter" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('host_renewal') && (
               <div className="space-y-2">
                 <Label htmlFor="host_renewal">{t('edit.fields.hostRenewal')}</Label>
                 <Input id="host_renewal" type="date" value={manual.host_renewal || ''} onChange={(e) => updateManual('host_renewal', e.target.value)} disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('email_provider') && (
               <div className="space-y-2">
                 <Label htmlFor="email_provider">{t('edit.fields.emailProvider')}</Label>
                 <Input id="email_provider" value={manual.email_provider || ''} onChange={(e) => updateManual('email_provider', e.target.value)} placeholder="Google Workspace" disabled={isArchived} />
               </div>
+              )}
             </div>
             {(() => {
               const host = previewInterpolated('host');
@@ -1406,8 +1438,9 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.hosting)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
-        {/* Accounts & Ownership */}
+        {!isSectionHidden('accounts', hiddenSections) && (
         <AccordionItem value="accounts" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1451,6 +1484,7 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.accounts)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
         {/* Files & assets */}
         <AccordionItem value="assets" className="rounded-lg border border-border bg-card">
@@ -1548,7 +1582,7 @@ export default function EditManualPage() {
           </AccordionContent>
         </AccordionItem>
 
-        {/* How To Edit */}
+        {!isSectionHidden('edit', hiddenSections) && (
         <AccordionItem value="edit" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1586,8 +1620,9 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.edit)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
-        {/* What's Covered */}
+        {!isSectionHidden('coverage', hiddenSections) && (
         <AccordionItem value="coverage" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1642,8 +1677,9 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.coverage)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
-        {/* Maintenance schedule */}
+        {!isSectionHidden('maintenance', hiddenSections) && (
         <AccordionItem value="maintenance" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -1753,6 +1789,7 @@ export default function EditManualPage() {
             {renderAddFieldButton(BUILTIN_SECTION_KEYS.maintenance)}
           </AccordionContent>
         </AccordionItem>
+        )}
 
         {/* Emergency Contacts */}
         <AccordionItem value="emergency" className="rounded-lg border border-border bg-card">
@@ -1764,22 +1801,30 @@ export default function EditManualPage() {
           </AccordionTrigger>
           <AccordionContent className="px-5 pb-5">
             <div className="grid gap-4 sm:grid-cols-2">
+              {isFieldVisible('emergency_name') && (
               <div className="space-y-2">
                 <Label htmlFor="emergency_name">{t('edit.fields.emergencyName')}</Label>
                 <Input id="emergency_name" value={manual.emergency_name || ''} onChange={(e) => updateManual('emergency_name', e.target.value)} placeholder="Jane Smith" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('emergency_role') && (
               <div className="space-y-2">
                 <Label htmlFor="emergency_role">{t('edit.fields.emergencyRole')}</Label>
                 <Input id="emergency_role" value={manual.emergency_role || ''} onChange={(e) => updateManual('emergency_role', e.target.value)} placeholder="Lead Developer" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('emergency_phone') && (
               <div className="space-y-2">
                 <Label htmlFor="emergency_phone">{t('edit.fields.emergencyPhone')}</Label>
                 <Input id="emergency_phone" value={manual.emergency_phone || ''} onChange={(e) => updateManual('emergency_phone', e.target.value)} placeholder="+44 20 1234 5678" disabled={isArchived} />
               </div>
+              )}
+              {isFieldVisible('emergency_email') && (
               <div className="space-y-2">
                 <Label htmlFor="emergency_email">{t('edit.fields.emergencyEmail')}</Label>
                 <Input id="emergency_email" type="email" value={manual.emergency_email || ''} onChange={(e) => updateManual('emergency_email', e.target.value)} placeholder="urgent@youragency.com" disabled={isArchived} />
               </div>
+              )}
             </div>
             {(() => {
               const intro = previewInterpolated('emergency_intro');

@@ -46,6 +46,8 @@ export type Manual = {
   is_published: boolean;
   published_at: string | null;
   archived_at: string | null;
+  hidden_fields: string[] | null;
+  hidden_sections: string[] | null;
 };
 
 export type Account = {
@@ -135,4 +137,24 @@ export type ManualWithRelations = Manual & {
   assets: Asset[];
   manual_contacts: ManualContact[];
   maintenance_tasks: MaintenanceTask[];
+};
+
+export type TemplateCustomField = {
+  id: string;
+  template_id: string;
+  section_key: string;
+  label: string;
+  position: number;
+  created_at: string;
+};
+
+export type ManualTemplate = {
+  id: string;
+  user_id: string;
+  name: string;
+  hidden_fields: string[] | null;
+  hidden_sections: string[] | null;
+  created_at: string;
+  updated_at: string;
+  template_custom_fields?: TemplateCustomField[];
 };
