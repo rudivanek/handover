@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth-context';
 import { AppShell } from '@/components/app-shell';
-import { FileText } from 'lucide-react';
+import { FileText, KeyRound } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -12,6 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 type AdminRow = {
   user_id: string;
@@ -35,6 +44,19 @@ export default function AdminPage() {
   const [rows, setRows] = useState<AdminRow[] | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [keyStatus, setKeyStatus] = useState<boolean | null>(null);
+  const [keyInput, setKeyInput] = useState('');
+  const [keySaving, setKeySaving] = useState(false);
+  const [keyMsg, setKeyMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  const fetchKeyStatus = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_resend_key_status');
+    if (error) {
+      setKeyStatus(null);
+    } else {
+      setKeyStatus(data as boolean);
+    }
+  }, []);
 
   const fetchOverview = useCallback(async () => {
     const { data, error } = await supabase.rpc('admin_overview');
@@ -57,7 +79,8 @@ export default function AdminPage() {
     }
     setLoading(true);
     fetchOverview();
-  }, [authLoading, user, fetchOverview]);
+    fetchKeyStatus();
+  }, [authLoading, user, fetchOverview, fetchKeyStatus]);
 
   const handlePlanChange = async (userId: string, newPlan: string, prevPlan: string) => {
     const { error } = await supabase.rpc('admin_set_plan', {
@@ -72,6 +95,21 @@ export default function AdminPage() {
       return;
     }
     fetchOverview();
+  };
+
+  const handleSaveKey = async () => {
+    if (!keyInput.trim()) return;
+    setKeySaving(true);
+    setKeyMsg(null);
+    const { error } = await supabase.rpc('admin_set_resend_key', { p_key: keyInput });
+    setKeyInput('');
+    if (error) {
+      setKeyMsg({ type: 'err', text: error.message || 'Failed to save key.' });
+    } else {
+      setKeyMsg({ type: 'ok', text: 'Key saved.' });
+      fetchKeyStatus();
+    }
+    setKeySaving(false);
   };
 
   if (loading || authLoading) {
@@ -192,6 +230,50 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+
+        <Card className="mt-6 max-w-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <KeyRound className="h-5 w-5 text-muted-foreground" />
+              Signup notification key
+            </CardTitle>
+            <CardDescription>
+              The Resend API key used by the new-signup email trigger.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {keyStatus === null
+                ? 'Checking status…'
+                : keyStatus
+                  ? 'A key is set.'
+                  : 'No key set — signup emails are not being sent.'}
+            </p>
+            <div className="flex items-center gap-2">
+              <Input
+                type="password"
+                autoComplete="off"
+                placeholder="Paste Resend API key"
+                value={keyInput}
+                onChange={(e) => setKeyInput(e.target.value)}
+                disabled={keySaving}
+                className="flex-1"
+              />
+              <Button
+                size="sm"
+                onClick={handleSaveKey}
+                disabled={keySaving || !keyInput.trim()}
+              >
+                {keySaving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+            {keyMsg && (
+              <p className={`text-sm ${keyMsg.type === 'ok' ? 'text-green-600' : 'text-destructive'}`}>
+                {keyMsg.text}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </AppShell>
   );
