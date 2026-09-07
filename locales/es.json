@@ -500,5 +500,6 @@
   "scripts.tokenHelp": "Tokens: {client_name}, {site_name}, {site_url}, {manual_url}, {support_email}. Un token sin llenar se muestra al lector como un marcador entre corchetes, no en blanco.",
   "scripts.credentialWarning": "Esto parece que podr\u00eda contener una credencial \u2014 Handover nunca guarda secretos, y un correo no es un lugar seguro para enviarlos.",
   "scripts.customScript": "Personalizado",
-  "scripts.noScriptsInLang": "No hay correos en este idioma a\u00fan. Crea uno con \u201cNuevo correo.\u201d"
+  "scripts.noScriptsInLang": "No hay correos en este idioma a\u00fan. Crea uno con \u201cNuevo correo.\u201d",
+  "scripts.editorSourceNote": "El editor muestra el texto fuente del correo. Los tokens se llenan cuando el correo se muestra y se copia."
 }

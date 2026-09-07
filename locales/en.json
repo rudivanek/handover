@@ -499,5 +499,6 @@
   "scripts.tokenHelp": "Tokens: {client_name}, {site_name}, {site_url}, {manual_url}, {support_email}. An unfilled token appears to the reader as a bracketed placeholder, not blank.",
   "scripts.credentialWarning": "This looks like it might contain a credential \u2014 Handover never stores secrets, and an email is not a safe place to send one.",
   "scripts.customScript": "Custom",
-  "scripts.noScriptsInLang": "No scripts in this language yet. Create one with \u201cNew script.\u201d"
+  "scripts.noScriptsInLang": "No scripts in this language yet. Create one with \u201cNew script.\u201d",
+  "scripts.editorSourceNote": "The editor shows the script\u2019s source text. Tokens are filled in when the script is displayed and copied."
 }

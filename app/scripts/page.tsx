@@ -390,6 +390,7 @@ export default function ScriptsPage() {
       ) : (
         <div className="space-y-4">
           {filledScripts.map((script, idx) => {
+            const sourceScript = scripts[idx];
             const isEditing = editingScript?.key === script.key && editingScript?.scriptId === script.scriptId;
             const stageLabel = script.key
               ? localeMessages[currentLocale]?.[`scripts.stage.${script.key}`] || script.key
@@ -435,7 +436,7 @@ export default function ScriptsPage() {
                     </div>
                     {!isEditing && (
                       <div className="flex shrink-0 gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => startEdit(script)}>
+                        <Button variant="ghost" size="sm" onClick={() => startEdit(sourceScript)}>
                           <Pencil className="mr-1.5 h-3.5 w-3.5" />
                           <span className="hidden sm:inline">{t('scripts.edit')}</span>
                         </Button>
@@ -492,6 +493,7 @@ export default function ScriptsPage() {
                         </div>
                       )}
                       <p className="text-xs text-muted-foreground">{t('scripts.tokenHelp')}</p>
+                      <p className="text-xs text-muted-foreground">{t('scripts.editorSourceNote')}</p>
                       <div className="flex gap-2">
                         <Button size="sm" onClick={handleSaveEdit} disabled={saving}>
                           {saving ? t('common.saving') : t('scripts.saveEdit')}
