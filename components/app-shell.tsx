@@ -51,6 +51,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     fetchLiveCount();
   }, [user, pathname]);
 
+  useEffect(() => {
+    const handler = () => fetchLiveCount();
+    window.addEventListener('manuals-changed', handler);
+    return () => window.removeEventListener('manuals-changed', handler);
+  }, [user]);
+
   const handleLocaleChange = (newLocale: Locale) => {
     setLocale(newLocale);
     if (user) {

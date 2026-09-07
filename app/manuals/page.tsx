@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight, Trash2, Archive, ArchiveRestore } from 'lucide-react';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 
 type ManualWithChildren = Manual & {
@@ -52,6 +52,13 @@ export default function ManualsPage() {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('standard');
   const [shareWarnManual, setShareWarnManual] = useState<ManualWithChildren | null>(null);
   const [notPublishedCopyManual, setNotPublishedCopyManual] = useState<ManualWithChildren | null>(null);
+  const [deleteManual, setDeleteManual] = useState<ManualWithChildren | null>(null);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [archiveManual, setArchiveManual] = useState<ManualWithChildren | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [planLimitOpen, setPlanLimitOpen] = useState(false);
+  const [planLimitInfo, setPlanLimitInfo] = useState<{ count: number; plan: string }>({ count: 0, plan: 'free' });
 
   const plan = profile?.plan || 'free';
   const liveManuals = manuals.filter((m) => m.is_published && !m.archived_at);
@@ -252,6 +259,73 @@ export default function ManualsPage() {
     window.location.href = `/manuals/${newManual.id}/edit`;
   };
 
+  const handleDelete = async () => {
+    if (!deleteManual) return;
+    setDeleting(true);
+    const { error } = await supabase
+      .from('manuals')
+      .delete()
+      .eq('id', deleteManual.id);
+    setDeleting(false);
+    if (error) {
+      toast({ title: t('manuals.couldNotDelete'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: t('manuals.deleted'), description: t('manuals.deletedDesc', { name: deleteManual.client_name || t('manuals.untitled') }) });
+    setDeleteManual(null);
+    setDeleteConfirmName('');
+    refreshList();
+  };
+
+  const handleArchive = async () => {
+    if (!archiveManual) return;
+    setArchiving(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ archived_at: new Date().toISOString() })
+      .eq('id', archiveManual.id);
+    setArchiving(false);
+    if (error) {
+      toast({ title: t('manuals.couldNotArchive'), description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: t('manuals.archived'), description: t('manuals.archivedDesc', { name: archiveManual.client_name || t('manuals.untitled') }) });
+    setArchiveManual(null);
+    refreshList();
+  };
+
+  const handleRestore = async (manual: ManualWithChildren) => {
+    setArchiving(true);
+    const { error } = await supabase
+      .from('manuals')
+      .update({ archived_at: null })
+      .eq('id', manual.id);
+    setArchiving(false);
+    if (error) {
+      if (error.message.includes('PLAN_LIMIT')) {
+        const plan = profile?.plan || 'free';
+        const { count } = await supabase
+          .from('manuals')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', manual.user_id)
+          .eq('is_published', true)
+          .is('archived_at', null);
+        setPlanLimitInfo({ count: count || 0, plan });
+        setPlanLimitOpen(true);
+      } else {
+        toast({ title: t('manuals.couldNotRestore'), description: error.message, variant: 'destructive' });
+      }
+      return;
+    }
+    toast({ title: t('manuals.restored'), description: t('manuals.restoredDesc', { name: manual.client_name || t('manuals.untitled') }) });
+    refreshList();
+  };
+
+  const refreshList = () => {
+    fetchManuals();
+    window.dispatchEvent(new Event('manuals-changed'));
+  };
+
   const handleViewClick = (e: React.MouseEvent, manual: ManualWithChildren) => {
     const completion = computeCompletion(manual, manual.accounts || [], manual.edit_blocks || [], manual.coverage || [], manual.custom_fields || [], locale);
     if (isDraft(completion.percentage)) {
@@ -429,6 +503,38 @@ export default function ManualsPage() {
                       <Copy className="h-4 w-4" />
                       <span className="hidden sm:inline ml-1.5">{t('manuals.duplicate')}</span>
                     </Button>
+                    {manual.archived_at ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRestore(manual)}
+                        disabled={archiving}
+                        title={t('manuals.restore')}
+                      >
+                        <ArchiveRestore className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1.5">{t('manuals.restore')}</span>
+                      </Button>
+                    ) : manual.is_published ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setArchiveManual(manual)}
+                        title={t('manuals.archive')}
+                      >
+                        <Archive className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1.5">{t('manuals.archive')}</span>
+                      </Button>
+                    ) : null}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => { setDeleteManual(manual); setDeleteConfirmName(''); }}
+                      title={t('manuals.delete')}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="hidden sm:inline ml-1.5">{t('manuals.delete')}</span>
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -536,6 +642,101 @@ export default function ManualsPage() {
             </Button>
             <Button onClick={() => { if (notPublishedCopyManual) copyManualLink(notPublishedCopyManual); setNotPublishedCopyManual(null); }}>
               {t('manuals.draftWarn.copyAnyway')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!archiveManual} onOpenChange={(open) => !open && setArchiveManual(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Archive className="h-5 w-5 text-amber-500" />
+              {t('manuals.archiveTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('manuals.archiveBody', { name: archiveManual?.client_name || t('manuals.untitled') })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setArchiveManual(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleArchive} disabled={archiving}>
+              {archiving ? t('common.saving') : t('manuals.archive')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteManual} onOpenChange={(open) => { if (!open) { setDeleteManual(null); setDeleteConfirmName(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              {t('manuals.deleteTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {deleteManual?.is_published || deleteManual?.archived_at
+                ? t('manuals.deleteBodyLive', { name: deleteManual?.client_name || t('manuals.untitled') })
+                : t('manuals.deleteBodyDraft')}
+            </DialogDescription>
+          </DialogHeader>
+          {(deleteManual?.is_published || deleteManual?.archived_at) && (
+            <div className="space-y-2">
+              <Label htmlFor="delete_confirm">
+                {t('manuals.deleteConfirm', { name: deleteManual?.client_name || t('manuals.untitled') })}
+              </Label>
+              <Input
+                id="delete_confirm"
+                value={deleteConfirmName}
+                onChange={(e) => setDeleteConfirmName(e.target.value)}
+                placeholder={deleteManual?.client_name || t('manuals.untitled')}
+                autoFocus
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setDeleteManual(null); setDeleteConfirmName(''); }}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting || ((deleteManual?.is_published || !!deleteManual?.archived_at) && deleteConfirmName !== (deleteManual?.client_name || t('manuals.untitled')))}
+            >
+              {deleting ? t('common.saving') : t('manuals.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={planLimitOpen} onOpenChange={setPlanLimitOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              {t('planLimit.title')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('planLimit.body', { n: planLimitInfo.count, plan: planLimitInfo.plan })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="ghost" onClick={() => setPlanLimitOpen(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button asChild>
+              <Link href="/manuals">
+                {t('planLimit.archive')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <a href="https://handover.agency/pricing" target="_blank" rel="noopener noreferrer">
+                {planLimitInfo.plan === 'free'
+                  ? t('planLimit.upgradeFree')
+                  : t('planLimit.upgradeFreelancer')}
+              </a>
             </Button>
           </DialogFooter>
         </DialogContent>
