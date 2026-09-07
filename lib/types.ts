@@ -183,6 +183,19 @@ export type TemplateAccount = {
   created_at: string;
 };
 
+export type AgencyScript = {
+  id: string;
+  user_id: string;
+  base_key: string | null;
+  language: string;
+  name: string | null;
+  subject: string;
+  body: string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type ManualTemplate = {
   id: string;
   user_id: string;

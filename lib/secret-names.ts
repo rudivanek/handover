@@ -36,3 +36,7 @@ export function checkAssetUrl(url: string): NameCheck {
 export function isSecretConstraintError(message: string): boolean {
   return message.includes('custom_fields_no_secret_names') || message.includes('custom_sections_no_secret_names');
 }
+
+export function checkScriptContent(text: string): boolean {
+  return BLOCKED.test(text) || WARNED.test(text);
+}
