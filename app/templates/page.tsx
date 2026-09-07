@@ -9,6 +9,7 @@ import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
@@ -21,14 +22,28 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Copy, Trash2, ArrowUp, ArrowDown, X } from 'lucide-react';
-import type { ManualTemplate, TemplateCustomField } from '@/lib/types';
+import { Plus, Pencil, Copy, Trash2, ArrowUp, ArrowDown, X, Wand2 } from 'lucide-react';
+import type {
+  ManualTemplate,
+  TemplateCustomField,
+  TemplateMaintenanceTask,
+  TemplateCoverage,
+  TemplateEditBlock,
+  TemplateAccount,
+  MaintenanceCadence,
+  MaintenanceOwner,
+  Locale,
+} from '@/lib/types';
 import { SECTION_KEYS, HIDEABLE_SECTIONS, HIDEABLE_FIELDS, fieldsInSection, type SectionKey, type FieldKey } from '@/lib/manual-shape';
+import maintenancePresets from '@/data/maintenance-presets.json';
+
+const CADENCES: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];
+const OWNERS: MaintenanceOwner[] = ['agency', 'client', 'shared'];
 
 export default function TemplatesPage() {
   const { profile } = useAuth();
   const { loading } = useRequireAuth();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
   const { toast } = useToast();
 
   const [templates, setTemplates] = useState<ManualTemplate[]>([]);
@@ -38,15 +53,27 @@ export default function TemplatesPage() {
   const [editHiddenFields, setEditHiddenFields] = useState<string[]>([]);
   const [editHiddenSections, setEditHiddenSections] = useState<string[]>([]);
   const [editCustomFields, setEditCustomFields] = useState<TemplateCustomField[]>([]);
+  const [editMaintenance, setEditMaintenance] = useState<TemplateMaintenanceTask[]>([]);
+  const [editCoverage, setEditCoverage] = useState<TemplateCoverage[]>([]);
+  const [editBlocks, setEditBlocks] = useState<TemplateEditBlock[]>([]);
+  const [editAccounts, setEditAccounts] = useState<TemplateAccount[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const plan = profile?.plan || 'free';
+  const uiLocale: Locale = locale;
 
   const fetchTemplates = useCallback(async () => {
     const { data, error } = await supabase
       .from('manual_templates')
-      .select('*, template_custom_fields (*)')
+      .select(`
+        *,
+        template_custom_fields (*),
+        template_maintenance_tasks (*),
+        template_coverage (*),
+        template_edit_blocks (*),
+        template_accounts (*)
+      `)
       .order('name');
 
     if (error) {
@@ -72,11 +99,19 @@ export default function TemplatesPage() {
       created_at: '',
       updated_at: '',
       template_custom_fields: [],
+      template_maintenance_tasks: [],
+      template_coverage: [],
+      template_edit_blocks: [],
+      template_accounts: [],
     });
     setEditName('');
     setEditHiddenFields([]);
     setEditHiddenSections([]);
     setEditCustomFields([]);
+    setEditMaintenance([]);
+    setEditCoverage([]);
+    setEditBlocks([]);
+    setEditAccounts([]);
   };
 
   const openEdit = (tpl: ManualTemplate) => {
@@ -85,6 +120,10 @@ export default function TemplatesPage() {
     setEditHiddenFields(tpl.hidden_fields || []);
     setEditHiddenSections(tpl.hidden_sections || []);
     setEditCustomFields(tpl.template_custom_fields || []);
+    setEditMaintenance((tpl.template_maintenance_tasks || []).sort((a, b) => a.sort_order - b.sort_order));
+    setEditCoverage(tpl.template_coverage || []);
+    setEditBlocks(tpl.template_edit_blocks || []);
+    setEditAccounts(tpl.template_accounts || []);
   };
 
   const toggleSection = (section: SectionKey) => {
@@ -99,6 +138,7 @@ export default function TemplatesPage() {
     );
   };
 
+  // -- Custom fields --
   const addCustomField = () => {
     setEditCustomFields((prev) => [
       ...prev,
@@ -135,19 +175,141 @@ export default function TemplatesPage() {
     });
   };
 
+  // -- Maintenance --
+  const addMaintenanceTask = () => {
+    setEditMaintenance((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        template_id: '',
+        task: '',
+        cadence: 'monthly',
+        owner: 'agency',
+        notes: '',
+        sort_order: prev.length,
+        created_at: '',
+      },
+    ]);
+  };
+
+  const updateMaintenance = (id: string, key: 'task' | 'cadence' | 'owner' | 'notes', value: string) => {
+    setEditMaintenance((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, [key]: value } as TemplateMaintenanceTask : m))
+    );
+  };
+
+  const removeMaintenance = (id: string) => {
+    setEditMaintenance((prev) => prev.filter((m) => m.id !== id));
+  };
+
+  const moveMaintenance = (id: string, dir: 'up' | 'down') => {
+    setEditMaintenance((prev) => {
+      const idx = prev.findIndex((m) => m.id === id);
+      if (idx === -1) return prev;
+      const newIdx = dir === 'up' ? idx - 1 : idx + 1;
+      if (newIdx < 0 || newIdx >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
+      return next.map((m, i) => ({ ...m, sort_order: i }));
+    });
+  };
+
+  const addStandardSchedule = () => {
+    const rows = maintenancePresets as Array<{ cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>;
+    const localeKey = uiLocale === 'es' ? 'es' : 'en';
+    const cadenceCounters: Record<string, number> = {};
+    const newTasks: TemplateMaintenanceTask[] = rows.map((row) => {
+      const idx = cadenceCounters[row.cadence] ?? 0;
+      cadenceCounters[row.cadence] = idx + 1;
+      return {
+        id: `new-${Date.now()}-${idx}-${row.cadence}`,
+        template_id: '',
+        task: row[localeKey],
+        cadence: row.cadence,
+        owner: row.owner,
+        notes: '',
+        sort_order: editMaintenance.length + idx,
+        created_at: '',
+      };
+    });
+    setEditMaintenance((prev) => [...prev, ...newTasks]);
+  };
+
+  // -- Coverage --
+  const addCoverageItem = () => {
+    setEditCoverage((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        template_id: '',
+        item: '',
+        included: true,
+        created_at: '',
+      },
+    ]);
+  };
+
+  const updateCoverage = (id: string, key: 'item' | 'included', value: string | boolean) => {
+    setEditCoverage((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, [key]: value } as TemplateCoverage : c))
+    );
+  };
+
+  const removeCoverage = (id: string) => {
+    setEditCoverage((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  // -- Edit blocks --
+  const addEditBlock = () => {
+    setEditBlocks((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        template_id: '',
+        block_name: '',
+        instructions: '',
+        created_at: '',
+      },
+    ]);
+  };
+
+  const updateEditBlock = (id: string, key: 'block_name' | 'instructions', value: string) => {
+    setEditBlocks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, [key]: value } as TemplateEditBlock : b))
+    );
+  };
+
+  const removeEditBlock = (id: string) => {
+    setEditBlocks((prev) => prev.filter((b) => b.id !== id));
+  };
+
+  // -- Accounts --
+  const addAccount = () => {
+    setEditAccounts((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        template_id: '',
+        service: '',
+        account_owner: '',
+        created_at: '',
+      },
+    ]);
+  };
+
+  const updateAccount = (id: string, key: 'service' | 'account_owner', value: string) => {
+    setEditAccounts((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, [key]: value } as TemplateAccount : a))
+    );
+  };
+
+  const removeAccount = (id: string) => {
+    setEditAccounts((prev) => prev.filter((a) => a.id !== id));
+  };
+
   const handleSave = async () => {
     if (!editName.trim() || !editing) return;
     setSaving(true);
-
-    const hiddenFields = editHiddenFields.filter(
-      (f) => !editHiddenSections.includes(HIDEABLE_FIELDS.find((fk) => fk === f) ? 'site' : '')
-    );
-    const cleanHiddenFields = editHiddenFields.filter((f) => {
-      const def = HIDEABLE_FIELDS.find((fk) => fk === f as FieldKey);
-      if (!def) return false;
-      const fieldDef = SECTION_KEYS;
-      return true;
-    });
 
     if (editing.id) {
       const { error } = await supabase
@@ -165,21 +327,68 @@ export default function TemplatesPage() {
         return;
       }
 
-      const existingIds = editCustomFields.filter((cf) => !cf.id.startsWith('new-')).map((cf) => cf.id);
-      if (existingIds.length > 0) {
-        await supabase.from('template_custom_fields').delete().in('id', existingIds).neq('id', '');
-      }
-      const allIds = editCustomFields.map((cf) => cf.id);
-      await supabase.from('template_custom_fields').delete().in('id', allIds.filter((id) => !id.startsWith('new-')));
+      // Replace all child rows
+      await supabase.from('template_custom_fields').delete().eq('template_id', editing.id);
+      await supabase.from('template_maintenance_tasks').delete().eq('template_id', editing.id);
+      await supabase.from('template_coverage').delete().eq('template_id', editing.id);
+      await supabase.from('template_edit_blocks').delete().eq('template_id', editing.id);
+      await supabase.from('template_accounts').delete().eq('template_id', editing.id);
 
-      const newFields = editCustomFields.filter((cf) => cf.label.trim());
-      if (newFields.length > 0) {
+      const validCustomFields = editCustomFields.filter((cf) => cf.label.trim());
+      if (validCustomFields.length > 0) {
         await supabase.from('template_custom_fields').insert(
-          newFields.map((cf, i) => ({
+          validCustomFields.map((cf, i) => ({
             template_id: editing.id,
             section_key: cf.section_key,
             label: cf.label.trim(),
             position: i,
+          }))
+        );
+      }
+
+      const validMaintenance = editMaintenance.filter((m) => m.task.trim());
+      if (validMaintenance.length > 0) {
+        await supabase.from('template_maintenance_tasks').insert(
+          validMaintenance.map((m, i) => ({
+            template_id: editing.id,
+            task: m.task.trim(),
+            cadence: m.cadence,
+            owner: m.owner,
+            notes: m.notes,
+            sort_order: i,
+          }))
+        );
+      }
+
+      const validCoverage = editCoverage.filter((c) => c.item?.trim());
+      if (validCoverage.length > 0) {
+        await supabase.from('template_coverage').insert(
+          validCoverage.map((c) => ({
+            template_id: editing.id,
+            item: c.item,
+            included: c.included,
+          }))
+        );
+      }
+
+      const validBlocks = editBlocks.filter((b) => b.block_name?.trim() || b.instructions?.trim());
+      if (validBlocks.length > 0) {
+        await supabase.from('template_edit_blocks').insert(
+          validBlocks.map((b) => ({
+            template_id: editing.id,
+            block_name: b.block_name,
+            instructions: b.instructions,
+          }))
+        );
+      }
+
+      const validAccounts = editAccounts.filter((a) => a.service?.trim() || a.account_owner?.trim());
+      if (validAccounts.length > 0) {
+        await supabase.from('template_accounts').insert(
+          validAccounts.map((a) => ({
+            template_id: editing.id,
+            service: a.service,
+            account_owner: a.account_owner,
           }))
         );
       }
@@ -200,16 +409,65 @@ export default function TemplatesPage() {
         return;
       }
 
-      const newFields = editCustomFields.filter((cf) => cf.label.trim());
-      if (newFields.length > 0 && data) {
-        await supabase.from('template_custom_fields').insert(
-          newFields.map((cf, i) => ({
-            template_id: data.id,
-            section_key: cf.section_key,
-            label: cf.label.trim(),
-            position: i,
-          }))
-        );
+      if (data) {
+        const validCustomFields = editCustomFields.filter((cf) => cf.label.trim());
+        if (validCustomFields.length > 0) {
+          await supabase.from('template_custom_fields').insert(
+            validCustomFields.map((cf, i) => ({
+              template_id: data.id,
+              section_key: cf.section_key,
+              label: cf.label.trim(),
+              position: i,
+            }))
+          );
+        }
+
+        const validMaintenance = editMaintenance.filter((m) => m.task.trim());
+        if (validMaintenance.length > 0) {
+          await supabase.from('template_maintenance_tasks').insert(
+            validMaintenance.map((m, i) => ({
+              template_id: data.id,
+              task: m.task.trim(),
+              cadence: m.cadence,
+              owner: m.owner,
+              notes: m.notes,
+              sort_order: i,
+            }))
+          );
+        }
+
+        const validCoverage = editCoverage.filter((c) => c.item?.trim());
+        if (validCoverage.length > 0) {
+          await supabase.from('template_coverage').insert(
+            validCoverage.map((c) => ({
+              template_id: data.id,
+              item: c.item,
+              included: c.included,
+            }))
+          );
+        }
+
+        const validBlocks = editBlocks.filter((b) => b.block_name?.trim() || b.instructions?.trim());
+        if (validBlocks.length > 0) {
+          await supabase.from('template_edit_blocks').insert(
+            validBlocks.map((b) => ({
+              template_id: data.id,
+              block_name: b.block_name,
+              instructions: b.instructions,
+            }))
+          );
+        }
+
+        const validAccounts = editAccounts.filter((a) => a.service?.trim() || a.account_owner?.trim());
+        if (validAccounts.length > 0) {
+          await supabase.from('template_accounts').insert(
+            validAccounts.map((a) => ({
+              template_id: data.id,
+              service: a.service,
+              account_owner: a.account_owner,
+            }))
+          );
+        }
       }
     }
 
@@ -235,15 +493,37 @@ export default function TemplatesPage() {
       return;
     }
 
-    if (tpl.template_custom_fields && tpl.template_custom_fields.length > 0 && data) {
-      await supabase.from('template_custom_fields').insert(
-        tpl.template_custom_fields.map((cf, i) => ({
-          template_id: data.id,
-          section_key: cf.section_key,
-          label: cf.label,
-          position: i,
-        }))
-      );
+    if (data) {
+      const cf = tpl.template_custom_fields || [];
+      if (cf.length > 0) {
+        await supabase.from('template_custom_fields').insert(
+          cf.map((f, i) => ({ template_id: data.id, section_key: f.section_key, label: f.label, position: i }))
+        );
+      }
+      const mt = tpl.template_maintenance_tasks || [];
+      if (mt.length > 0) {
+        await supabase.from('template_maintenance_tasks').insert(
+          mt.map((m, i) => ({ template_id: data.id, task: m.task, cadence: m.cadence, owner: m.owner, notes: m.notes, sort_order: i }))
+        );
+      }
+      const cv = tpl.template_coverage || [];
+      if (cv.length > 0) {
+        await supabase.from('template_coverage').insert(
+          cv.map((c) => ({ template_id: data.id, item: c.item, included: c.included }))
+        );
+      }
+      const eb = tpl.template_edit_blocks || [];
+      if (eb.length > 0) {
+        await supabase.from('template_edit_blocks').insert(
+          eb.map((b) => ({ template_id: data.id, block_name: b.block_name, instructions: b.instructions }))
+        );
+      }
+      const ac = tpl.template_accounts || [];
+      if (ac.length > 0) {
+        await supabase.from('template_accounts').insert(
+          ac.map((a) => ({ template_id: data.id, service: a.service, account_owner: a.account_owner }))
+        );
+      }
     }
 
     toast({ title: t('templates.duplicated') });
@@ -287,6 +567,9 @@ export default function TemplatesPage() {
     );
   }
 
+  const maintenanceByCadence = (cadence: MaintenanceCadence) =>
+    editMaintenance.filter((m) => m.cadence === cadence);
+
   return (
     <AppShell>
       <div className="mb-8 flex items-start justify-between gap-4">
@@ -325,6 +608,19 @@ export default function TemplatesPage() {
                       custom: (tpl.template_custom_fields || []).length,
                     })}
                   </p>
+                  {((tpl.template_maintenance_tasks || []).length > 0 ||
+                    (tpl.template_coverage || []).length > 0 ||
+                    (tpl.template_edit_blocks || []).length > 0 ||
+                    (tpl.template_accounts || []).length > 0) && (
+                    <p className="mt-0.5 text-xs text-muted-foreground/70">
+                      {[
+                        tpl.template_maintenance_tasks?.length || 0,
+                        tpl.template_coverage?.length || 0,
+                        tpl.template_edit_blocks?.length || 0,
+                        tpl.template_accounts?.length || 0,
+                      ].filter((n) => n > 0).length} {t('templates.contentSections')}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-1">
                   <Button variant="ghost" size="icon" onClick={() => openEdit(tpl)}>
@@ -363,6 +659,7 @@ export default function TemplatesPage() {
                 />
               </div>
 
+              {/* Shape controls */}
               <div className="space-y-3">
                 {HIDEABLE_SECTIONS.map((section) => (
                   <div key={section} className="rounded-lg border border-border p-3">
@@ -416,6 +713,7 @@ export default function TemplatesPage() {
                 </div>
               </div>
 
+              {/* Custom fields */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium">{t('templates.customFields')}</Label>
@@ -454,6 +752,170 @@ export default function TemplatesPage() {
                     </div>
                     <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCustomField(cf.id)}>
                       <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Maintenance schedule */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">{t('templates.maintenance')}</Label>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={addStandardSchedule}>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      {t('templates.addStandardSchedule')}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={addMaintenanceTask}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      {t('templates.addTask')}
+                    </Button>
+                  </div>
+                </div>
+                {editMaintenance.length === 0 && (
+                  <p className="text-sm text-muted-foreground">{t('templates.maintenanceEmpty')}</p>
+                )}
+                {CADENCES.map((cadence) => {
+                  const tasks = maintenanceByCadence(cadence);
+                  if (tasks.length === 0) return null;
+                  return (
+                    <div key={cadence} className="rounded-lg border border-border p-3">
+                      <p className="mb-2 text-sm font-medium capitalize">{t(`edit.maintenance.${cadence}`)}</p>
+                      <div className="space-y-2">
+                        {tasks.map((m) => (
+                          <div key={m.id} className="flex items-start gap-2">
+                            <div className="flex flex-col gap-0.5 pt-1">
+                              <Button variant="ghost" size="icon" className="h-6 w-6" disabled={editMaintenance.indexOf(m) === 0} onClick={() => moveMaintenance(m.id, 'up')}>
+                                <ArrowUp className="h-3.5 w-3.5" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-6 w-6" disabled={editMaintenance.indexOf(m) === editMaintenance.length - 1} onClick={() => moveMaintenance(m.id, 'down')}>
+                                <ArrowDown className="h-3.5 w-3.5" />
+                              </Button>
+                            </div>
+                            <div className="flex-1 space-y-2">
+                              <Input
+                                value={m.task}
+                                onChange={(e) => updateMaintenance(m.id, 'task', e.target.value)}
+                                placeholder={t('templates.taskPlaceholder')}
+                                className="text-sm"
+                              />
+                              <div className="flex gap-2">
+                                <Select value={m.owner} onValueChange={(v) => updateMaintenance(m.id, 'owner', v)}>
+                                  <SelectTrigger className="h-8 w-32 text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {OWNERS.map((o) => (
+                                      <SelectItem key={o} value={o}>{t(`edit.maintenance.owners.${o}`)}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <Input
+                                  value={m.notes}
+                                  onChange={(e) => updateMaintenance(m.id, 'notes', e.target.value)}
+                                  placeholder={t('templates.notesPlaceholder')}
+                                  className="flex-1 text-sm"
+                                />
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeMaintenance(m.id)}>
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Coverage items */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">{t('templates.coverage')}</Label>
+                  <Button variant="outline" size="sm" onClick={addCoverageItem}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('templates.addCoverageItem')}
+                  </Button>
+                </div>
+                {editCoverage.map((c) => (
+                  <div key={c.id} className="flex items-center gap-2 rounded-lg border border-border p-3">
+                    <Checkbox
+                      checked={c.included}
+                      onCheckedChange={(v) => updateCoverage(c.id, 'included', !!v)}
+                    />
+                    <Input
+                      value={c.item || ''}
+                      onChange={(e) => updateCoverage(c.id, 'item', e.target.value)}
+                      placeholder={t('templates.coveragePlaceholder')}
+                      className="flex-1 text-sm"
+                    />
+                    <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCoverage(c.id)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Edit blocks */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">{t('templates.editBlocks')}</Label>
+                  <Button variant="outline" size="sm" onClick={addEditBlock}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('templates.addEditBlock')}
+                  </Button>
+                </div>
+                {editBlocks.map((b) => (
+                  <div key={b.id} className="space-y-2 rounded-lg border border-border p-3">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={b.block_name || ''}
+                        onChange={(e) => updateEditBlock(b.id, 'block_name', e.target.value)}
+                        placeholder={t('templates.blockNamePlaceholder')}
+                        className="flex-1 text-sm"
+                      />
+                      <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeEditBlock(b.id)}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={b.instructions || ''}
+                      onChange={(e) => updateEditBlock(b.id, 'instructions', e.target.value)}
+                      placeholder={t('templates.instructionsPlaceholder')}
+                      className="text-sm"
+                      rows={3}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Accounts */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">{t('templates.accounts')}</Label>
+                  <Button variant="outline" size="sm" onClick={addAccount}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    {t('templates.addAccount')}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{t('templates.accountsNote')}</p>
+                {editAccounts.map((a) => (
+                  <div key={a.id} className="flex items-center gap-2 rounded-lg border border-border p-3">
+                    <Input
+                      value={a.service || ''}
+                      onChange={(e) => updateAccount(a.id, 'service', e.target.value)}
+                      placeholder={t('templates.servicePlaceholder')}
+                      className="flex-1 text-sm"
+                    />
+                    <Input
+                      value={a.account_owner || ''}
+                      onChange={(e) => updateAccount(a.id, 'account_owner', e.target.value)}
+                      placeholder={t('templates.ownerPlaceholder')}
+                      className="flex-1 text-sm"
+                    />
+                    <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeAccount(a.id)}>
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 ))}

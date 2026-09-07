@@ -148,6 +148,41 @@ export type TemplateCustomField = {
   created_at: string;
 };
 
+export type TemplateMaintenanceTask = {
+  id: string;
+  template_id: string;
+  task: string;
+  cadence: MaintenanceCadence;
+  owner: MaintenanceOwner;
+  notes: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type TemplateCoverage = {
+  id: string;
+  template_id: string;
+  item: string | null;
+  included: boolean;
+  created_at: string;
+};
+
+export type TemplateEditBlock = {
+  id: string;
+  template_id: string;
+  block_name: string | null;
+  instructions: string | null;
+  created_at: string;
+};
+
+export type TemplateAccount = {
+  id: string;
+  template_id: string;
+  service: string | null;
+  account_owner: string | null;
+  created_at: string;
+};
+
 export type ManualTemplate = {
   id: string;
   user_id: string;
@@ -157,4 +192,8 @@ export type ManualTemplate = {
   created_at: string;
   updated_at: string;
   template_custom_fields?: TemplateCustomField[];
+  template_maintenance_tasks?: TemplateMaintenanceTask[];
+  template_coverage?: TemplateCoverage[];
+  template_edit_blocks?: TemplateEditBlock[];
+  template_accounts?: TemplateAccount[];
 };

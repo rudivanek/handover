@@ -9,7 +9,7 @@ import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { uniqueSlug } from '@/lib/slug';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale, ManualTemplate, TemplateCustomField } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale, ManualTemplate, TemplateCustomField, TemplateMaintenanceTask, TemplateCoverage, TemplateEditBlock, TemplateAccount } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight, Trash2, Archive, ArchiveRestore } from 'lucide-react';
+import { Plus, Copy, ExternalLink, Pencil, FileText, Calendar, AlertTriangle, Link2, ArrowUpRight, Trash2, Archive, ArchiveRestore, BookmarkPlus } from 'lucide-react';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 
 type ManualWithChildren = Manual & {
@@ -59,6 +59,9 @@ export default function ManualsPage() {
   const [archiving, setArchiving] = useState(false);
   const [planLimitOpen, setPlanLimitOpen] = useState(false);
   const [planLimitInfo, setPlanLimitInfo] = useState<{ count: number; plan: string }>({ count: 0, plan: 'free' });
+  const [saveAsTplManual, setSaveAsTplManual] = useState<ManualWithChildren | null>(null);
+  const [saveAsTplName, setSaveAsTplName] = useState('');
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   const plan = profile?.plan || 'free';
   const liveManuals = manuals.filter((m) => m.is_published && !m.archived_at);
@@ -97,7 +100,14 @@ export default function ManualsPage() {
     if (plan === 'free') return;
     supabase
       .from('manual_templates')
-      .select('*, template_custom_fields (*)')
+      .select(`
+        *,
+        template_custom_fields (*),
+        template_maintenance_tasks (*),
+        template_coverage (*),
+        template_edit_blocks (*),
+        template_accounts (*)
+      `)
       .order('name')
       .then(({ data }: { data: ManualTemplate[] | null }) => {
         setTemplates(data || []);
@@ -127,17 +137,72 @@ export default function ManualsPage() {
       .select()
       .single();
 
-    if (!error && data && template?.template_custom_fields) {
-    // null template = Standard, no shape to copy
-      const cfInserts = template.template_custom_fields.map((cf: TemplateCustomField) => ({
-        manual_id: data.id,
-        section_key: cf.section_key,
-        label: cf.label,
-        position: cf.position,
-        value: '',
-      }));
-      if (cfInserts.length > 0) {
-        await supabase.from('custom_fields').insert(cfInserts);
+    if (!error && data && template) {
+      const failedParts: string[] = [];
+
+      if (template.template_custom_fields && template.template_custom_fields.length > 0) {
+        const cfRes = await supabase.from('custom_fields').insert(
+          template.template_custom_fields.map((cf: TemplateCustomField) => ({
+            manual_id: data.id,
+            section_key: cf.section_key,
+            label: cf.label,
+            position: cf.position,
+            value: '',
+          }))
+        );
+        if (cfRes.error) failedParts.push(t('manuals.newDialog.customFields'));
+      }
+
+      if (template.template_maintenance_tasks && template.template_maintenance_tasks.length > 0) {
+        const mtRes = await supabase.from('maintenance_tasks').insert(
+          template.template_maintenance_tasks.map((m: TemplateMaintenanceTask, i: number) => ({
+            manual_id: data.id,
+            task: m.task,
+            cadence: m.cadence,
+            owner: m.owner,
+            notes: m.notes,
+            sort_order: i,
+          }))
+        );
+        if (mtRes.error) failedParts.push(t('manuals.newDialog.maintenance'));
+      }
+
+      if (template.template_coverage && template.template_coverage.length > 0) {
+        const cvRes = await supabase.from('coverage').insert(
+          template.template_coverage.map((c: TemplateCoverage) => ({
+            manual_id: data.id,
+            item: c.item,
+            included: c.included,
+          }))
+        );
+        if (cvRes.error) failedParts.push(t('manuals.newDialog.coverage'));
+      }
+
+      if (template.template_edit_blocks && template.template_edit_blocks.length > 0) {
+        const ebRes = await supabase.from('edit_blocks').insert(
+          template.template_edit_blocks.map((b: TemplateEditBlock) => ({
+            manual_id: data.id,
+            block_name: b.block_name,
+            instructions: b.instructions,
+          }))
+        );
+        if (ebRes.error) failedParts.push(t('manuals.newDialog.editBlocks'));
+      }
+
+      if (template.template_accounts && template.template_accounts.length > 0) {
+        const acRes = await supabase.from('accounts').insert(
+          template.template_accounts.map((a: TemplateAccount) => ({
+            manual_id: data.id,
+            service: a.service,
+            account_owner: a.account_owner,
+            admin_email: null,
+          }))
+        );
+        if (acRes.error) failedParts.push(t('manuals.newDialog.accounts'));
+      }
+
+      if (failedParts.length > 0) {
+        toast({ title: t('manuals.newDialog.partialCopy'), description: failedParts.join(', '), variant: 'destructive' });
       }
     }
 
@@ -257,6 +322,103 @@ export default function ManualsPage() {
 
     toast({ title: t('manuals.duplicated'), description: t('manuals.duplicatedDesc', { name: manual.client_name || t('manuals.untitled') }) });
     window.location.href = `/manuals/${newManual.id}/edit`;
+  };
+
+  const handleSaveAsTemplate = async () => {
+    if (!saveAsTplManual || !saveAsTplName.trim()) return;
+    setSavingTemplate(true);
+
+    const { data: tpl, error: tplError } = await supabase
+      .from('manual_templates')
+      .insert({
+        name: saveAsTplName.trim(),
+        hidden_fields: saveAsTplManual.hidden_fields || [],
+        hidden_sections: saveAsTplManual.hidden_sections || [],
+      })
+      .select()
+      .single();
+
+    if (tplError || !tpl) {
+      setSavingTemplate(false);
+      toast({ title: t('manuals.couldNotSaveTemplate'), description: tplError?.message, variant: 'destructive' });
+      return;
+    }
+
+    const failedParts: string[] = [];
+
+    const customFields = (saveAsTplManual.custom_fields || []).filter((cf) => cf.section_type === 'builtin' && cf.label.trim());
+    if (customFields.length > 0) {
+      const res = await supabase.from('template_custom_fields').insert(
+        customFields.map((cf, i) => ({
+          template_id: tpl.id,
+          section_key: cf.section_key,
+          label: cf.label,
+          position: i,
+        }))
+      );
+      if (res.error) failedParts.push(t('manuals.newDialog.customFields'));
+    }
+
+    const maintenance = saveAsTplManual.maintenance_tasks || [];
+    if (maintenance.length > 0) {
+      const res = await supabase.from('template_maintenance_tasks').insert(
+        maintenance.map((m, i) => ({
+          template_id: tpl.id,
+          task: m.task,
+          cadence: m.cadence,
+          owner: m.owner,
+          notes: m.notes,
+          sort_order: i,
+        }))
+      );
+      if (res.error) failedParts.push(t('manuals.newDialog.maintenance'));
+    }
+
+    const coverage = saveAsTplManual.coverage || [];
+    if (coverage.length > 0) {
+      const res = await supabase.from('template_coverage').insert(
+        coverage.map((c) => ({
+          template_id: tpl.id,
+          item: c.item,
+          included: c.included,
+        }))
+      );
+      if (res.error) failedParts.push(t('manuals.newDialog.coverage'));
+    }
+
+    const blocks = saveAsTplManual.edit_blocks || [];
+    if (blocks.length > 0) {
+      const res = await supabase.from('template_edit_blocks').insert(
+        blocks.map((b) => ({
+          template_id: tpl.id,
+          block_name: b.block_name,
+          instructions: b.instructions,
+        }))
+      );
+      if (res.error) failedParts.push(t('manuals.newDialog.editBlocks'));
+    }
+
+    const accounts = saveAsTplManual.accounts || [];
+    if (accounts.length > 0) {
+      const res = await supabase.from('template_accounts').insert(
+        accounts.map((a) => ({
+          template_id: tpl.id,
+          service: a.service,
+          account_owner: a.account_owner,
+        }))
+      );
+      if (res.error) failedParts.push(t('manuals.newDialog.accounts'));
+    }
+
+    setSavingTemplate(false);
+    setSaveAsTplManual(null);
+    setSaveAsTplName('');
+
+    if (failedParts.length > 0) {
+      toast({ title: t('manuals.templateSavedPartial'), description: failedParts.join(', '), variant: 'destructive' });
+    } else {
+      toast({ title: t('manuals.templateSaved'), description: saveAsTplName.trim() });
+    }
   };
 
   const handleDelete = async () => {
@@ -503,6 +665,17 @@ export default function ManualsPage() {
                       <Copy className="h-4 w-4" />
                       <span className="hidden sm:inline ml-1.5">{t('manuals.duplicate')}</span>
                     </Button>
+                    {plan !== 'free' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => { setSaveAsTplManual(manual); setSaveAsTplName(manual.client_name || ''); }}
+                        title={t('manuals.saveAsTemplate')}
+                      >
+                        <BookmarkPlus className="h-4 w-4" />
+                        <span className="hidden sm:inline ml-1.5">{t('manuals.saveAsTemplate')}</span>
+                      </Button>
+                    )}
                     {manual.archived_at ? (
                       <Button
                         variant="ghost"
@@ -706,6 +879,38 @@ export default function ManualsPage() {
               disabled={deleting || ((deleteManual?.is_published || !!deleteManual?.archived_at) && deleteConfirmName !== (deleteManual?.client_name || t('manuals.untitled')))}
             >
               {deleting ? t('common.saving') : t('manuals.delete')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!saveAsTplManual} onOpenChange={(open) => { if (!open) { setSaveAsTplManual(null); setSaveAsTplName(''); } }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <BookmarkPlus className="h-5 w-5" />
+              {t('manuals.saveAsTemplateTitle')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('manuals.saveAsTemplateDesc', { name: saveAsTplManual?.client_name || t('manuals.untitled') })}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="tpl_name">{t('manuals.templateName')}</Label>
+            <Input
+              id="tpl_name"
+              value={saveAsTplName}
+              onChange={(e) => setSaveAsTplName(e.target.value)}
+              placeholder={t('manuals.templateNamePlaceholder')}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setSaveAsTplManual(null); setSaveAsTplName(''); }}>
+              {t('common.cancel')}
+            </Button>
+            <Button onClick={handleSaveAsTemplate} disabled={savingTemplate || !saveAsTplName.trim()}>
+              {savingTemplate ? t('common.saving') : t('manuals.saveAsTemplate')}
             </Button>
           </DialogFooter>
         </DialogContent>
