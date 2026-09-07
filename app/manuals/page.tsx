@@ -49,7 +49,7 @@ export default function ManualsPage() {
   const [newClientName, setNewClientName] = useState('');
   const [creating, setCreating] = useState(false);
   const [templates, setTemplates] = useState<ManualTemplate[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('standard');
   const [shareWarnManual, setShareWarnManual] = useState<ManualWithChildren | null>(null);
   const [notPublishedCopyManual, setNotPublishedCopyManual] = useState<ManualWithChildren | null>(null);
 
@@ -106,7 +106,7 @@ export default function ManualsPage() {
     const slug = uniqueSlug(newClientName, existingSlugs);
     const manualLocale: Locale = (profile?.ui_locale as Locale) || 'en';
 
-    const template = templates.find((t) => t.id === selectedTemplateId);
+    const template = selectedTemplateId === 'standard' ? null : templates.find((t) => t.id === selectedTemplateId);
 
     const { data, error } = await supabase
       .from('manuals')
@@ -121,6 +121,7 @@ export default function ManualsPage() {
       .single();
 
     if (!error && data && template?.template_custom_fields) {
+    // null template = Standard, no shape to copy
       const cfInserts = template.template_custom_fields.map((cf: TemplateCustomField) => ({
         manual_id: data.id,
         section_key: cf.section_key,
@@ -143,7 +144,7 @@ export default function ManualsPage() {
     toast({ title: t('manuals.created'), description: t('manuals.createdDesc', { name: newClientName }) });
     setNewOpen(false);
     setNewClientName('');
-    setSelectedTemplateId('');
+    setSelectedTemplateId('standard');
 
     window.location.href = `/manuals/${data.id}/edit`;
   };
@@ -440,6 +441,7 @@ export default function ManualsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-xl">{t('manuals.newDialog.title')}</DialogTitle>
+            <DialogDescription>{t('manuals.newDialog.description')}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleCreate} className="space-y-4">
             {templates.length > 0 && (
@@ -450,7 +452,7 @@ export default function ManualsPage() {
                     <SelectValue placeholder={t('manuals.newDialog.standard')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('manuals.newDialog.standard')}</SelectItem>
+                    <SelectItem value="standard">{t('manuals.newDialog.standard')}</SelectItem>
                     {templates.map((tpl) => (
                       <SelectItem key={tpl.id} value={tpl.id}>{tpl.name}</SelectItem>
                     ))}

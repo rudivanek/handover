@@ -416,5 +416,6 @@
   "settings.templatesDescription": "Define estructuras reutilizables para tus manuales.",
   "settings.templatesManage": "Gestionar plantillas",
   "manuals.newDialog.startFrom": "Empezar desde",
-  "manuals.newDialog.standard": "Est\u00e1ndar"
+  "manuals.newDialog.standard": "Est\u00e1ndar",
+  "manuals.newDialog.description": "Elige una estructura inicial y nombra al cliente."
 }

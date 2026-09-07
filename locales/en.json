@@ -415,5 +415,6 @@
   "settings.templatesDescription": "Define reusable shapes for your manuals.",
   "settings.templatesManage": "Manage templates",
   "manuals.newDialog.startFrom": "Start from",
-  "manuals.newDialog.standard": "Standard"
+  "manuals.newDialog.standard": "Standard",
+  "manuals.newDialog.description": "Choose a starting shape and name the client."
 }
