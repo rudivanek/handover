@@ -557,9 +557,9 @@ export default function ManualsPage() {
         </div>
         {(() => {
           if (planLimit === null) {
-            return <span className="text-sm text-muted-foreground">{t('manuals.liveCountUnlimited', { live: liveCount })}</span>;
+            return <span className="text-sm text-muted-foreground">{t(liveCount === 1 ? 'manuals.liveCountUnlimitedSingular' : 'manuals.liveCountUnlimited', { live: liveCount })}</span>;
           }
-          return <span className="text-sm text-muted-foreground">{t('manuals.liveCount', { live: liveCount, limit: planLimit })}</span>;
+          return <span className="text-sm text-muted-foreground">{t(liveCount === 1 ? 'manuals.liveCountSingular' : 'manuals.liveCount', { live: liveCount, limit: planLimit })}</span>;
         })()}
         <Button onClick={() => setNewOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />

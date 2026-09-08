@@ -64,6 +64,9 @@
   .manual-section-first {
     break-inside: avoid;
   }
+  .signoff-block {
+    break-inside: avoid;
+  }
   .manual-contents {
     break-after: page;
   }

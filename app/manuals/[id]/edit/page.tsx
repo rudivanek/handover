@@ -68,6 +68,7 @@ import {
   Send,
   Archive,
   ArchiveRestore,
+  ClipboardCheck,
 } from 'lucide-react';
 
 const BUILTIN_SECTION_KEYS: Record<string, string> = {
@@ -115,6 +116,8 @@ export default function EditManualPage() {
   const [fieldCheckResults, setFieldCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [sectionCheckResults, setSectionCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [assetCheckResults, setAssetCheckResults] = useState<Record<string, NameCheckLevel>>({});
+  const [signoffSaving, setSignoffSaving] = useState(false);
+  const [signoffPersonCheck, setSignoffPersonCheck] = useState<NameCheckLevel | null>(null);
 
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
   const hiddenFields = manual?.hidden_fields ?? [];
@@ -1961,6 +1964,122 @@ export default function EditManualPage() {
               <Plus className="mr-2 h-4 w-4" />
               {t('edit.fields.addContact')}
             </Button>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Handover sign-off */}
+        <AccordionItem value="signoff" className="rounded-lg border border-border bg-card">
+          <AccordionTrigger className="px-5 py-4 hover:no-underline">
+            <span className="flex items-center gap-2 text-lg">
+              <ClipboardCheck className="h-5 w-5 text-muted-foreground" />
+              {t('edit.sections.signoff')}
+            </span>
+          </AccordionTrigger>
+          <AccordionContent className="px-5 pb-5">
+            <p className="mb-4 text-sm text-muted-foreground">{t('edit.signoffDescription')}</p>
+            <div className="space-y-3">
+              {([
+                ['signoff_domain', t('edit.signoff.domain')],
+                ['signoff_hosting', t('edit.signoff.hosting')],
+                ['signoff_accounts', t('edit.signoff.accounts')],
+                ['signoff_credentials', t('edit.signoff.credentials')],
+                ['signoff_maintenance', t('edit.signoff.maintenance')],
+                ['signoff_files', t('edit.signoff.files')],
+              ] as [keyof Manual, string][]).map(([field, label]) => (
+                <div key={field} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id={field}
+                    checked={manual[field] as boolean}
+                    onChange={async (e) => {
+                      const checked = e.target.checked;
+                      setManual((prev) => prev ? { ...prev, [field]: checked } : prev);
+                      await supabase.from('manuals').update({ [field]: checked }).eq('id', manual.id);
+                    }}
+                    className="h-4 w-4 rounded border-border"
+                  />
+                  <Label htmlFor={field} className="text-sm font-normal cursor-pointer">{label}</Label>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 space-y-1">
+              <Label className="text-xs">{t('edit.signoff.confirmedWith')}</Label>
+              <Input
+                value={manual.signoff_person || ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setManual((prev) => prev ? { ...prev, signoff_person: val } : prev);
+                  const check = checkFieldName(val);
+                  setSignoffPersonCheck(check.level);
+                }}
+                onBlur={async () => {
+                  await supabase.from('manuals').update({ signoff_person: manual.signoff_person }).eq('id', manual.id);
+                }}
+                placeholder={t('edit.signoff.confirmedWithPlaceholder')}
+                className="text-sm"
+              />
+              {signoffPersonCheck === 'warn' && (
+                <p className="flex items-start gap-1.5 text-xs text-amber-700">
+                  <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                  <span>{t('edit.signoff.warned')}</span>
+                </p>
+              )}
+            </div>
+            {(() => {
+              const tickCount = [
+                manual.signoff_domain, manual.signoff_hosting, manual.signoff_accounts,
+                manual.signoff_credentials, manual.signoff_maintenance, manual.signoff_files,
+              ].filter(Boolean).length;
+              return (
+                <p className="mt-3 text-xs text-muted-foreground">{t('edit.signoff.tickCount', { count: tickCount })}</p>
+              );
+            })()}
+            {manual.signoff_at ? (
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-5 w-5 text-green-600" />
+                  <span className="text-sm font-medium">
+                    {t('edit.signoff.completed', { date: new Date(manual.signoff_at).toLocaleDateString(manualLocale === 'es' ? 'es-MX' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' }) })}
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={signoffSaving}
+                  onClick={async () => {
+                    setSignoffSaving(true);
+                    const { error } = await supabase.from('manuals').update({ signoff_at: null }).eq('id', manual.id);
+                    setSignoffSaving(false);
+                    if (error) {
+                      toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+                    } else {
+                      setManual((prev) => prev ? { ...prev, signoff_at: null } : prev);
+                    }
+                  }}
+                >
+                  {t('edit.signoff.undo')}
+                </Button>
+              </div>
+            ) : (
+              <Button
+                className="mt-4"
+                disabled={signoffSaving}
+                onClick={async () => {
+                  setSignoffSaving(true);
+                  const now = new Date().toISOString();
+                  const { error } = await supabase.from('manuals').update({ signoff_at: now }).eq('id', manual.id);
+                  setSignoffSaving(false);
+                  if (error) {
+                    toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+                  } else {
+                    setManual((prev) => prev ? { ...prev, signoff_at: now } : prev);
+                  }
+                }}
+              >
+                <ClipboardCheck className="mr-2 h-4 w-4" />
+                {t('edit.signoff.markComplete')}
+              </Button>
+            )}
           </AccordionContent>
         </AccordionItem>
       </Accordion>

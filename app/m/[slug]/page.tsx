@@ -8,7 +8,7 @@ import { MARKETING_URL } from '@/lib/utils';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, Locale } from '@/lib/types';
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
-import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen, CalendarCheck } from 'lucide-react';
+import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen, CalendarCheck, ClipboardCheck } from 'lucide-react';
 import { HandoverMark } from '@/components/Logo';
 import enMessages from '@/locales/en.json';
 import esMessages from '@/locales/es.json';
@@ -955,6 +955,43 @@ export default function PublicManualPage() {
 
         {/* Custom sections */}
         {customSectionsInOrder.map((section) => renderCustomSection(section, sectionNumber(`custom-${section.id}`)))}
+
+        {/* Handover sign-off record */}
+        {manual.signoff_at && (() => {
+          const signoffItems: { key: string; label: string }[] = [];
+          if (manual.signoff_domain) signoffItems.push({ key: 'domain', label: t('public.signoffItems.domain') });
+          if (manual.signoff_hosting) signoffItems.push({ key: 'hosting', label: t('public.signoffItems.hosting') });
+          if (manual.signoff_accounts) signoffItems.push({ key: 'accounts', label: t('public.signoffItems.accounts') });
+          if (manual.signoff_credentials) signoffItems.push({ key: 'credentials', label: t('public.signoffItems.credentials') });
+          if (manual.signoff_maintenance) signoffItems.push({ key: 'maintenance', label: t('public.signoffItems.maintenance') });
+          if (manual.signoff_files) signoffItems.push({ key: 'files', label: t('public.signoffItems.files') });
+
+          return (
+            <div className="signoff-block mt-8 mb-8 sm:mt-10 sm:mb-10 break-inside-avoid" data-no-print-split>
+              <div className="rounded-lg border border-border p-4 sm:p-6">
+                <h2 className="mb-3 flex items-center gap-2 text-lg sm:text-xl" style={sectionHeadingStyle}>
+                  <ClipboardCheck className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
+                  {t('public.signoffTitle', { date: fmtDate(manual.signoff_at) })}
+                </h2>
+                {signoffItems.length > 0 && (
+                  <ul className="space-y-1.5 sm:space-y-2">
+                    {signoffItems.map((item) => (
+                      <li key={item.key} className="flex items-start gap-2 text-sm sm:text-base">
+                        <span className="mt-0.5 text-green-600">&#10003;</span>
+                        <span>{item.label}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {manual.signoff_person && manual.signoff_person.trim() && (
+                  <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+                    {t('public.signoffConfirmedWith', { name: manual.signoff_person })}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Footer - hidden for paid accounts */}
         {showFooter && (

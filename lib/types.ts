@@ -48,6 +48,14 @@ export type Manual = {
   archived_at: string | null;
   hidden_fields: string[] | null;
   hidden_sections: string[] | null;
+  signoff_domain: boolean;
+  signoff_hosting: boolean;
+  signoff_accounts: boolean;
+  signoff_credentials: boolean;
+  signoff_maintenance: boolean;
+  signoff_files: boolean;
+  signoff_person: string | null;
+  signoff_at: string | null;
 };
 
 export type Account = {
