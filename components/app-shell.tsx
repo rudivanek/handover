@@ -17,18 +17,7 @@ import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail, HelpCircle } from
 import type { Locale } from '@/lib/types';
 import { HandoverLogo } from '@/components/Logo';
 import { APP_VERSION } from '@/lib/version';
-
-const PLAN_LABELS: Record<string, { en: string; es: string }> = {
-  free: { en: 'Free', es: 'Gratis' },
-  freelancer: { en: 'Freelancer', es: 'Freelancer' },
-  agency: { en: 'Agency', es: 'Agencia' },
-};
-
-const PLAN_LIMITS: Record<string, number | null> = {
-  free: 1,
-  freelancer: 3,
-  agency: null,
-};
+import { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, profile, signOut } = useAuth();
@@ -72,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const renderPlanIndicator = () => {
     if (liveCount === null) return null;
     const countText = planLimit === null
-      ? `${liveCount} ${locale === 'es' ? 'publicados' : 'live'}`
+      ? `${liveCount} ${locale === 'es' ? 'activos' : 'active'}`
       : `${liveCount}/${planLimit}`;
     const fullText = `${planLabel} · ${countText}`;
     const shortText = planLabel;

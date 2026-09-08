@@ -15,6 +15,7 @@ import { Save, Palette, Clock, Mail, Phone, Building2, CreditCard, CheckCircle2,
 import Link from 'next/link';
 import type { Locale } from '@/lib/types';
 import { fonts, sansFontOptions, serifFontOptions, getFontDef, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
+import { PLAN_LIMITS, PLAN_LABELS } from '@/lib/plans';
 
 type LogoMode = 'upload' | 'url';
 
@@ -43,7 +44,19 @@ export default function SettingsPage() {
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!profile) return;
+    supabase
+      .from('manuals')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', profile.user_id)
+      .eq('is_published', true)
+      .is('archived_at', null)
+      .then(({ count }) => setActiveCount(count ?? 0));
+  }, [profile]);
 
   useEffect(() => {
     if (profile) {
@@ -633,32 +646,116 @@ export default function SettingsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {profile.plan === 'paid' ? (
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
-                <p className="text-sm font-medium">{t('settings.paidPlan')}</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm font-medium">{t('settings.freePlan')}</p>
-                {process.env.NEXT_PUBLIC_STRIPE_LINK && (
-                  <>
-                    <Button asChild size="sm">
-                      <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
-                        {t('settings.upgrade')}
-                        <ArrowUpRight className="ml-2 h-4 w-4" />
-                      </a>
-                    </Button>
+            {(() => {
+              const plan = profile.plan || 'free';
+              const limit = PLAN_LIMITS[plan];
+              const label = PLAN_LABELS[plan]?.[locale] || plan;
+
+              if (plan !== 'free' && plan !== 'freelancer' && plan !== 'agency') {
+                console.error(`Unexpected plan value: ${plan}`);
+                return (
+                  <div className="space-y-3">
+                    <p className="text-sm font-medium">{t('settings.freePlan')}</p>
+                    {process.env.NEXT_PUBLIC_STRIPE_LINK && (
+                      <>
+                        <Button asChild size="sm">
+                          <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
+                            {t('settings.upgrade')}
+                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          {t('settings.upgradePrice')}
+                        </p>
+                      </>
+                    )}
                     <p className="text-xs text-muted-foreground">
-                      {t('settings.upgradePrice')}
+                      {t('settings.upgradeNote')}
                     </p>
-                  </>
-                )}
-                <p className="text-xs text-muted-foreground">
-                  {t('settings.upgradeNote')}
-                </p>
-              </div>
-            )}
+                  </div>
+                );
+              }
+
+              if (plan === 'agency') {
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <p className="text-sm font-medium">{t('settings.agencyPlan')}</p>
+                    </div>
+                    {activeCount !== null && (
+                      <p className="text-xs text-muted-foreground">
+                        {limit === null
+                          ? t('settings.usageUnlimited', { count: activeCount })
+                          : t('settings.usageLimited', { count: activeCount, limit })}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {t('settings.subscriptionNote')}
+                    </p>
+                  </div>
+                );
+              }
+
+              if (plan === 'freelancer') {
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <p className="text-sm font-medium">{t('settings.freelancerPlan')}</p>
+                    </div>
+                    {activeCount !== null && limit !== null && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('settings.usageLimited', { count: activeCount, limit })}
+                      </p>
+                    )}
+                    {process.env.NEXT_PUBLIC_STRIPE_LINK && (
+                      <>
+                        <Button asChild size="sm">
+                          <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
+                            {t('settings.upgrade')}
+                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          {t('settings.upgradePrice')}
+                        </p>
+                      </>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {t('settings.subscriptionNote')}
+                    </p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="space-y-3">
+                  <p className="text-sm font-medium">{t('settings.freePlan')}</p>
+                  {activeCount !== null && limit !== null && (
+                    <p className="text-xs text-muted-foreground">
+                      {t('settings.usageLimited', { count: activeCount, limit })}
+                    </p>
+                  )}
+                  {process.env.NEXT_PUBLIC_STRIPE_LINK && (
+                    <>
+                      <Button asChild size="sm">
+                        <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
+                          {t('settings.upgrade')}
+                          <ArrowUpRight className="ml-2 h-4 w-4" />
+                        </a>
+                      </Button>
+                      <p className="text-xs text-muted-foreground">
+                        {t('settings.upgradePrice')}
+                      </p>
+                    </>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {t('settings.subscriptionNote')}
+                  </p>
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
