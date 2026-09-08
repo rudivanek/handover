@@ -1966,8 +1966,92 @@ export default function EditManualPage() {
             </Button>
           </AccordionContent>
         </AccordionItem>
+      </Accordion>
 
-        {/* Handover sign-off */}
+      {/* Custom sections */}
+      {[...customSections].sort((a, b) => a.position - b.position).map((section, sIdx) => (
+        <div key={section.id} className="mt-3 rounded-lg border border-border bg-card">
+          <div className="flex items-center justify-between px-5 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col gap-0.5">
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={sIdx === 0} onClick={() => moveCustomSection(section.id, 'up')}>
+                  <ArrowUp className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={sIdx === customSections.length - 1} onClick={() => moveCustomSection(section.id, 'down')}>
+                  <ArrowDown className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <div className="flex-1">
+                <Input value={section.title} onChange={(e) => {
+                  updateCustomSectionTitle(section.id, e.target.value);
+                  if (sectionCheckResults[section.id]) {
+                    setSectionCheckResults((prev) => { const next = { ...prev }; delete next[section.id]; return next; });
+                  }
+                }} onBlur={() => saveCustomSectionTitle(section.id)} placeholder={t('edit.sectionTitlePlaceholder')} className={`border-0 px-1 text-lg shadow-none focus-visible:ring-0 ${sectionCheckResults[section.id] === 'block' ? 'border-destructive' : ''}`} />
+                {sectionCheckResults[section.id] === 'block' && (
+                  <p className="mt-1 px-1 text-xs text-destructive">{t('secretName.blocked')}</p>
+                )}
+                {sectionCheckResults[section.id] === 'warn' && (
+                  <p className="mt-1 flex items-start gap-1.5 px-1 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                )}
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setDeleteSectionId(section.id)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="px-5 pb-5">
+            <div className="space-y-2">
+              {getFieldsForCustomSection(section.id).map((field, i) => {
+                const fields = getFieldsForCustomSection(section.id);
+                return (
+                  <div key={field.id} className="flex items-start gap-2 rounded-lg border border-border p-3">
+                    <div className="flex flex-col gap-0.5 pt-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === 0} onClick={() => moveCustomField(field.id, 'up')}>
+                        <ArrowUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === fields.length - 1} onClick={() => moveCustomField(field.id, 'down')}>
+                        <ArrowDown className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <Input value={field.label} onChange={(e) => {
+                        updateCustomField(field.id, 'label', e.target.value);
+                        if (fieldCheckResults[field.id]) {
+                          setFieldCheckResults((prev) => { const next = { ...prev }; delete next[field.id]; return next; });
+                        }
+                      }} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldLabelPlaceholder')} className={`text-sm ${fieldCheckResults[field.id] === 'block' ? 'border-destructive' : ''}`} />
+                      {fieldCheckResults[field.id] === 'block' && (
+                        <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
+                      )}
+                      {fieldCheckResults[field.id] === 'warn' && (
+                        <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
+                      )}
+                      <Textarea value={field.value} onChange={(e) => updateCustomField(field.id, 'value', e.target.value)} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldValuePlaceholder')} rows={2} className="text-sm" />
+                    </div>
+                    <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCustomField(field.id)}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            <Button variant="outline" size="sm" className="mt-3" onClick={() => addCustomFieldToSection(section.id)}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t('edit.addField')}
+            </Button>
+          </div>
+        </div>
+      ))}
+
+      {/* Add section button */}
+      <Button variant="outline" className="mt-4 w-full" onClick={addCustomSection}>
+        <Plus className="mr-2 h-4 w-4" />
+        {t('edit.addSection')}
+      </Button>
+
+      {/* Handover sign-off — always last, outside the built-in accordion */}
+      <Accordion type="single" collapsible value="signoff" onValueChange={() => {}} className="mt-3">
         <AccordionItem value="signoff" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
@@ -2083,88 +2167,6 @@ export default function EditManualPage() {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      {/* Custom sections */}
-      {[...customSections].sort((a, b) => a.position - b.position).map((section, sIdx) => (
-        <div key={section.id} className="mt-3 rounded-lg border border-border bg-card">
-          <div className="flex items-center justify-between px-5 py-4">
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col gap-0.5">
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={sIdx === 0} onClick={() => moveCustomSection(section.id, 'up')}>
-                  <ArrowUp className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={sIdx === customSections.length - 1} onClick={() => moveCustomSection(section.id, 'down')}>
-                  <ArrowDown className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <div className="flex-1">
-                <Input value={section.title} onChange={(e) => {
-                  updateCustomSectionTitle(section.id, e.target.value);
-                  if (sectionCheckResults[section.id]) {
-                    setSectionCheckResults((prev) => { const next = { ...prev }; delete next[section.id]; return next; });
-                  }
-                }} onBlur={() => saveCustomSectionTitle(section.id)} placeholder={t('edit.sectionTitlePlaceholder')} className={`border-0 px-1 text-lg shadow-none focus-visible:ring-0 ${sectionCheckResults[section.id] === 'block' ? 'border-destructive' : ''}`} />
-                {sectionCheckResults[section.id] === 'block' && (
-                  <p className="mt-1 px-1 text-xs text-destructive">{t('secretName.blocked')}</p>
-                )}
-                {sectionCheckResults[section.id] === 'warn' && (
-                  <p className="mt-1 flex items-start gap-1.5 px-1 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
-                )}
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => setDeleteSectionId(section.id)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="px-5 pb-5">
-            <div className="space-y-2">
-              {getFieldsForCustomSection(section.id).map((field, i) => {
-                const fields = getFieldsForCustomSection(section.id);
-                return (
-                  <div key={field.id} className="flex items-start gap-2 rounded-lg border border-border p-3">
-                    <div className="flex flex-col gap-0.5 pt-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === 0} onClick={() => moveCustomField(field.id, 'up')}>
-                        <ArrowUp className="h-3.5 w-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground" disabled={i === fields.length - 1} onClick={() => moveCustomField(field.id, 'down')}>
-                        <ArrowDown className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <Input value={field.label} onChange={(e) => {
-                        updateCustomField(field.id, 'label', e.target.value);
-                        if (fieldCheckResults[field.id]) {
-                          setFieldCheckResults((prev) => { const next = { ...prev }; delete next[field.id]; return next; });
-                        }
-                      }} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldLabelPlaceholder')} className={`text-sm ${fieldCheckResults[field.id] === 'block' ? 'border-destructive' : ''}`} />
-                      {fieldCheckResults[field.id] === 'block' && (
-                        <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
-                      )}
-                      {fieldCheckResults[field.id] === 'warn' && (
-                        <p className="flex items-start gap-1.5 text-xs text-amber-700"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" /><span>{t('secretName.warned')}</span></p>
-                      )}
-                      <Textarea value={field.value} onChange={(e) => updateCustomField(field.id, 'value', e.target.value)} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldValuePlaceholder')} rows={2} className="text-sm" />
-                    </div>
-                    <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCustomField(field.id)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                );
-              })}
-            </div>
-            <Button variant="outline" size="sm" className="mt-3" onClick={() => addCustomFieldToSection(section.id)}>
-              <Plus className="mr-2 h-4 w-4" />
-              {t('edit.addField')}
-            </Button>
-          </div>
-        </div>
-      ))}
-
-      {/* Add section button */}
-      <Button variant="outline" className="mt-4 w-full" onClick={addCustomSection}>
-        <Plus className="mr-2 h-4 w-4" />
-        {t('edit.addSection')}
-      </Button>
     </AppShell>
   );
 }
