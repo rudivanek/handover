@@ -2051,7 +2051,7 @@ export default function EditManualPage() {
       </Button>
 
       {/* Handover sign-off — always last, outside the built-in accordion */}
-      <Accordion type="single" collapsible value="signoff" onValueChange={() => {}} className="mt-3">
+      <Accordion type="single" collapsible className="mt-3">
         <AccordionItem value="signoff" className="rounded-lg border border-border bg-card">
           <AccordionTrigger className="px-5 py-4 hover:no-underline">
             <span className="flex items-center gap-2 text-lg">
