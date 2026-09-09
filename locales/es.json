@@ -54,6 +54,10 @@
   "reset.update": "Actualizar contrase\u00f1a",
   "reset.updating": "Actualizando\u2026",
   "reset.updateError": "Algo sali\u00f3 mal. Por favor int\u00e9ntalo de nuevo.",
+  "reset.expiredTitle": "Este enlace ha expirado",
+  "reset.expiredDescription": "Este enlace de restablecimiento ya no es v\u00e1lido.",
+  "reset.expiredMessage": "Este enlace ha expirado o ya fue usado. Solicita uno nuevo y te enviaremos un enlace fresco a tu correo.",
+  "reset.requestNewLink": "Solicitar un nuevo enlace",
 
   "manuals.title": "Manuales",
   "manuals.subtitle": "{agency} \u2014 tus manuales de clientes",

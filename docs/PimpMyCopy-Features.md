@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T18:00:00Z
+Last Updated: 2026-09-09T19:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -232,3 +232,23 @@ No migration, schema, grant, RLS policy, public-manual function, completion logi
 **Stale plan badge after publish:** The app shell refetches the active manual count on pathname change and on a `manuals-changed` window event. Publishing, unpublishing, archiving, and restoring happened on the edit page with no navigation and never dispatched the event, so the header badge was stale. `window.dispatchEvent(new Event('manuals-changed'))` is now dispatched immediately after the optimistic `setManual` in `doPublish`, `handleUnpublish`, `handleArchive`, and `handleRestore`, matching what the manuals list page already does.
 
 No migration, grant, RLS policy, RPC, plan quota, publish gate, secret-name constraint, font, asset, or pluginsText blur handling was changed. `app/admin/page.tsx` and `app/manuals/page.tsx` still use plain `new Date()` for `created_at` (a timestamp, not a date-only column) and were not routed through the new helper.
+
+### 3.14 Password Reset Loop — Detection Gate Replaced
+
+The password reset page (`app/reset-password/page.tsx`) had two forms gated on `hasRecoverySession`: the email-request form and the set-new-password form. The gate was wrong. It called `supabase.auth.getSession()` and then required `new URL(window.location.href).searchParams.get('type') === 'recovery'`. That was never true: the Supabase client in `lib/supabase.ts` uses the implicit flow, so Supabase returns the recovery result in the URL hash (`#access_token=…&type=recovery`), not the query string — and `detectSessionInUrl: true` consumes and strips that hash on module import, before this component mounts. Reading `window.location` from the component cannot work. The page always fell through to the email-request form, even after clicking a valid recovery link.
+
+**Fix — primary detection:** The component's first effect now subscribes to `supabase.auth.onAuthStateChange` and sets `hasRecoverySession` to true when the event is `PASSWORD_RECOVERY`. The subscription is unsubscribed on unmount. The auth event is the reliable signal with the implicit flow.
+
+**Fix — fallback:** The effect also calls `getSession()` and, if a session exists, shows the set-password form. This covers the case where the recovery event fired before the subscription existed, and the intended consequence that a signed-in user visiting `/reset-password` sees the change-password screen (the app has no other way to change a password).
+
+**Fix — error state:** An expired or already-used link comes back as `#error=…&error_description=…`. The hash is captured once at module scope, at import time, before the Supabase client strips it. If it carries an error, the page renders a third state: a short message that the link has expired or has already been used, and a button to request a new one that returns the page to its normal request form.
+
+**Locale keys added** to both `locales/en.json` and `locales/es.json` alongside the existing `reset.*` keys:
+- `reset.expiredTitle`: "This link has expired" / "Este enlace ha expirado"
+- `reset.expiredDescription`: "This password reset link is no longer valid." / "Este enlace de restablecimiento ya no es válido."
+- `reset.expiredMessage`: "This link has expired or has already been used. Request a new one and we'll send a fresh link to your email." / "Este enlace ha expirado o ya fue usado. Solicita uno nuevo y te enviaremos un enlace fresco a tu correo."
+- `reset.requestNewLink`: "Request a new link" / "Solicitar un nuevo enlace"
+
+**Not changed:** `lib/supabase.ts` (flow type, `detectSessionInUrl`), the `redirectTo` in `handleRequest`, the existing `reset.*` keys, the `updateUser` call, the redirect to `/manuals` after a successful update, the login page, and anything outside `app/reset-password/page.tsx` and the two locale files. No migration, schema change, grant, or RLS policy was made.
+
+This is the same family as the sectionNumber 0 bug: a state the page couldn't determine, defaulting silently to a plausible-looking wrong screen.

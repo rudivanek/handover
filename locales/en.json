@@ -54,6 +54,10 @@
   "reset.update": "Update password",
   "reset.updating": "Updating\u2026",
   "reset.updateError": "Something went wrong. Please try again.",
+  "reset.expiredTitle": "This link has expired",
+  "reset.expiredDescription": "This password reset link is no longer valid.",
+  "reset.expiredMessage": "This link has expired or has already been used. Request a new one and we'll send a fresh link to your email.",
+  "reset.requestNewLink": "Request a new link",
 
   "manuals.title": "Manuals",
   "manuals.subtitle": "{agency} \u2014 your client manuals",
