@@ -21,7 +21,7 @@ import { APP_VERSION } from '@/lib/version';
 import { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, profileLoaded, signOut } = useAuth();
   const { locale, setLocale, t } = useI18n();
   const pathname = usePathname();
   const [liveCount, setLiveCount] = useState<number | null>(null);
@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const atOrOverLimit = planLimit !== null && liveCount !== null && liveCount >= planLimit;
 
   const renderPlanIndicator = () => {
-    if (liveCount === null) return null;
+    if (liveCount === null || !profileLoaded) return null;
     const countText = planLimit === null
       ? `${liveCount} ${locale === 'es' ? 'activos' : 'active'}`
       : `${liveCount}/${planLimit}`;
@@ -144,7 +144,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="gap-1">
                   <span className="hidden sm:inline">
-                    {profile?.agency_name || user?.email}
+                    {profileLoaded ? (profile?.agency_name || user?.email) : ''}
                   </span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>

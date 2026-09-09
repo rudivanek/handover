@@ -33,6 +33,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
@@ -1472,6 +1473,9 @@ export default function EditManualPage() {
                     if (value === '@other') {
                       setDomainOwnerOtherOpen(true);
                       if (isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS)) updateManual('domain_owner', '');
+                    } else if (value === '@clear') {
+                      setDomainOwnerOtherOpen(false);
+                      updateManual('domain_owner', '');
                     } else {
                       setDomainOwnerOtherOpen(false);
                       updateManual('domain_owner', value);
@@ -1486,6 +1490,8 @@ export default function EditManualPage() {
                     <SelectItem value="@third_party">{t('domainOwner.option.thirdParty')}</SelectItem>
                     <SelectItem value="@unknown">{t('domainOwner.option.unknown')}</SelectItem>
                     <SelectItem value="@other">{t('domainOwner.option.other')}</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="@clear">{t('common.clearSelection')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {(domainOwnerOtherOpen || (manual.domain_owner != null && manual.domain_owner.trim() !== '' && !isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS))) && (
@@ -1501,6 +1507,9 @@ export default function EditManualPage() {
                     if (value === '@other') {
                       setRegistrarAccessOtherOpen(true);
                       if (isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS)) updateManual('registrar_access', '');
+                    } else if (value === '@clear') {
+                      setRegistrarAccessOtherOpen(false);
+                      updateManual('registrar_access', '');
                     } else {
                       setRegistrarAccessOtherOpen(false);
                       updateManual('registrar_access', value);
@@ -1515,6 +1524,8 @@ export default function EditManualPage() {
                     <SelectItem value="@both">{t('registrarAccess.option.both')}</SelectItem>
                     <SelectItem value="@unknown">{t('registrarAccess.option.unknown')}</SelectItem>
                     <SelectItem value="@other">{t('registrarAccess.option.other')}</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="@clear">{t('common.clearSelection')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {(registrarAccessOtherOpen || (manual.registrar_access != null && manual.registrar_access.trim() !== '' && !isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS))) && (
@@ -1547,8 +1558,13 @@ export default function EditManualPage() {
                 <Select
                   value={isToken(manual.dns_managed_at, DNS_MANAGED_AT_TOKENS) ? manual.dns_managed_at : (manual.dns_managed_at?.trim() ? '@other' : undefined)}
                   onValueChange={(value) => {
-                    setDnsManagedOtherOpen(value === '@other');
-                    updateManual('dns_managed_at', value === '@other' ? '' : value);
+                    if (value === '@clear') {
+                      setDnsManagedOtherOpen(false);
+                      updateManual('dns_managed_at', '');
+                    } else {
+                      setDnsManagedOtherOpen(value === '@other');
+                      updateManual('dns_managed_at', value === '@other' ? '' : value);
+                    }
                   }}
                   disabled={isArchived}
                 >
@@ -1558,6 +1574,8 @@ export default function EditManualPage() {
                     <SelectItem value="@host">{t('dnsManagedAt.option.host')}</SelectItem>
                     <SelectItem value="@cloudflare">{t('dnsManagedAt.option.cloudflare')}</SelectItem>
                     <SelectItem value="@other">{t('dnsManagedAt.option.other')}</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="@clear">{t('common.clearSelection')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {(dnsManagedOtherOpen || (manual.dns_managed_at?.trim() && !isToken(manual.dns_managed_at, DNS_MANAGED_AT_TOKENS))) && <Input value={manual.dns_managed_at || ''} onChange={(e) => updateManual('dns_managed_at', e.target.value)} placeholder="Your DNS provider" disabled={isArchived} />}
@@ -1567,8 +1585,13 @@ export default function EditManualPage() {
                 <Select
                   value={isToken(manual.dns_access, DNS_ACCESS_TOKENS) ? manual.dns_access : (manual.dns_access?.trim() ? '@other' : undefined)}
                   onValueChange={(value) => {
-                    setDnsAccessOtherOpen(value === '@other');
-                    updateManual('dns_access', value === '@other' ? '' : value);
+                    if (value === '@clear') {
+                      setDnsAccessOtherOpen(false);
+                      updateManual('dns_access', '');
+                    } else {
+                      setDnsAccessOtherOpen(value === '@other');
+                      updateManual('dns_access', value === '@other' ? '' : value);
+                    }
                   }}
                   disabled={isArchived}
                 >
@@ -1579,18 +1602,22 @@ export default function EditManualPage() {
                     <SelectItem value="@both">{t('dnsAccess.option.both')}</SelectItem>
                     <SelectItem value="@unknown">{t('dnsAccess.option.unknown')}</SelectItem>
                     <SelectItem value="@other">{t('dnsAccess.option.other')}</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="@clear">{t('common.clearSelection')}</SelectItem>
                   </SelectContent>
                 </Select>
                 {(dnsAccessOtherOpen || (manual.dns_access?.trim() && !isToken(manual.dns_access, DNS_ACCESS_TOKENS))) && <Input value={manual.dns_access || ''} onChange={(e) => updateManual('dns_access', e.target.value)} placeholder="Your DNS provider" disabled={isArchived} />}
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="dns_change">{t('edit.fields.dnsChange')}</Label>
-                <Select value={manual.dns_change || undefined} onValueChange={(value) => updateManual('dns_change', value)} disabled={isArchived}>
+                <Select value={manual.dns_change || undefined} onValueChange={(value) => { if (value === '@clear') { updateManual('dns_change', ''); } else { updateManual('dns_change', value); } }} disabled={isArchived}>
                   <SelectTrigger id="dns_change"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="@nameservers">{t('dnsChange.option.nameservers')}</SelectItem>
                     <SelectItem value="@records">{t('dnsChange.option.records')}</SelectItem>
                     <SelectItem value="@none">{t('dnsChange.option.none')}</SelectItem>
+                    <SelectSeparator />
+                    <SelectItem value="@clear">{t('common.clearSelection')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

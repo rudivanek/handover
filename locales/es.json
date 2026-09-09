@@ -17,6 +17,7 @@
   "common.preview": "Vista previa",
   "common.allManuals": "Todos los manuales",
   "common.selectPlaceholder": "Selecciona…",
+  "common.clearSelection": "Borrar — sin responder",
 
   "login.title": "Iniciar sesi\u00f3n",
   "login.description": "Ingresa tu correo y contrase\u00f1a para acceder a tu cuenta.",

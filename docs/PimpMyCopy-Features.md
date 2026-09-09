@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T21:00:00Z
+Last Updated: 2026-09-09T22:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -324,3 +324,11 @@ The two Selects previously showed **Other…** for any unanswered field because 
 The published Domain & DNS section now keeps the nameserver explanation structurally separate from the nameserver list. The old `nameservers` default, which embedded `{nameservers}` in the middle of a sentence, was replaced with `nameservers_intro` and `nameservers_note` in English and Spanish. The intro renders only when at least one stored nameserver exists, followed by the existing comma-split, trimmed, filtered list and then the note as its own paragraph. This removes the orphaned full stop that appeared before “Nameservers tell…” when a block list was inserted into the sentence.
 
 The nameserver column, comma-separated storage, editor repeater, split/join behavior, domain table list, interpolation helpers, empty-token suppression, all other Domain & DNS copy, locale files, database objects, grants, RLS policies, and `get_public_manual` were not changed. With no nameservers, the intro, list, and note all remain absent. The new English and Spanish defaults preserve the reviewed wording. Type checking and the production build passed; browser verification was not available in this environment.
+
+### 3.22 Dropdown Clear Option and Nav Plan Badge Flash
+
+The five Domain & DNS Select controls — `domain_owner`, `registrar_access`, `dns_managed_at`, `dns_access`, and `dns_change` — previously had no way back to blank once answered. A **Clear — not answered yet** / **Borrar — sin responder** option was added at the bottom of each Select, separated from the real options by a `SelectSeparator`. Selecting it writes an empty string to the column, so the field returns to showing the localized placeholder and behaves exactly as a never-answered field: no sentence on the published page, an em dash in the table. For the four fields with an Other free-text box, clearing also closes the box via the same local state the placeholder fix added. The sentinel value `@clear` never reaches the database and is not in any token list, so nothing else needs to know about it. Two locale keys were added: `common.clearSelection` in both English and Spanish. No token values, `lib/domain-ownership.ts`, the published page, `data/defaults.json`, completion, or placeholder behaviour were changed.
+
+The navigation plan badge in `components/app-shell.tsx` previously flashed **Free · 1/1** for a paying agency while the profile was loading, because `profile?.plan || 'free'` defaulted to `free` before the profile arrived. The `profileLoaded` flag from `useAuth()` is now destructured and `renderPlanIndicator()` returns null until it is true, alongside the existing `liveCount === null` guard. The account-menu label likewise shows nothing rather than the raw email address until the profile has loaded. Rendering nothing for a moment is correct; rendering a wrong plan is not. `lib/auth-context.tsx`, the plan values, `PLAN_LABELS`, `PLAN_LIMITS`, the live-count fetch, the `manuals-changed` listener, the amber at-limit styling, and the language and account dropdowns themselves were not changed.
+
+No migration, SQL, grant, RLS policy, or `get_public_manual` change was made. Locale key parity was verified at 586 identical keys. Type checking and the production build passed. Browser verification was not available in this environment.

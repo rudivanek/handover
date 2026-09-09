@@ -17,6 +17,7 @@
   "common.preview": "Preview",
   "common.allManuals": "All manuals",
   "common.selectPlaceholder": "Select…",
+  "common.clearSelection": "Clear — not answered yet",
 
   "login.title": "Sign in",
   "login.description": "Enter your email and password to access your account.",
