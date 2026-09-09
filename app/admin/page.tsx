@@ -52,6 +52,7 @@ type DeleteResult = {
 const PLAN_LIMITS: Record<string, number | null> = {
   free: 1,
   freelancer: 3,
+  studio: 10,
   agency: null,
 };
 
@@ -265,6 +266,7 @@ export default function AdminPage() {
                         <SelectContent>
                           <SelectItem value="free">Free</SelectItem>
                           <SelectItem value="freelancer">Freelancer</SelectItem>
+                          <SelectItem value="studio">Studio</SelectItem>
                           <SelectItem value="agency">Agency</SelectItem>
                         </SelectContent>
                       </Select>

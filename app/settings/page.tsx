@@ -651,7 +651,7 @@ export default function SettingsPage() {
               const limit = PLAN_LIMITS[plan];
               const label = PLAN_LABELS[plan]?.[locale] || plan;
 
-              if (plan !== 'free' && plan !== 'freelancer' && plan !== 'agency') {
+              if (plan !== 'free' && plan !== 'freelancer' && plan !== 'studio' && plan !== 'agency') {
                 console.error(`Unexpected plan value: ${plan}`);
                 return (
                   <div className="space-y-3">
@@ -703,6 +703,38 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
                       <p className="text-sm font-medium">{t('settings.freelancerPlan')}</p>
+                    </div>
+                    {activeCount !== null && limit !== null && (
+                      <p className="text-xs text-muted-foreground">
+                        {t('settings.usageLimited', { count: activeCount, limit })}
+                      </p>
+                    )}
+                    {process.env.NEXT_PUBLIC_STRIPE_LINK && (
+                      <>
+                        <Button asChild size="sm">
+                          <a href={process.env.NEXT_PUBLIC_STRIPE_LINK} target="_blank" rel="noopener noreferrer">
+                            {t('settings.upgrade')}
+                            <ArrowUpRight className="ml-2 h-4 w-4" />
+                          </a>
+                        </Button>
+                        <p className="text-xs text-muted-foreground">
+                          {t('settings.upgradePrice')}
+                        </p>
+                      </>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      {t('settings.subscriptionNote')}
+                    </p>
+                  </div>
+                );
+              }
+
+              if (plan === 'studio') {
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <p className="text-sm font-medium">{t('settings.studioPlan')}</p>
                     </div>
                     {activeCount !== null && limit !== null && (
                       <p className="text-xs text-muted-foreground">

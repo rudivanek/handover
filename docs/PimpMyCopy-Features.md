@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T22:00:00Z
+Last Updated: 2026-09-09T23:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -332,3 +332,36 @@ The five Domain & DNS Select controls — `domain_owner`, `registrar_access`, `d
 The navigation plan badge in `components/app-shell.tsx` previously flashed **Free · 1/1** for a paying agency while the profile was loading, because `profile?.plan || 'free'` defaulted to `free` before the profile arrived. The `profileLoaded` flag from `useAuth()` is now destructured and `renderPlanIndicator()` returns null until it is true, alongside the existing `liveCount === null` guard. The account-menu label likewise shows nothing rather than the raw email address until the profile has loaded. Rendering nothing for a moment is correct; rendering a wrong plan is not. `lib/auth-context.tsx`, the plan values, `PLAN_LABELS`, `PLAN_LIMITS`, the live-count fetch, the `manuals-changed` listener, the amber at-limit styling, and the language and account dropdowns themselves were not changed.
 
 No migration, SQL, grant, RLS policy, or `get_public_manual` change was made. Locale key parity was verified at 586 identical keys. Type checking and the production build passed. Browser verification was not available in this environment.
+
+### 3.23 Studio Plan Tier ($39/month, 10 active manuals)
+
+The app now supports a fourth plan tier, **Studio**, sitting between Freelancer and Agency. The marketing site already sold it; the database and app did not recognize it.
+
+**Database migration — 20260909_add_studio_plan:**
+
+- `profiles_plan_check` widened from `('free','freelancer','agency')` to `('free','freelancer','studio','agency')`. No UPDATE was issued on any row — existing accounts keep their current plan.
+- `plan_manual_limit(p_plan text)` amended to add `when 'studio' then 10` between the freelancer and agency branches. The function remains `language sql immutable` with the `else 1` fallback preserved unchanged.
+- `admin_set_plan(p_user_id uuid, p_plan text)` amended to add `'studio'` to the valid-plan guard. The `is_admin()` check remains the first statement, and the `SECURITY DEFINER` attribute and `SET search_path TO 'public'` are preserved.
+- `enforce_manual_quota()` and its trigger were not touched — they read the limit through `plan_manual_limit()`, so widening that function is the whole change.
+- The `profiles` column-level UPDATE grant was NOT re-issued. `plan` remains absent from the UPDATE privilege list — that omission is the paywall. Confirmed post-migration: `authenticated` has UPDATE on 13 columns (agency_name, agency_website, body_font_key, brand_color, custom_font_name, custom_font_url, emergency_phone, heading_font_key, logo_storage_path, logo_url, support_email, support_hours, ui_locale) — `plan` is not among them.
+
+**Frontend changes:**
+
+- `lib/plans.ts`: `PLAN_LIMITS` now includes `studio: 10` between freelancer and agency. `PLAN_LABELS` includes `studio: { en: 'Studio', es: 'Studio' }` in the same position.
+- `app/admin/page.tsx`: The private copy of `PLAN_LIMITS` includes `studio: 10`. A `<SelectItem value="studio">Studio</SelectItem>` was added between Freelancer and Agency in the plan selector.
+- `app/settings/page.tsx`: The unexpected-plan guard now includes `'studio'` so it is treated as a known plan. A `studio` branch was added that mirrors the `freelancer` branch exactly: green check, `t('settings.studioPlan')`, the `usageLimited` line with count and limit, the upgrade button when `NEXT_PUBLIC_STRIPE_LINK` is set, and `settings.subscriptionNote`.
+
+**Locale keys:**
+
+- `settings.studioPlan` added to both files: "Studio — 10 active manuals at a time, no Handover branding." / "Studio — 10 manuales activos a la vez, sin marca de Handover."
+- `settings.upgradePrice` replaced in both files to name all three paid tiers: "Freelancer $19/month for 3 active manuals. Studio $39/month for 10. Agency $79/month for unlimited. Billed monthly. Drafts and archived manuals are unlimited on every plan." / "Freelancer $19/mes para 3 manuales activos. Studio $39/mes para 10. Agency $79/mes para ilimitados. Facturación mensual. Los borradores y los manuales archivados son ilimitados en todos los planes."
+
+**What was NOT changed:**
+
+- `enforce_manual_quota()`, its trigger, the publish gate, `get_public_manual`, archiving, and `updated_at`.
+- `is_admin()`, `admin_users`, `admin_overview()`, or the `SECURITY DEFINER` gate on `admin_set_plan()`.
+- The free-plan footer rule: `show_footer` is `plan = 'free'` in `get_public_manual` and needs no change — Studio removes it exactly as Freelancer and Agency do.
+- The templates paid-feature gate in `app/templates/page.tsx` (`plan === 'free'` → blocked). Studio is not free, so it gets templates automatically.
+- Domain & DNS, maintenance presets, language controls, or anything outside the plan system.
+
+Locale key parity was verified at 587 identical keys. Type checking and the production build passed. Browser verification was not available in this environment — the database-enforced quota limit (10 active manuals) and the admin plan selector should be confirmed visually as a signed-in user.
