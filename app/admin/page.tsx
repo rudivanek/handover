@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth-context';
 import { AppShell } from '@/components/app-shell';
-import { FileText, KeyRound } from 'lucide-react';
+import { FileText, KeyRound, Trash2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,15 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Card,
   CardContent,
@@ -33,6 +43,12 @@ type AdminRow = {
   live_count: number | null;
 };
 
+type DeleteResult = {
+  manuals_deleted: number;
+  active_deleted: number;
+  auth_deleted: boolean;
+};
+
 const PLAN_LIMITS: Record<string, number | null> = {
   free: 1,
   freelancer: 3,
@@ -41,6 +57,7 @@ const PLAN_LIMITS: Record<string, number | null> = {
 
 export default function AdminPage() {
   const { loading: authLoading, user } = useAuth();
+  const { t } = useI18n();
   const [rows, setRows] = useState<AdminRow[] | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,6 +65,10 @@ export default function AdminPage() {
   const [keyInput, setKeyInput] = useState('');
   const [keySaving, setKeySaving] = useState(false);
   const [keyMsg, setKeyMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminRow | null>(null);
+  const [deleteEmail, setDeleteEmail] = useState('');
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteMsg, setDeleteMsg] = useState<{ type: 'ok' | 'partial' | 'err'; text: string } | null>(null);
 
   const fetchKeyStatus = useCallback(async () => {
     const { data, error } = await supabase.rpc('admin_resend_key_status');
@@ -112,6 +133,42 @@ export default function AdminPage() {
     setKeySaving(false);
   };
 
+  const handleDeleteAccount = async () => {
+    if (!deleteTarget?.email || deleteEmail !== deleteTarget.email) return;
+
+    setDeleteBusy(true);
+    setDeleteMsg(null);
+
+    const { data, error } = await supabase.rpc('admin_delete_account', {
+      p_user_id: deleteTarget.user_id,
+    });
+
+    if (error) {
+      console.error('admin_delete_account RPC error:', error);
+      setDeleteMsg({ type: 'err', text: error.message });
+      setDeleteBusy(false);
+      return;
+    }
+
+    const result = data as DeleteResult;
+    setDeleteTarget(null);
+    setDeleteEmail('');
+    setDeleteMsg({
+      type: result.auth_deleted ? 'ok' : 'partial',
+      text: result.auth_deleted
+        ? t('admin.deleteSuccess', {
+            manuals: result.manuals_deleted,
+            active: result.active_deleted,
+          })
+        : t('admin.deletePartial', {
+            manuals: result.manuals_deleted,
+            active: result.active_deleted,
+          }),
+    });
+    await fetchOverview();
+    setDeleteBusy(false);
+  };
+
   if (loading || authLoading) {
     return (
       <AppShell>
@@ -171,6 +228,12 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {deleteMsg && (
+          <p className={`mt-4 text-sm ${deleteMsg.type === 'err' ? 'text-destructive' : deleteMsg.type === 'partial' ? 'text-amber-700' : 'text-green-700'}`}>
+            {deleteMsg.text}
+          </p>
+        )}
+
         <div className="mt-6 overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
@@ -181,6 +244,7 @@ export default function AdminPage() {
                 <th className="px-4 py-3 text-left font-medium">Signed up</th>
                 <th className="px-4 py-3 text-left font-medium">Manuals</th>
                 <th className="px-4 py-3 text-left font-medium">Live</th>
+                <th className="px-4 py-3 text-left font-medium">{t('admin.delete')}</th>
               </tr>
             </thead>
             <tbody>
@@ -223,6 +287,22 @@ export default function AdminPage() {
                           over limit
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => {
+                          setDeleteTarget(r);
+                          setDeleteEmail('');
+                          setDeleteMsg(null);
+                        }}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        {t('admin.delete')}
+                      </Button>
                     </td>
                   </tr>
                 );
@@ -274,6 +354,76 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+
+        <AlertDialog
+          open={deleteTarget !== null}
+          onOpenChange={(open) => {
+            if (!open && !deleteBusy) {
+              setDeleteTarget(null);
+              setDeleteEmail('');
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('admin.deleteTitle')}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t('admin.deleteDescription')}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {deleteTarget && (
+              <div className="space-y-3 rounded-md border border-border bg-secondary/20 p-4 text-sm">
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{t('admin.deleteEmail')}</span>
+                  <span className="font-medium text-right">{deleteTarget.email || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{t('admin.deleteAgency')}</span>
+                  <span className="font-medium text-right">{deleteTarget.agency_name || '—'}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{t('admin.deleteManuals')}</span>
+                  <span className="font-medium">{deleteTarget.manual_count || 0}</span>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">{t('admin.deleteActive')}</span>
+                  <span className="font-medium">{deleteTarget.live_count || 0}</span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-sm font-medium text-destructive">
+              {t('admin.deleteWarning')}
+            </p>
+
+            <div className="space-y-2">
+              <label htmlFor="delete-email" className="text-sm font-medium">
+                {t('admin.deleteEmailInstruction')}
+              </label>
+              <Input
+                id="delete-email"
+                type="email"
+                autoComplete="off"
+                value={deleteEmail}
+                onChange={(e) => setDeleteEmail(e.target.value)}
+                disabled={deleteBusy}
+              />
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleteBusy}>{t('admin.deleteCancel')}</AlertDialogCancel>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDeleteAccount}
+                disabled={deleteBusy || !deleteTarget?.email || deleteEmail !== deleteTarget.email}
+              >
+                {deleteBusy ? t('admin.deleteDeleting') : t('admin.deleteConfirm')}
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppShell>
   );

@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T20:00:00Z
+Last Updated: 2026-09-09T17:01:27Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -260,3 +260,17 @@ The login page now branches correctly on the result of `supabase.auth.signUp`. W
 Sign-in and signup errors are now logged with `console.error` using the real Supabase error object before any user-facing message is shown. HTTP 429 and known rate-limit codes use a specific wait-a-few-minutes message. Duplicate signup errors use known Supabase duplicate-account codes first, with a message fallback only when no code is available; they show a neutral message that does not confirm whether the address exists and switch the page back to the Sign in tab. All other signup errors keep the existing neutral error message. The existing neutral sign-in message that the email and password do not match is unchanged for non-rate-limit sign-in errors.
 
 Two locale keys were added to both locale files: `login.rateLimited` and `login.alreadyRegistered`. The agency name field, eight-character password hint, lack of a confirm-password field, Resend countdown, auth flow configuration, profile-row creation, reset-password page, and sign-in route behavior were not changed. No migration, SQL, schema, grant, or RLS policy was created or modified.
+
+### 3.16 Admin-Only Account Deletion
+
+The Admin page now has a destructive Delete action in its own table column, separate from the plan selector. It is available only through the existing admin page; there is still no navigation link to `/admin`, and the existing non-admin not-found behavior remains unchanged.
+
+Clicking Delete opens a confirmation dialog that shows the account email, agency name, total manual count, and active manual count. It warns that active manuals will go permanently offline for that agency's clients. The permanent-delete button remains disabled until the operator types the account email exactly. The confirmation and result copy is localized in English and Spanish.
+
+The server-enforced operation is `public.admin_delete_account(p_user_id uuid)`, introduced by migration `20260909_admin_delete_account`. It is `SECURITY DEFINER`, uses `SET search_path TO 'public'`, and checks `public.is_admin()` inside the function. It refuses to delete the current administrator, any account in `admin_users`, or the account that owns the protected demo manual `aurora-dental-4k2m9x`. It counts total and active manuals before deleting.
+
+Deletion is explicit and ordered. The function deletes `accounts`, `assets`, `coverage`, `custom_fields`, `custom_sections`, `edit_blocks`, `maintenance_tasks`, and `manual_contacts` rows for the user's manuals, then deletes the manuals, user-owned `agency_scripts` and `manual_templates`, the profile row, and finally attempts `auth.users`. If auth deletion cannot complete after application data is removed, the result returns `auth_deleted: false`; the Admin page says plainly that the application data was removed but the login still exists. Successful results show the total and active counts that were deleted. RPC errors are logged with the real error and their message is shown to the administrator.
+
+The function grants EXECUTE only to `authenticated` and revokes it from `anon` and `public`. No table policy, table grant, column-level grant, existing function, quota rule, publish gate, trigger, admin list, or demo data was changed. In particular, the existing profiles UPDATE privilege remains absent for `authenticated`, so the plan remains client-unwritable as documented in section 30.
+
+Verification completed: a simulated non-admin call returned `not authorized`; an administrator deleting their own account returned `cannot delete yourself`; deleting the demo owner returned `cannot delete the demo account`; the demo manual remained published. A throwaway account with a published manual, account row, and maintenance row was deleted with `manuals_deleted: 1`, `active_deleted: 1`, and `auth_deleted: true`; every checked child table, manual, profile, and auth row returned zero, and the public lookup returned null. The deleted email successfully signed up again with a live session, then the recreated throwaway account was removed through the same RPC. Admin overview counts returned to 12 accounts, 11 manuals, and 8 active manuals.
