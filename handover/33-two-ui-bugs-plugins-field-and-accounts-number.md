@@ -8,6 +8,8 @@ When the field loses focus, the text is parsed using the existing rule: split on
 
 The general rule is: never bind an input's value to a round-tripped derivation of its own onChange. Keep the user's raw text in local input state, and parse it only at a boundary such as blur or save.
 
+The auto-save effect no longer re-seeds the plugins text after a successful save. That re-seed was keyed on the whole manual object, so editing any field started a 1.2-second countdown; if the user clicked into Key plugins and started typing inside that window, the timer would fire and overwrite the text they were actively typing — the same defect the local state was added to fix, in a narrower window. The line was redundant: the field's onBlur handler already parses and re-seeds the canonical string, and fetchData seeds it when the manual loads.
+
 ## Accounts & ownership numbering
 
 The public manual always renders the Accounts & ownership section, including its empty state and the note explaining that passwords are never stored. The contents list now marks this section as present even when there are no account rows, so it receives its correct number and anchor link.

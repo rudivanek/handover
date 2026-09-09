@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T00:00:00Z
+Last Updated: 2026-09-09T12:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -214,6 +214,8 @@ Sign-off is available on all plans including free. It is not gated by plan.
 The Key plugins editor preserves the raw text while the user types instead of deriving the displayed input value from the parsed array after every keystroke. This allows commas, spaces, and subsequent plugin names to be entered naturally in one pass. On blur, the existing parsing rule is applied unchanged: split on commas, trim each item, and filter out empty items. The resulting array continues through the existing manual save flow, and the input is reseeded from that parsed array using the canonical comma-and-space format.
 
 The general input rule is: never bind an input's value to a round-tripped derivation of its own `onChange`. Keep raw text in local input state and parse it only at a boundary such as blur or save.
+
+The debounced auto-save effect no longer re-seeds the plugins text after a successful save. That re-seed was keyed on the whole manual object, so editing any field started a 1.2-second countdown; if the user clicked into Key plugins and started typing inside that window, the timer would fire and overwrite the text they were actively typing — the same defect the local state was added to fix, in a narrower window. The line was redundant: the field's onBlur handler already parses and re-seeds the canonical string, and fetchData seeds it when the manual loads.
 
 The public Accounts & ownership section is always present because the page intentionally renders its empty state and the note that passwords are never stored. It is therefore included in the contents list even when there are no account rows. Section numbering continues to use the same shared section list, so sections after Accounts & ownership shift to their correct numbers and the contents anchors remain aligned.
 

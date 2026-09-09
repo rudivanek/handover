@@ -192,7 +192,6 @@ export default function EditManualPage() {
         toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
         return;
       }
-      setPluginsText((manual.key_plugins || []).join(', '));
     }, 1200);
     return () => clearTimeout(timer);
   }, [manual, toast]);
