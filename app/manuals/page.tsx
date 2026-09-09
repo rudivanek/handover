@@ -10,7 +10,7 @@ import { supabase } from '@/lib/supabase';
 import { uniqueSlug } from '@/lib/slug';
 import { presetText } from '@/lib/maintenance-presets';
 import { computeCompletion, isDraft } from '@/lib/completion';
-import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale, ManualTemplate, TemplateCustomField, TemplateMaintenanceTask, TemplateCoverage, TemplateEditBlock, TemplateAccount } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, DnsRecord, Locale, ManualTemplate, TemplateCustomField, TemplateMaintenanceTask, TemplateCoverage, TemplateEditBlock, TemplateAccount } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -44,6 +44,7 @@ type ManualWithChildren = Manual & {
   custom_fields?: CustomField[];
   assets?: Asset[];
   maintenance_tasks?: MaintenanceTask[];
+  dns_records?: DnsRecord[];
 };
 
 export default function ManualsPage() {
@@ -87,7 +88,8 @@ export default function ManualsPage() {
         coverage (*),
         custom_fields (*),
         assets (*),
-        maintenance_tasks (*)
+        maintenance_tasks (*),
+        dns_records (*)
       `)
       .order('created_at', { ascending: false });
 
@@ -249,6 +251,10 @@ export default function ManualsPage() {
         domain_expiry: null,
         domain_owner: manual.domain_owner,
         registrar_access: manual.registrar_access,
+        dns_managed_at: manual.dns_managed_at,
+        dns_access: manual.dns_access,
+        dns_change: manual.dns_change,
+        mail_elsewhere: manual.mail_elsewhere,
         nameservers: manual.nameservers,
         host: manual.host,
         host_plan: manual.host_plan,
@@ -270,12 +276,13 @@ export default function ManualsPage() {
       return;
     }
 
-    const [accountsRes, blocksRes, coverageRes, assetsRes, maintenanceRes] = await Promise.all([
+    const [accountsRes, blocksRes, coverageRes, assetsRes, maintenanceRes, dnsRecordsRes] = await Promise.all([
       supabase.from('accounts').select('*').eq('manual_id', manual.id),
       supabase.from('edit_blocks').select('*').eq('manual_id', manual.id),
       supabase.from('coverage').select('*').eq('manual_id', manual.id),
       supabase.from('assets').select('*').eq('manual_id', manual.id),
       supabase.from('maintenance_tasks').select('*').eq('manual_id', manual.id),
+      supabase.from('dns_records').select('*').eq('manual_id', manual.id).order('sort_order'),
     ]);
 
     if (accountsRes.data && accountsRes.data.length > 0) {
@@ -329,6 +336,17 @@ export default function ManualsPage() {
           notes: t.notes,
           sort_order: t.sort_order,
           preset_key: t.preset_key,
+        })));
+    }
+    if (dnsRecordsRes.data && dnsRecordsRes.data.length > 0) {
+      await supabase
+        .from('dns_records')
+        .insert(dnsRecordsRes.data.map((record) => ({
+          manual_id: newManual.id,
+          record_type: record.record_type,
+          record_name: record.record_name,
+          record_value: record.record_value,
+          sort_order: record.sort_order,
         })));
     }
 

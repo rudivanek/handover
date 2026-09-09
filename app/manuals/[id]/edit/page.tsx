@@ -11,10 +11,10 @@ import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import maintenancePresets from '@/data/maintenance-presets.json';
 import { presetText } from '@/lib/maintenance-presets';
-import { DOMAIN_OWNER_TOKENS, REGISTRAR_ACCESS_TOKENS, isToken } from '@/lib/domain-ownership';
+import { DOMAIN_OWNER_TOKENS, REGISTRAR_ACCESS_TOKENS, DNS_MANAGED_AT_TOKENS, DNS_ACCESS_TOKENS, DNS_CHANGE_TOKENS, isToken } from '@/lib/domain-ownership';
 import { computeCompletion, isDraft } from '@/lib/completion';
 import { isSectionHidden, isFieldHidden, type FieldKey } from '@/lib/manual-shape';
-import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, DnsRecord, Locale } from '@/lib/types';
 import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
@@ -102,6 +102,8 @@ export default function EditManualPage() {
   const [contacts, setContacts] = useState<ManualContact[]>([]);
   const [contactCheckResults, setContactCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [maintenanceTasks, setMaintenanceTasks] = useState<MaintenanceTask[]>([]);
+  const [dnsRecords, setDnsRecords] = useState<DnsRecord[]>([]);
+  const [nameserverRows, setNameserverRows] = useState<string[]>([]);
   const [maintenanceCheckResults, setMaintenanceCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [fetching, setFetching] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -124,6 +126,8 @@ export default function EditManualPage() {
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
   const [domainOwnerOtherOpen, setDomainOwnerOtherOpen] = useState(false);
   const [registrarAccessOtherOpen, setRegistrarAccessOtherOpen] = useState(false);
+  const [dnsManagedOtherOpen, setDnsManagedOtherOpen] = useState(false);
+  const [dnsAccessOtherOpen, setDnsAccessOtherOpen] = useState(false);
 
   useEffect(() => {
     if (!pendingFocus) return;
@@ -138,7 +142,7 @@ export default function EditManualPage() {
   const isFieldVisible = (key: FieldKey) => !isFieldHidden(key, hiddenFields, hiddenSections);
 
   const fetchData = useCallback(async () => {
-    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes, maintenanceRes] = await Promise.all([
+    const [manualRes, accountsRes, blocksRes, coverageRes, sectionsRes, fieldsRes, assetsRes, contactsRes, maintenanceRes, dnsRecordsRes] = await Promise.all([
       supabase.from('manuals').select('*').eq('id', id).maybeSingle(),
       supabase.from('accounts').select('*').eq('manual_id', id).order('created_at'),
       supabase.from('edit_blocks').select('*').eq('manual_id', id).order('created_at'),
@@ -148,11 +152,13 @@ export default function EditManualPage() {
       supabase.from('assets').select('*').eq('manual_id', id).order('sort_order'),
       supabase.from('manual_contacts').select('*').eq('manual_id', id).order('sort_order'),
       supabase.from('maintenance_tasks').select('*').eq('manual_id', id).order('sort_order'),
+      supabase.from('dns_records').select('*').eq('manual_id', id).order('sort_order').order('created_at'),
     ]);
     if (manualRes.data) {
       const m = manualRes.data as Manual;
       setManual(m);
       setPluginsText((m.key_plugins || []).join(', '));
+      setNameserverRows(m.nameservers ? m.nameservers.split(',').map((value) => value.trim()) : []);
     }
     setAccounts((accountsRes.data as Account[]) || []);
     setEditBlocks((blocksRes.data as EditBlock[]) || []);
@@ -162,6 +168,7 @@ export default function EditManualPage() {
     setAssets((assetsRes.data as Asset[]) || []);
     setContacts((contactsRes.data as ManualContact[]) || []);
     setMaintenanceTasks((maintenanceRes.data as MaintenanceTask[]) || []);
+    setDnsRecords((dnsRecordsRes.data as DnsRecord[]) || []);
     setFetching(false);
   }, [id]);
 
@@ -189,6 +196,10 @@ export default function EditManualPage() {
           domain_owner: manual.domain_owner,
           registrar_access: manual.registrar_access,
           nameservers: manual.nameservers,
+          dns_managed_at: manual.dns_managed_at,
+          dns_access: manual.dns_access,
+          dns_change: manual.dns_change,
+          mail_elsewhere: manual.mail_elsewhere,
           host: manual.host,
           host_plan: manual.host_plan,
           host_renewal: manual.host_renewal,
@@ -209,8 +220,57 @@ export default function EditManualPage() {
     return () => clearTimeout(timer);
   }, [manual, toast]);
 
-  const updateManual = (field: keyof Manual, value: string | string[]) => {
+  const updateManual = (field: keyof Manual, value: string | string[] | boolean | null) => {
     setManual((prev) => (prev ? { ...prev, [field]: value } : prev));
+  };
+
+  const updateNameserver = (idx: number, value: string) => {
+    setNameserverRows((prev) => {
+      const next = prev.map((row, rowIdx) => rowIdx === idx ? value : row);
+      updateManual('nameservers', next.filter((row) => row.trim()).join(', '));
+      return next;
+    });
+  };
+
+  const addNameserver = () => {
+    setNameserverRows((prev) => [...prev, '']);
+    setPendingFocus(`nameserver-${nameserverRows.length}`);
+  };
+
+  const removeNameserver = (idx: number) => {
+    setNameserverRows((prev) => {
+      const next = prev.filter((_, rowIdx) => rowIdx !== idx);
+      updateManual('nameservers', next.filter((row) => row.trim()).join(', '));
+      return next;
+    });
+  };
+
+  const addDnsRecord = () => {
+    setDnsRecords((prev) => [...prev, {
+      id: '', manual_id: id, record_type: 'A', record_name: '', record_value: '', sort_order: prev.length, created_at: '',
+    }]);
+    setPendingFocus(`dns-record-name-${dnsRecords.length}`);
+  };
+
+  const updateDnsRecord = (idx: number, field: keyof Pick<DnsRecord, 'record_type' | 'record_name' | 'record_value'>, value: string) => {
+    setDnsRecords((prev) => prev.map((record, recordIdx) => recordIdx === idx ? { ...record, [field]: value } as DnsRecord : record));
+  };
+
+  const saveDnsRecord = async (idx: number) => {
+    const record = dnsRecords[idx];
+    if (!record) return;
+    if (record.id) {
+      await supabase.from('dns_records').update({ record_type: record.record_type, record_name: record.record_name, record_value: record.record_value }).eq('id', record.id);
+    } else {
+      const { data } = await supabase.from('dns_records').insert({ manual_id: id, record_type: record.record_type, record_name: record.record_name, record_value: record.record_value, sort_order: record.sort_order }).select().single();
+      if (data) setDnsRecords((prev) => prev.map((item, recordIdx) => recordIdx === idx ? data as DnsRecord : item));
+    }
+  };
+
+  const removeDnsRecord = async (idx: number) => {
+    const record = dnsRecords[idx];
+    if (record?.id) await supabase.from('dns_records').delete().eq('id', record.id);
+    setDnsRecords((prev) => prev.filter((_, recordIdx) => recordIdx !== idx));
   };
 
   // Accounts
@@ -1462,11 +1522,103 @@ export default function EditManualPage() {
                 )}
               </div>
               {isFieldVisible('nameservers') && (
-              <div className="space-y-2">
-                <Label htmlFor="nameservers">{t('edit.fields.nameservers')}</Label>
-                <Input id="nameservers" value={manual.nameservers || ''} onChange={(e) => updateManual('nameservers', e.target.value)} placeholder="ns1.example.com, ns2.example.com" disabled={isArchived} />
+              <div className="space-y-2 sm:col-span-2">
+                <Label>{t('edit.fields.nameservers')}</Label>
+                <div className="space-y-2">
+                  {nameserverRows.map((row, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <Input value={row} onChange={(e) => updateNameserver(idx, e.target.value)} placeholder="ns1.example.com" data-focus-key={`nameserver-${idx}`} disabled={isArchived} />
+                      <Button type="button" variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeNameserver(idx)} disabled={isArchived} aria-label="Remove nameserver">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={addNameserver} disabled={isArchived}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t('edit.dns.addNameserver')}
+                </Button>
               </div>
               )}
+            </div>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="dns_managed_at">{t('edit.fields.dnsManagedAt')}</Label>
+                <Select
+                  value={isToken(manual.dns_managed_at, DNS_MANAGED_AT_TOKENS) ? manual.dns_managed_at : (manual.dns_managed_at?.trim() ? '@other' : undefined)}
+                  onValueChange={(value) => {
+                    setDnsManagedOtherOpen(value === '@other');
+                    updateManual('dns_managed_at', value === '@other' ? '' : value);
+                  }}
+                  disabled={isArchived}
+                >
+                  <SelectTrigger id="dns_managed_at"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="@registrar">{t('dnsManagedAt.option.registrar')}</SelectItem>
+                    <SelectItem value="@host">{t('dnsManagedAt.option.host')}</SelectItem>
+                    <SelectItem value="@cloudflare">{t('dnsManagedAt.option.cloudflare')}</SelectItem>
+                    <SelectItem value="@other">{t('dnsManagedAt.option.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(dnsManagedOtherOpen || (manual.dns_managed_at?.trim() && !isToken(manual.dns_managed_at, DNS_MANAGED_AT_TOKENS))) && <Input value={manual.dns_managed_at || ''} onChange={(e) => updateManual('dns_managed_at', e.target.value)} placeholder="Your DNS provider" disabled={isArchived} />}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="dns_access">{t('edit.fields.dnsAccess')}</Label>
+                <Select
+                  value={isToken(manual.dns_access, DNS_ACCESS_TOKENS) ? manual.dns_access : (manual.dns_access?.trim() ? '@other' : undefined)}
+                  onValueChange={(value) => {
+                    setDnsAccessOtherOpen(value === '@other');
+                    updateManual('dns_access', value === '@other' ? '' : value);
+                  }}
+                  disabled={isArchived}
+                >
+                  <SelectTrigger id="dns_access"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="@client">{t('dnsAccess.option.client')}</SelectItem>
+                    <SelectItem value="@agency">{t('dnsAccess.option.agency')}</SelectItem>
+                    <SelectItem value="@both">{t('dnsAccess.option.both')}</SelectItem>
+                    <SelectItem value="@unknown">{t('dnsAccess.option.unknown')}</SelectItem>
+                    <SelectItem value="@other">{t('dnsAccess.option.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {(dnsAccessOtherOpen || (manual.dns_access?.trim() && !isToken(manual.dns_access, DNS_ACCESS_TOKENS))) && <Input value={manual.dns_access || ''} onChange={(e) => updateManual('dns_access', e.target.value)} placeholder="Your DNS provider" disabled={isArchived} />}
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="dns_change">{t('edit.fields.dnsChange')}</Label>
+                <Select value={manual.dns_change || undefined} onValueChange={(value) => updateManual('dns_change', value)} disabled={isArchived}>
+                  <SelectTrigger id="dns_change"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="@nameservers">{t('dnsChange.option.nameservers')}</SelectItem>
+                    <SelectItem value="@records">{t('dnsChange.option.records')}</SelectItem>
+                    <SelectItem value="@none">{t('dnsChange.option.none')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <label className="flex items-center gap-2 text-sm font-medium">
+                  <input type="checkbox" checked={manual.mail_elsewhere === true} onChange={(e) => updateManual('mail_elsewhere', e.target.checked)} disabled={isArchived} className="h-4 w-4 rounded border-border accent-primary" />
+                  {t('edit.fields.mailElsewhere')}
+                </label>
+                <p className="text-xs text-muted-foreground">{t('edit.fields.mailElsewhereHint')}</p>
+              </div>
+              {manual.dns_change === '@records' || dnsRecords.length > 0 ? (
+                <div className="space-y-3 sm:col-span-2">
+                  <div className="space-y-2">
+                    {dnsRecords.map((record, idx) => (
+                      <div key={record.id || `new-${idx}`} className="grid gap-2 sm:grid-cols-[120px_1fr_1fr_auto]">
+                        <Select value={record.record_type} onValueChange={(value) => { updateDnsRecord(idx, 'record_type', value); setTimeout(() => saveDnsRecord(idx), 0); }} disabled={isArchived}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>{(['A', 'AAAA', 'CNAME', 'MX', 'TXT'] as const).map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <Input value={record.record_name} onChange={(e) => updateDnsRecord(idx, 'record_name', e.target.value)} onBlur={() => saveDnsRecord(idx)} placeholder="@" data-focus-key={`dns-record-name-${idx}`} disabled={isArchived} />
+                        <Input value={record.record_value} onChange={(e) => updateDnsRecord(idx, 'record_value', e.target.value)} onBlur={() => saveDnsRecord(idx)} placeholder="203.0.113.10" disabled={isArchived} />
+                        <Button type="button" variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeDnsRecord(idx)} disabled={isArchived}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    ))}
+                  </div>
+                  <Button type="button" variant="outline" size="sm" onClick={addDnsRecord} disabled={isArchived}><Plus className="mr-2 h-4 w-4" />{t('edit.dns.addRecord')}</Button>
+                </div>
+              ) : null}
             </div>
             {(() => {
               const domain = previewInterpolated('domain');

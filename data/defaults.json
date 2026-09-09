@@ -75,6 +75,50 @@
     "en": "Your domain points to these nameservers: {nameservers}. Nameservers tell the internet where your website and email live. If they are changed incorrectly, your site and email will go offline.",
     "es": "Tu dominio apunta a estos nameservers: {nameservers}. Los nameservers le dicen a internet d\u00f3nde viven tu sitio web y tu correo. Si se cambian de forma incorrecta, tu sitio y tu correo se quedar\u00e1n sin servicio."
   },
+  "dns_managed_registrar": {
+    "en": "Your DNS is managed at {registrar}, the same company the domain is registered with. DNS is the setting that tells the internet where to find your website and your email.",
+    "es": "Tu DNS se administra en {registrar}, la misma empresa donde está registrado el dominio. El DNS es la configuración que le dice a internet dónde encontrar tu sitio web y tu correo."
+  },
+  "dns_managed_host": {
+    "en": "Your DNS is managed at your hosting company. DNS is the setting that tells the internet where to find your website and your email.",
+    "es": "Tu DNS se administra en la empresa de hosting. El DNS es la configuración que le dice a internet dónde encontrar tu sitio web y tu correo."
+  },
+  "dns_managed_cloudflare": {
+    "en": "Your DNS is managed through Cloudflare, which sits in front of your website and handles DNS, security and caching.",
+    "es": "Tu DNS se administra a través de Cloudflare, que va por delante de tu sitio web y se encarga del DNS, la seguridad y el caché."
+  },
+  "dns_access_client": {
+    "en": "Your team holds the login for wherever the DNS is managed.",
+    "es": "Tu equipo tiene el acceso al lugar donde se administra el DNS."
+  },
+  "dns_access_agency": {
+    "en": "{agency_name} holds the login for the DNS. Ask us when a record needs changing, or ask us to hand that account over.",
+    "es": "{agency_name} tiene el acceso al DNS. Pídenos cuando haya que cambiar un registro, o pídenos que te entreguemos esa cuenta."
+  },
+  "dns_access_both": {
+    "en": "Both your team and {agency_name} can sign in to manage the DNS.",
+    "es": "Tanto tu equipo como {agency_name} pueden entrar a administrar el DNS."
+  },
+  "dns_access_unknown": {
+    "en": "It has not been confirmed who can sign in to manage the DNS. Worth settling before anything needs changing in a hurry.",
+    "es": "No se ha confirmado quién puede entrar a administrar el DNS. Conviene aclararlo antes de que algo tenga que cambiarse con prisa."
+  },
+  "dns_change_nameservers": {
+    "en": "As part of this handover the domain's nameservers were pointed at a new home, which moves the whole of your DNS there.",
+    "es": "Como parte de esta entrega, los nameservers del dominio se apuntaron a un nuevo lugar, lo que mueve todo tu DNS ahí."
+  },
+  "dns_change_records": {
+    "en": "As part of this handover only individual DNS records were changed. Your DNS stayed where it already was, so anything else that relies on it — email in particular — was left untouched.",
+    "es": "Como parte de esta entrega solo se cambiaron registros individuales del DNS. Tu DNS se quedó donde ya estaba, así que todo lo demás que depende de él — el correo en particular — no se tocó."
+  },
+  "dns_change_none": {
+    "en": "No DNS changes were needed for this handover.",
+    "es": "Esta entrega no requirió cambios de DNS."
+  },
+  "mail_elsewhere_warning": {
+    "en": "Your email is hosted separately from your website. Changing the domain's nameservers would move the mail settings too and can stop your email working the same day. Before anyone changes nameservers on this domain, check what it does to the mail records first.",
+    "es": "Tu correo está alojado aparte del sitio web. Cambiar los nameservers del dominio movería también la configuración del correo y puede dejarlo sin funcionar el mismo día. Antes de que alguien cambie los nameservers de este dominio, revisa primero qué le pasa a los registros de correo."
+  },
   "host": {
     "en": "Your website is hosted with {host}. Hosting is the computer your website lives on; without it, the site has nowhere to serve pages from.",
     "es": "Tu sitio web est\u00e1 alojado con {host}. El hosting es la computadora donde vive tu sitio web; sin \u00e9l, el sitio no tiene d\u00f3nde servir sus p\u00e1ginas."

@@ -7,7 +7,7 @@ import { interpolate, getDefault } from '@/lib/defaults';
 import { defaultsKeyFor, optionLabelKey } from '@/lib/domain-ownership';
 import { formatDateValue } from '@/lib/date';
 import { MARKETING_URL } from '@/lib/utils';
-import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, Locale } from '@/lib/types';
+import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, DnsRecord, Locale } from '@/lib/types';
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
 import { Button } from '@/components/ui/button';
 import { Printer, FileText, Globe, Server, Users, PencilLine, CheckSquare, Phone, FolderOpen, CalendarCheck, ClipboardCheck } from 'lucide-react';
@@ -45,6 +45,7 @@ type PublicManualData = {
   custom_fields: CustomField[];
   assets: Asset[];
   maintenance_tasks: MaintenanceTask[];
+  dns_records: DnsRecord[];
 };
 
 export default function PublicManualPage() {
@@ -94,7 +95,7 @@ export default function PublicManualPage() {
       }
 
       const manualFullData = manualFull as Manual;
-      const [accountsRes, editBlocksRes, coverageRes, customSectionsRes, customFieldsRes, assetsRes, maintenanceRes, profileRes] = await Promise.all([
+      const [accountsRes, editBlocksRes, coverageRes, customSectionsRes, customFieldsRes, assetsRes, maintenanceRes, dnsRecordsRes, profileRes] = await Promise.all([
         supabase.from('accounts').select('*').eq('manual_id', manualId).order('created_at'),
         supabase.from('edit_blocks').select('*').eq('manual_id', manualId).order('created_at'),
         supabase.from('coverage').select('*').eq('manual_id', manualId).order('created_at'),
@@ -102,6 +103,7 @@ export default function PublicManualPage() {
         supabase.from('custom_fields').select('*').eq('manual_id', manualId).order('position'),
         supabase.from('assets').select('*').eq('manual_id', manualId).order('sort_order'),
         supabase.from('maintenance_tasks').select('*').eq('manual_id', manualId).order('sort_order'),
+        supabase.from('dns_records').select('*').eq('manual_id', manualId).order('sort_order').order('created_at'),
         supabase.from('profiles').select('agency_name, agency_website, logo_url, brand_color, support_email, support_hours, emergency_phone, plan, heading_font_key, body_font_key, custom_font_name, custom_font_url').eq('user_id', manualFullData.user_id).maybeSingle(),
       ]);
 
@@ -131,6 +133,7 @@ export default function PublicManualPage() {
         custom_fields: (customFieldsRes.data as CustomField[]) || [],
         assets: (assetsRes.data as Asset[]) || [],
         maintenance_tasks: (maintenanceRes.data as MaintenanceTask[]) || [],
+        dns_records: (dnsRecordsRes.data as DnsRecord[]) || [],
       });
       setIsDraftPreview(true);
       setLoading(false);
@@ -146,6 +149,7 @@ export default function PublicManualPage() {
   const customFields = data?.custom_fields ?? [];
   const assets = data?.assets ?? [];
   const maintenanceTasks = data?.maintenance_tasks ?? [];
+  const dnsRecords = data?.dns_records ?? [];
 
   const locale: Locale = (manual?.locale as Locale) || 'en';
   const t = (key: string, params?: Record<string, string | number>): string => {
@@ -252,7 +256,23 @@ export default function PublicManualPage() {
     : manual.registrar_access?.trim() ? manual.registrar_access : null;
   const domainOwnerLabelKey = optionLabelKey('domain_owner', manual.domain_owner);
   const registrarAccessLabelKey = optionLabelKey('registrar_access', manual.registrar_access);
-  const nameserversText = renderInterpolated('nameservers');
+  const nameserverValues = (manual.nameservers || '').split(',').map((value) => value.trim()).filter(Boolean);
+  const nameserversTemplate = getDefault('nameservers', locale).split('{nameservers}');
+  const dnsManagedKey = defaultsKeyFor('dns_managed_at', manual.dns_managed_at);
+  const dnsManagedText = dnsManagedKey
+    ? renderInterpolated(dnsManagedKey)
+    : manual.dns_managed_at?.trim() ? manual.dns_managed_at : null;
+  const dnsAccessKey = defaultsKeyFor('dns_access', manual.dns_access);
+  const dnsAccessText = dnsAccessKey
+    ? renderInterpolated(dnsAccessKey)
+    : manual.dns_access?.trim() ? manual.dns_access : null;
+  const dnsChangeText = manual.dns_change === '@nameservers'
+    ? renderInterpolated('dns_change_nameservers')
+    : manual.dns_change === '@records'
+      ? renderInterpolated('dns_change_records')
+      : manual.dns_change === '@none' ? renderInterpolated('dns_change_none') : null;
+  const dnsManagedLabelKey = optionLabelKey('dns_managed_at', manual.dns_managed_at);
+  const dnsAccessLabelKey = optionLabelKey('dns_access', manual.dns_access);
   const hostText = renderInterpolated('host');
   const hostPlanText = renderInterpolated('host_plan');
   const hostRenewalText = renderInterpolated('host_renewal');
@@ -599,7 +619,11 @@ export default function PublicManualPage() {
             {domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
             {domainOwnerNoteText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerNoteText}</p>}
             {registrarAccessText && <p className="text-sm leading-relaxed sm:text-base">{registrarAccessText}</p>}
-            {nameserversText && <p className="text-sm leading-relaxed sm:text-base">{nameserversText}</p>}
+            {dnsManagedText && <p className="text-sm leading-relaxed sm:text-base">{dnsManagedText}</p>}
+            {dnsAccessText && <p className="text-sm leading-relaxed sm:text-base">{dnsAccessText}</p>}
+            {dnsChangeText && <p className="text-sm leading-relaxed sm:text-base">{dnsChangeText}</p>}
+            {manual.mail_elsewhere === true && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-xs leading-relaxed text-amber-900 sm:text-sm">{getDefault('mail_elsewhere_warning', locale)}</p></div>}
+            {nameserverValues.length > 0 && <div className="text-sm leading-relaxed sm:text-base"><p>{nameserversTemplate[0]}</p><ul className="my-2 list-disc pl-6">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul><p>{nameserversTemplate[1]}</p></div>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
@@ -620,14 +644,35 @@ export default function PublicManualPage() {
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.registrarAccess')}</td>
                     <td className="px-3 py-2 sm:px-4 sm:py-2.5">{registrarAccessLabelKey ? t(registrarAccessLabelKey) : manual.registrar_access?.trim() || '\u2014'}</td>
                   </tr>
-                  <tr>
+                  <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.nameservers')}</td>
-                    <td className="break-all px-3 py-2 sm:px-4 sm:py-2.5">{manual.nameservers || '\u2014'}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{nameserverValues.length > 0 ? <ul className="list-disc pl-5">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul> : '\u2014'}</td>
+                  </tr>
+                  <tr className="border-b border-border">
+                    <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.dnsManagedAt')}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{dnsManagedLabelKey ? t(dnsManagedLabelKey) : manual.dns_managed_at?.trim() || '\u2014'}</td>
+                  </tr>
+                  <tr className="border-b border-border bg-secondary/20">
+                    <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.dnsAccess')}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{dnsAccessLabelKey ? t(dnsAccessLabelKey) : manual.dns_access?.trim() || '\u2014'}</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.dnsChange')}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{manual.dns_change === '@nameservers' ? t('dnsChange.option.nameservers') : manual.dns_change === '@records' ? t('dnsChange.option.records') : manual.dns_change === '@none' ? t('dnsChange.option.none') : '\u2014'}</td>
                   </tr>
                   {renderBuiltinCustomFieldRows('domain_dns')}
                 </tbody>
               </table>
             </div>
+            {dnsRecords.length > 0 && (
+              <div className="mt-4 overflow-x-auto rounded-lg border border-border">
+                <table className="w-full text-xs sm:text-sm">
+                  <caption className="border-b border-border bg-secondary/20 px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('public.dns.recordsTitle')}</caption>
+                  <thead><tr className="border-b border-border"><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordType')}</th><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordName')}</th><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordValue')}</th></tr></thead>
+                  <tbody>{dnsRecords.map((record, idx) => <tr key={record.id || idx} className={idx % 2 === 0 ? 'bg-secondary/10' : ''}><td className="px-3 py-2 sm:px-4">{record.record_type}</td><td className="px-3 py-2 sm:px-4">{record.record_name}</td><td className="break-all px-3 py-2 sm:px-4">{record.record_value}</td></tr>)}</tbody>
+                </table>
+              </div>
+            )}
           </div>
         </section>
 

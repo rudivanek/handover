@@ -32,6 +32,10 @@ export type Manual = {
   domain_expiry: string | null;
   domain_owner: string | null;
   registrar_access: string | null;
+  dns_managed_at: string | null;
+  dns_access: string | null;
+  dns_change: string | null;
+  mail_elsewhere: boolean | null;
   nameservers: string | null;
   host: string | null;
   host_plan: string | null;
@@ -126,6 +130,16 @@ export type ManualContact = {
 export type MaintenanceCadence = 'daily' | 'weekly' | 'monthly' | 'annual';
 export type MaintenanceOwner = 'agency' | 'client' | 'shared';
 
+export type DnsRecord = {
+  id: string;
+  manual_id: string;
+  record_type: 'A' | 'AAAA' | 'CNAME' | 'MX' | 'TXT';
+  record_name: string;
+  record_value: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type MaintenanceTask = {
   id: string;
   manual_id: string;
@@ -147,6 +161,7 @@ export type ManualWithRelations = Manual & {
   assets: Asset[];
   manual_contacts: ManualContact[];
   maintenance_tasks: MaintenanceTask[];
+  dns_records: DnsRecord[];
 };
 
 export type TemplateCustomField = {
