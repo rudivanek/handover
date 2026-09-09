@@ -37,6 +37,8 @@
   "login.invalidEmail": "Please enter a valid email address.",
   "login.passwordTooShort": "Password must be at least 8 characters.",
   "login.signupError": "Something went wrong. Please try again.",
+  "login.rateLimited": "Too many attempts. Please wait a few minutes and try again.",
+  "login.alreadyRegistered": "That email may already have an account. Try signing in instead.",
   "login.checkEmail": "Check your email \u2014 we've sent a confirmation link to:",
   "login.checkEmailExpires": "It expires in an hour.",
   "login.resend": "Resend it",

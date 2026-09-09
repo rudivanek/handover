@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T19:00:00Z
+Last Updated: 2026-09-09T20:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -252,3 +252,11 @@ The password reset page (`app/reset-password/page.tsx`) had two forms gated on `
 **Not changed:** `lib/supabase.ts` (flow type, `detectSessionInUrl`), the `redirectTo` in `handleRequest`, the existing `reset.*` keys, the `updateUser` call, the redirect to `/manuals` after a successful update, the login page, and anything outside `app/reset-password/page.tsx` and the two locale files. No migration, schema change, grant, or RLS policy was made.
 
 This is the same family as the sectionNumber 0 bug: a state the page couldn't determine, defaulting silently to a plausible-looking wrong screen.
+
+### 3.15 Login and Signup Session/Error Handling
+
+The login page now branches correctly on the result of `supabase.auth.signUp`. When `data.session` is present, email confirmation is not required for that account: the page routes directly to `/manuals`, using the same post-auth route as sign-in so `lib/auth-context.tsx` can create or confirm the profile row on the established session. When `data.session` is null, the existing confirmation screen remains unchanged, including the Resend action and its 60-second client-side countdown. The page does not read an auth setting or environment variable to choose between these cases.
+
+Sign-in and signup errors are now logged with `console.error` using the real Supabase error object before any user-facing message is shown. HTTP 429 and known rate-limit codes use a specific wait-a-few-minutes message. Duplicate signup errors use known Supabase duplicate-account codes first, with a message fallback only when no code is available; they show a neutral message that does not confirm whether the address exists and switch the page back to the Sign in tab. All other signup errors keep the existing neutral error message. The existing neutral sign-in message that the email and password do not match is unchanged for non-rate-limit sign-in errors.
+
+Two locale keys were added to both locale files: `login.rateLimited` and `login.alreadyRegistered`. The agency name field, eight-character password hint, lack of a confirm-password field, Resend countdown, auth flow configuration, profile-row creation, reset-password page, and sign-in route behavior were not changed. No migration, SQL, schema, grant, or RLS policy was created or modified.

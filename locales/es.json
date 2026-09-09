@@ -37,6 +37,8 @@
   "login.invalidEmail": "Por favor ingresa un correo v\u00e1lido.",
   "login.passwordTooShort": "La contrase\u00f1a debe tener al menos 8 caracteres.",
   "login.signupError": "Algo sali\u00f3 mal. Por favor int\u00e9ntalo de nuevo.",
+  "login.rateLimited": "Demasiados intentos. Por favor espera unos minutos e int\u00e9ntalo de nuevo.",
+  "login.alreadyRegistered": "Ese correo podr\u00eda ya tener una cuenta. Intenta iniciar sesi\u00f3n.",
   "login.checkEmail": "Revisa tu correo \u2014 te enviamos un enlace de confirmaci\u00f3n a:",
   "login.checkEmailExpires": "Expira en una hora.",
   "login.resend": "Reenviar",

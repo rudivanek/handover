@@ -68,7 +68,12 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      setError(t('login.invalidCredentials'));
+      console.error('Sign-in error:', error);
+      if (error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'rate_limit_exceeded') {
+        setError(t('login.rateLimited'));
+      } else {
+        setError(t('login.invalidCredentials'));
+      }
       return;
     }
 
@@ -90,7 +95,7 @@ export default function LoginPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -102,15 +107,31 @@ export default function LoginPage() {
     setLoading(false);
 
     if (error) {
-      if (
-        error.message.toLowerCase().includes('already') ||
-        error.message.toLowerCase().includes('registered') ||
-        error.message.toLowerCase().includes('exists')
-      ) {
-        setConfirmationState(true);
+      console.error('Sign-up error:', error);
+      if (error.status === 429 || error.code === 'over_request_rate_limit' || error.code === 'rate_limit_exceeded') {
+        setError(t('login.rateLimited'));
+        return;
+      }
+      const errorMessage = error.message.toLowerCase();
+      const isDuplicateAccount =
+        error.code === 'user_already_exists' ||
+        error.code === 'email_exists' ||
+        (!error.code && (
+          errorMessage.includes('already') ||
+          errorMessage.includes('registered') ||
+          errorMessage.includes('exists')
+        ));
+      if (isDuplicateAccount) {
+        setError(t('login.alreadyRegistered'));
+        setMode('signin');
         return;
       }
       setError(t('login.signupError'));
+      return;
+    }
+
+    if (data.session) {
+      router.replace('/manuals');
       return;
     }
 
