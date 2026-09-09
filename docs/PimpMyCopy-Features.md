@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T20:00:00Z
+Last Updated: 2026-09-09T21:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -318,3 +318,9 @@ The migration added the four manuals columns without any data update, created `d
 JSON validation and locale parity passed with 585 identical keys, TypeScript type checking passed, and the production build passed with the single-worker setting after one temporary filesystem resource error. Live verification confirmed the manuals UPDATE catalogue includes the four new DNS columns while `slug` and `updated_at` remain absent, anonymous `dns_records` privileges are empty, and `get_public_manual` retains all nine required keys while adding `dns_records`. Browser verification was not available in this environment.
 
 The two Selects previously showed **Other…** for any unanswered field because an empty value is not a token and fell through to the `@other` branch. This was a display-only defect: the column stayed empty and the published page correctly printed nothing, but the form falsely implied the agency had chosen Other. The fix passes `undefined` as the Select value when the stored value is empty after trimming, so Radix shows the localized placeholder **Select…** / **Selecciona…** instead. The free-text input beneath each Select now appears only when the agency has actually chosen Other — either by selecting it from the dropdown (tracked via local state) or because the stored value is non-empty free text. An empty field shows the Select alone with nothing beneath it. A new locale key `common.selectPlaceholder` was added to both files. No migration, SQL, grant, RLS policy, stored value, public page, completion field, or other Select in the app was changed. Locale key parity was verified at 556 keys; the production build passed. Browser verification was not available in this environment.
+
+### 3.21 Nameserver Block Copy
+
+The published Domain & DNS section now keeps the nameserver explanation structurally separate from the nameserver list. The old `nameservers` default, which embedded `{nameservers}` in the middle of a sentence, was replaced with `nameservers_intro` and `nameservers_note` in English and Spanish. The intro renders only when at least one stored nameserver exists, followed by the existing comma-split, trimmed, filtered list and then the note as its own paragraph. This removes the orphaned full stop that appeared before “Nameservers tell…” when a block list was inserted into the sentence.
+
+The nameserver column, comma-separated storage, editor repeater, split/join behavior, domain table list, interpolation helpers, empty-token suppression, all other Domain & DNS copy, locale files, database objects, grants, RLS policies, and `get_public_manual` were not changed. With no nameservers, the intro, list, and note all remain absent. The new English and Spanish defaults preserve the reviewed wording. Type checking and the production build passed; browser verification was not available in this environment.

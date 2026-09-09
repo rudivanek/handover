@@ -71,9 +71,13 @@
     "en": "It has not been confirmed who can sign in to the registrar account. This is worth settling now rather than at renewal time — being the registered owner does not help much if nobody can log in.",
     "es": "No se ha confirmado quién puede entrar a la cuenta del registrador. Conviene aclararlo ahora y no en la renovación: ser el titular no sirve de mucho si nadie puede iniciar sesión."
   },
-  "nameservers": {
-    "en": "Your domain points to these nameservers: {nameservers}. Nameservers tell the internet where your website and email live. If they are changed incorrectly, your site and email will go offline.",
-    "es": "Tu dominio apunta a estos nameservers: {nameservers}. Los nameservers le dicen a internet d\u00f3nde viven tu sitio web y tu correo. Si se cambian de forma incorrecta, tu sitio y tu correo se quedar\u00e1n sin servicio."
+  "nameservers_intro": {
+    "en": "Your domain points to these nameservers:",
+    "es": "Tu dominio apunta a estos nameservers:"
+  },
+  "nameservers_note": {
+    "en": "Nameservers tell the internet where your website and email live. If they are changed incorrectly, your site and email will go offline.",
+    "es": "Los nameservers le dicen a internet d\u00f3nde viven tu sitio web y tu correo. Si se cambian de forma incorrecta, tu sitio y tu correo se quedar\u00e1n sin servicio."
   },
   "dns_managed_registrar": {
     "en": "Your DNS is managed at {registrar}, the same company the domain is registered with. DNS is the setting that tells the internet where to find your website and your email.",

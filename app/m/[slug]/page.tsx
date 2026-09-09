@@ -257,7 +257,6 @@ export default function PublicManualPage() {
   const domainOwnerLabelKey = optionLabelKey('domain_owner', manual.domain_owner);
   const registrarAccessLabelKey = optionLabelKey('registrar_access', manual.registrar_access);
   const nameserverValues = (manual.nameservers || '').split(',').map((value) => value.trim()).filter(Boolean);
-  const nameserversTemplate = getDefault('nameservers', locale).split('{nameservers}');
   const dnsManagedKey = defaultsKeyFor('dns_managed_at', manual.dns_managed_at);
   const dnsManagedText = dnsManagedKey
     ? renderInterpolated(dnsManagedKey)
@@ -623,7 +622,7 @@ export default function PublicManualPage() {
             {dnsAccessText && <p className="text-sm leading-relaxed sm:text-base">{dnsAccessText}</p>}
             {dnsChangeText && <p className="text-sm leading-relaxed sm:text-base">{dnsChangeText}</p>}
             {manual.mail_elsewhere === true && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-xs leading-relaxed text-amber-900 sm:text-sm">{getDefault('mail_elsewhere_warning', locale)}</p></div>}
-            {nameserverValues.length > 0 && <div className="text-sm leading-relaxed sm:text-base"><p>{nameserversTemplate[0]}</p><ul className="my-2 list-disc pl-6">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul><p>{nameserversTemplate[1]}</p></div>}
+            {nameserverValues.length > 0 && <div className="text-sm leading-relaxed sm:text-base"><p>{getDefault('nameservers_intro', locale)}</p><ul className="my-2 list-disc pl-6">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul><p>{getDefault('nameservers_note', locale)}</p></div>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
               <table className="w-full text-xs sm:text-sm">
