@@ -188,13 +188,18 @@ export default function TemplatesPage() {
         notes: '',
         sort_order: prev.length,
         created_at: '',
+        preset_key: null,
       },
     ]);
   };
 
   const updateMaintenance = (id: string, key: 'task' | 'cadence' | 'owner' | 'notes', value: string) => {
     setEditMaintenance((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, [key]: value } as TemplateMaintenanceTask : m))
+      prev.map((m) => (
+        m.id === id
+          ? { ...m, [key]: value, ...(key === 'task' ? { preset_key: null } : {}) } as TemplateMaintenanceTask
+          : m
+      ))
     );
   };
 
@@ -215,7 +220,7 @@ export default function TemplatesPage() {
   };
 
   const addStandardSchedule = () => {
-    const rows = maintenancePresets as Array<{ cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>;
+    const rows = maintenancePresets as Array<{ key: string; cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>;
     const localeKey = uiLocale === 'es' ? 'es' : 'en';
     const cadenceCounters: Record<string, number> = {};
     const newTasks: TemplateMaintenanceTask[] = rows.map((row) => {
@@ -230,6 +235,7 @@ export default function TemplatesPage() {
         notes: '',
         sort_order: editMaintenance.length + idx,
         created_at: '',
+        preset_key: row.key,
       };
     });
     setEditMaintenance((prev) => [...prev, ...newTasks]);
@@ -359,6 +365,7 @@ export default function TemplatesPage() {
             owner: m.owner,
             notes: m.notes,
             sort_order: i,
+            preset_key: m.preset_key,
           }))
         );
       }
@@ -506,7 +513,7 @@ export default function TemplatesPage() {
       const mt = tpl.template_maintenance_tasks || [];
       if (mt.length > 0) {
         await supabase.from('template_maintenance_tasks').insert(
-          mt.map((m, i) => ({ template_id: data.id, task: m.task, cadence: m.cadence, owner: m.owner, notes: m.notes, sort_order: i }))
+          mt.map((m, i) => ({ template_id: data.id, task: m.task, cadence: m.cadence, owner: m.owner, notes: m.notes, sort_order: i, preset_key: m.preset_key }))
         );
       }
       const cv = tpl.template_coverage || [];

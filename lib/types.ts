@@ -134,6 +134,7 @@ export type MaintenanceTask = {
   notes: string;
   sort_order: number;
   created_at: string;
+  preset_key: string | null;
 };
 
 export type ManualWithRelations = Manual & {
@@ -165,6 +166,7 @@ export type TemplateMaintenanceTask = {
   notes: string;
   sort_order: number;
   created_at: string;
+  preset_key: string | null;
 };
 
 export type TemplateCoverage = {

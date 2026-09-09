@@ -8,6 +8,7 @@ import { useI18n } from '@/lib/i18n';
 import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { uniqueSlug } from '@/lib/slug';
+import { presetText } from '@/lib/maintenance-presets';
 import { computeCompletion, isDraft } from '@/lib/completion';
 import type { Manual, Account, EditBlock, Coverage, CustomField, Asset, MaintenanceTask, Locale, ManualTemplate, TemplateCustomField, TemplateMaintenanceTask, TemplateCoverage, TemplateEditBlock, TemplateAccount } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -165,11 +166,12 @@ export default function ManualsPage() {
         const mtRes = await supabase.from('maintenance_tasks').insert(
           template.template_maintenance_tasks.map((m: TemplateMaintenanceTask, i: number) => ({
             manual_id: data.id,
-            task: m.task,
+            task: presetText(m.preset_key, manualLocale) ?? m.task,
             cadence: m.cadence,
             owner: m.owner,
             notes: m.notes,
             sort_order: i,
+            preset_key: m.preset_key,
           }))
         );
         if (mtRes.error) failedParts.push(t('manuals.newDialog.maintenance'));
@@ -325,6 +327,7 @@ export default function ManualsPage() {
           owner: t.owner,
           notes: t.notes,
           sort_order: t.sort_order,
+          preset_key: t.preset_key,
         })));
     }
 
@@ -377,6 +380,7 @@ export default function ManualsPage() {
           owner: m.owner,
           notes: m.notes,
           sort_order: i,
+          preset_key: m.preset_key,
         }))
       );
       if (res.error) failedParts.push(t('manuals.newDialog.maintenance'));

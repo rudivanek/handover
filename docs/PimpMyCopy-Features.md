@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T17:01:27Z
+Last Updated: 2026-09-09T18:01:43Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -274,3 +274,15 @@ Deletion is explicit and ordered. The function deletes `accounts`, `assets`, `co
 The function grants EXECUTE only to `authenticated` and revokes it from `anon` and `public`. No table policy, table grant, column-level grant, existing function, quota rule, publish gate, trigger, admin list, or demo data was changed. In particular, the existing profiles UPDATE privilege remains absent for `authenticated`, so the plan remains client-unwritable as documented in section 30.
 
 Verification completed: a simulated non-admin call returned `not authorized`; an administrator deleting their own account returned `cannot delete yourself`; deleting the demo owner returned `cannot delete the demo account`; the demo manual remained published. A throwaway account with a published manual, account row, and maintenance row was deleted with `manuals_deleted: 1`, `active_deleted: 1`, and `auth_deleted: true`; every checked child table, manual, profile, and auth row returned zero, and the public lookup returned null. The deleted email successfully signed up again with a live session, then the recreated throwaway account was removed through the same RPC. Admin overview counts returned to 12 accounts, 11 manuals, and 8 active manuals.
+
+### 3.17 Maintenance Preset Language Re-rendering
+
+Maintenance preset rows now retain a stable `preset_key` alongside their displayed `task` text. The 21 rows in `data/maintenance-presets.json` use permanent snake_case keys, and `lib/maintenance-presets.ts` resolves a known key to English or Spanish text while returning null for an unknown key. Unknown keys always fall back to the stored task text, so removing a preset later cannot blank an existing manual.
+
+The `20260909_maintenance_preset_key` migration adds nullable `preset_key` columns to `maintenance_tasks` and `template_maintenance_tasks`. It backfills only exact matches against the preset's English or Spanish text; manually edited rows remain null. During the manual backfill and locale correction, the `touch_manual_on_maintenance_change` trigger is disabled and re-enabled afterward so the public Last updated date is not rewritten. Existing `get_public_manual`, policies, grants, and public maintenance rendering remain unchanged; the existing `to_jsonb(mt)` output automatically includes the new column.
+
+The manual editor stores the preset key when loading a standard schedule, stores null for blank added rows, clears the key as soon as the task text is edited, and persists it on save. When the confirmed manual language changes, only rows with a known non-null key are looked up in the new locale and updated in both the database and editor state. Agency-written rows are not touched. Template schedules use the same key behavior for standard schedules, new rows, edits, saves, and duplication.
+
+When creating a manual from a template, the task text is resolved with the new manual's locale while the key is copied across. Duplicating a manual and saving a manual as a template copy both the key and the stored task text unchanged. The existing cadence order, sort order, owner display, add-row focus behavior, completion calculation, print styles, dialog wording, and all preset English, Spanish, cadence, and owner values remain unchanged.
+
+Migration verification reported 84 of 84 `maintenance_tasks` rows with non-null `preset_key` and 21 of 21 `template_maintenance_tasks` rows with non-null `preset_key`; no rows stayed null. The migration corrected 21 `maintenance_tasks` task texts for the Spanish manual, and all 21 now match their Spanish preset text with no English preset text remaining. Browser verification was not available in this environment; type checking and the production build passed.

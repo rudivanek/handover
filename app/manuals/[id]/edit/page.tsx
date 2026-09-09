@@ -10,6 +10,7 @@ import { AppShell } from '@/components/app-shell';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import maintenancePresets from '@/data/maintenance-presets.json';
+import { presetText } from '@/lib/maintenance-presets';
 import { computeCompletion, isDraft } from '@/lib/completion';
 import { isSectionHidden, isFieldHidden, type FieldKey } from '@/lib/manual-shape';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, Locale } from '@/lib/types';
@@ -481,6 +482,7 @@ export default function EditManualPage() {
       owner: 'agency',
       notes: '',
       sort_order: sortOrder,
+      preset_key: null,
     }).select().single();
     if (data) {
       setMaintenanceTasks((prev) => [...prev, data as MaintenanceTask]);
@@ -489,7 +491,11 @@ export default function EditManualPage() {
   };
 
   const updateMaintenanceTask = (taskId: string, field: keyof MaintenanceTask, value: string) => {
-    setMaintenanceTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, [field]: value } : t)));
+    setMaintenanceTasks((prev) => prev.map((t) => (
+      t.id === taskId
+        ? { ...t, [field]: value, ...(field === 'task' ? { preset_key: null } : {}) }
+        : t
+    )));
   };
 
   const saveMaintenanceTask = async (taskId: string) => {
@@ -506,6 +512,7 @@ export default function EditManualPage() {
       cadence: t.cadence,
       owner: t.owner,
       notes: t.notes,
+      preset_key: t.preset_key,
     }).eq('id', taskId);
   };
 
@@ -539,7 +546,7 @@ export default function EditManualPage() {
   };
 
   const addStandardSchedule = async () => {
-    const rows = (maintenancePresets as Array<{ cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>);
+    const rows = (maintenancePresets as Array<{ key: string; cadence: MaintenanceCadence; owner: MaintenanceOwner; en: string; es: string }>);
     const localeKey = manualLocale === 'es' ? 'es' : 'en';
     const cadenceCounters: Record<string, number> = {};
     const insertRows = rows.map((row) => {
@@ -552,6 +559,7 @@ export default function EditManualPage() {
         owner: row.owner,
         notes: '',
         sort_order: idx,
+        preset_key: row.key,
       };
     });
     const { data } = await supabase.from('maintenance_tasks').insert(insertRows).select();
@@ -734,6 +742,23 @@ export default function EditManualPage() {
 
   const confirmLocaleChange = async () => {
     if (!pendingLocale || !manual) return;
+
+    const updates = maintenanceTasks.flatMap((task) => {
+      const nextTaskText = presetText(task.preset_key, pendingLocale);
+      if (!nextTaskText || nextTaskText === task.task || !task.preset_key) return [];
+      return [{ id: task.id, task: nextTaskText }];
+    });
+
+    if (updates.length > 0) {
+      await Promise.all(updates.map(({ id: taskId, task }) => (
+        supabase.from('maintenance_tasks').update({ task }).eq('id', taskId)
+      )));
+      setMaintenanceTasks((prev) => prev.map((task) => {
+        const update = updates.find((item) => item.id === task.id);
+        return update ? { ...task, task: update.task } : task;
+      }));
+    }
+
     setManual((prev) => prev ? { ...prev, locale: pendingLocale } : prev);
     setLocaleWarnOpen(false);
     setPendingLocale(null);
