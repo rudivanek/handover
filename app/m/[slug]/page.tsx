@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault } from '@/lib/defaults';
+import { formatDateValue } from '@/lib/date';
 import { MARKETING_URL } from '@/lib/utils';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, Locale } from '@/lib/types';
 import { fonts, getFontDef, inferFontFormat, SYSTEM_STACK, SERIF_STACK } from '@/lib/fonts';
@@ -261,18 +262,7 @@ export default function PublicManualPage() {
     agency.support_email
   );
 
-  const dateLocale = locale === 'es' ? 'es-MX' : 'en-US';
-
-  const fmtDate = (val: string | null) => {
-    if (!val) return '\u2014';
-    try {
-      return new Date(val).toLocaleDateString(dateLocale, {
-        year: 'numeric', month: 'long', day: 'numeric',
-      });
-    } catch {
-      return val;
-    }
-  };
+  const fmtDate = (val: string | null) => formatDateValue(val, locale, '\u2014');
 
   const fmtPlugins = (val: string[] | null) => {
     if (!val || val.length === 0) return '\u2014';

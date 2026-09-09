@@ -1,5 +1,6 @@
 import defaultsData from '@/data/defaults.json';
 import type { Manual, Profile, Locale } from '@/lib/types';
+import { formatDateValue } from '@/lib/date';
 
 type LocaleEntry = { en: string; es: string };
 type DefaultsMap = Record<string, LocaleEntry>;
@@ -7,15 +8,7 @@ type DefaultsMap = Record<string, LocaleEntry>;
 const defaults = defaultsData as DefaultsMap;
 
 function fmtDate(val: string | null | undefined, locale: Locale): string {
-  if (!val) return '';
-  try {
-    const d = new Date(val);
-    if (isNaN(d.getTime())) return val;
-    const localeStr = locale === 'es' ? 'es-MX' : 'en-US';
-    return d.toLocaleDateString(localeStr, { year: 'numeric', month: 'long', day: 'numeric' });
-  } catch {
-    return val;
-  }
+  return formatDateValue(val, locale);
 }
 
 function fmtPlugins(val: string[] | null | undefined, locale: Locale): string {

@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T12:00:00Z
+Last Updated: 2026-09-09T18:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -222,3 +222,13 @@ The public Accounts & ownership section is always present because the page inten
 If a rendered section requests an ID missing from the section list, the page logs the missing ID with `console.error` and omits the number rather than silently rendering `0.`. The section's anchor, contents link, empty state, and existing behavior remain unchanged.
 
 No migration, schema, grant, RLS policy, public-manual function, completion logic, locale key, anchor ID, print style, or account-row behavior was changed.
+
+### 3.13 Three Client-Render Bug Fixes — Date Off-by-One, Add-Button Focus, Stale Plan Badge
+
+**Date off-by-one:** `domain_expiry` and `host_renewal` are date-only columns storing `YYYY-MM-DD`. `new Date('2027-03-14')` parses that as UTC midnight, and `toLocaleDateString` then renders it in the reader's timezone — so anywhere behind UTC it prints the previous day. A new helper `lib/date.ts` exports `parseDateValue` and `formatDateValue`. `parseDateValue` special-cases the date-only shape: it splits on `-` and constructs the date in local time via `new Date(y, m - 1, d)`. Full timestamps like `updated_at` and `signoff_at` keep the normal `new Date(val)` parse so they render in the reader's timezone as before. Both copies of `fmtDate` (in `lib/defaults.ts` and `app/m/[slug]/page.tsx`) now delegate to `formatDateValue`. The locale, format options, and `toLocaleDateString` call are unchanged — the parse is the only fix. No new dependency was added.
+
+**Add-button focus swallowing typed text:** Every "Add ..." button kept DOM focus after the click, and the new row's input was never focused. Because the space bar activates a focused button, clicking "Add included item" and typing a sentence with spaces created one blank row per space. A `pendingFocus` state and effect were added: each add handler sets a focus key for the row just created, and the effect queries `[data-focus-key="..."]` and focuses it. Matching `data-focus-key` attributes were placed on the first input of every row type: accounts (Service), edit blocks (Block name), coverage (both included and billed, using `realIdx` not the filtered map index), maintenance tasks (task input), and custom fields (label input in both the builtin-section and custom-section renderers).
+
+**Stale plan badge after publish:** The app shell refetches the active manual count on pathname change and on a `manuals-changed` window event. Publishing, unpublishing, archiving, and restoring happened on the edit page with no navigation and never dispatched the event, so the header badge was stale. `window.dispatchEvent(new Event('manuals-changed'))` is now dispatched immediately after the optimistic `setManual` in `doPublish`, `handleUnpublish`, `handleArchive`, and `handleRestore`, matching what the manuals list page already does.
+
+No migration, grant, RLS policy, RPC, plan quota, publish gate, secret-name constraint, font, asset, or pluginsText blur handling was changed. `app/admin/page.tsx` and `app/manuals/page.tsx` still use plain `new Date()` for `created_at` (a timestamp, not a date-only column) and were not routed through the new helper.

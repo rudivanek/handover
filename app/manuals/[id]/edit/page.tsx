@@ -119,6 +119,14 @@ export default function EditManualPage() {
   const [signoffSaving, setSignoffSaving] = useState(false);
   const [signoffPersonCheck, setSignoffPersonCheck] = useState<NameCheckLevel | null>(null);
   const [pluginsText, setPluginsText] = useState('');
+  const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!pendingFocus) return;
+    const el = document.querySelector<HTMLElement>(`[data-focus-key="${pendingFocus}"]`);
+    el?.focus();
+    setPendingFocus(null);
+  }, [pendingFocus]);
 
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
   const hiddenFields = manual?.hidden_fields ?? [];
@@ -206,6 +214,7 @@ export default function EditManualPage() {
       ...prev,
       { id: '', manual_id: id, service: '', account_owner: '', admin_email: '' },
     ]);
+    setPendingFocus(`account-${accounts.length}`);
   };
 
   const updateAccount = (idx: number, field: keyof Account, value: string) => {
@@ -248,6 +257,7 @@ export default function EditManualPage() {
       ...prev,
       { id: '', manual_id: id, block_name: '', instructions: '' },
     ]);
+    setPendingFocus(`editblock-${editBlocks.length}`);
   };
 
   const updateEditBlock = (idx: number, field: keyof EditBlock, value: string) => {
@@ -288,6 +298,7 @@ export default function EditManualPage() {
       ...prev,
       { id: '', manual_id: id, item: '', included },
     ]);
+    setPendingFocus(`coverage-${coverage.length}`);
   };
 
   const updateCoverage = (idx: number, field: keyof Coverage, value: string | boolean) => {
@@ -473,6 +484,7 @@ export default function EditManualPage() {
     }).select().single();
     if (data) {
       setMaintenanceTasks((prev) => [...prev, data as MaintenanceTask]);
+      setPendingFocus(`task-${data.id}`);
     }
   };
 
@@ -568,6 +580,7 @@ export default function EditManualPage() {
     }).select().single();
     if (data) {
       setCustomFields((prev) => [...prev, data as CustomField]);
+      setPendingFocus(`cf-${data.id}`);
     }
   };
 
@@ -708,6 +721,7 @@ export default function EditManualPage() {
     }).select().single();
     if (data) {
       setCustomFields((prev) => [...prev, data as CustomField]);
+      setPendingFocus(`cf-${data.id}`);
     }
   };
 
@@ -803,6 +817,7 @@ export default function EditManualPage() {
       return;
     }
     setManual((prev) => prev ? { ...prev, is_published: true } : prev);
+    window.dispatchEvent(new Event('manuals-changed'));
     setPublishWarnOpen(false);
     toast({ title: t('edit.published'), description: t('manuals.linkCopiedDesc') });
   };
@@ -820,6 +835,7 @@ export default function EditManualPage() {
       return;
     }
     setManual((prev) => prev ? { ...prev, is_published: false } : prev);
+    window.dispatchEvent(new Event('manuals-changed'));
   };
 
   const isArchived = !!manual?.archived_at;
@@ -837,6 +853,7 @@ export default function EditManualPage() {
       return;
     }
     setManual((prev) => prev ? { ...prev, archived_at: new Date().toISOString() } : prev);
+    window.dispatchEvent(new Event('manuals-changed'));
     toast({ title: t('edit.archive'), description: t('edit.archivedState') });
   };
 
@@ -865,6 +882,7 @@ export default function EditManualPage() {
       return;
     }
     setManual((prev) => prev ? { ...prev, archived_at: null } : prev);
+    window.dispatchEvent(new Event('manuals-changed'));
     toast({ title: t('edit.restore') });
   };
 
@@ -911,6 +929,7 @@ export default function EditManualPage() {
                 onBlur={() => saveCustomField(field.id)}
                 placeholder={t('edit.fieldLabelPlaceholder')}
                 className={`text-sm ${fieldCheckResults[field.id] === 'block' ? 'border-destructive' : ''}`}
+                data-focus-key={`cf-${field.id}`}
               />
               {fieldCheckResults[field.id] === 'block' && (
                 <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
@@ -1469,7 +1488,7 @@ export default function EditManualPage() {
                 <div key={idx} className="grid gap-3 rounded-lg border border-border p-4 sm:grid-cols-[1fr_1fr_1fr_auto]">
                   <div className="space-y-1">
                     <Label className="text-xs">{t('edit.fields.service')}</Label>
-                    <Input value={account.service || ''} onChange={(e) => updateAccount(idx, 'service', e.target.value)} onBlur={() => saveAccount(idx)} placeholder="Google Analytics" />
+                    <Input value={account.service || ''} onChange={(e) => updateAccount(idx, 'service', e.target.value)} onBlur={() => saveAccount(idx)} placeholder="Google Analytics" data-focus-key={`account-${idx}`} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs">{t('edit.fields.accountOwner')}</Label>
@@ -1607,7 +1626,7 @@ export default function EditManualPage() {
                     <div className="flex-1 space-y-3">
                       <div className="space-y-1">
                         <Label className="text-xs">{t('edit.fields.blockName')}</Label>
-                        <Input value={block.block_name || ''} onChange={(e) => updateEditBlock(idx, 'block_name', e.target.value)} onBlur={() => saveEditBlock(idx)} placeholder="Editing a page" />
+                        <Input value={block.block_name || ''} onChange={(e) => updateEditBlock(idx, 'block_name', e.target.value)} onBlur={() => saveEditBlock(idx)} placeholder="Editing a page" data-focus-key={`editblock-${idx}`} />
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">{t('edit.fields.instructions')}</Label>
@@ -1648,7 +1667,7 @@ export default function EditManualPage() {
                     const realIdx = coverage.indexOf(c);
                     return (
                       <div key={idx} className="flex items-center gap-2">
-                        <Input value={c.item || ''} onChange={(e) => updateCoverage(realIdx, 'item', e.target.value)} onBlur={() => saveCoverage(realIdx)} placeholder="Security updates" className="flex-1" />
+                        <Input value={c.item || ''} onChange={(e) => updateCoverage(realIdx, 'item', e.target.value)} onBlur={() => saveCoverage(realIdx)} placeholder="Security updates" className="flex-1" data-focus-key={`coverage-${realIdx}`} />
                         <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCoverage(realIdx)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1668,7 +1687,7 @@ export default function EditManualPage() {
                     const realIdx = coverage.indexOf(c);
                     return (
                       <div key={idx} className="flex items-center gap-2">
-                        <Input value={c.item || ''} onChange={(e) => updateCoverage(realIdx, 'item', e.target.value)} onBlur={() => saveCoverage(realIdx)} placeholder="New landing page design" className="flex-1" />
+                        <Input value={c.item || ''} onChange={(e) => updateCoverage(realIdx, 'item', e.target.value)} onBlur={() => saveCoverage(realIdx)} placeholder="New landing page design" className="flex-1" data-focus-key={`coverage-${realIdx}`} />
                         <Button variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={() => removeCoverage(realIdx)}>
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -1743,6 +1762,7 @@ export default function EditManualPage() {
                                 onBlur={() => saveMaintenanceTask(task.id)}
                                 placeholder={t('maintenance.columns.task')}
                                 className="text-sm"
+                                data-focus-key={`task-${task.id}`}
                               />
                               <div className="flex gap-2">
                                 <Select
@@ -2026,7 +2046,7 @@ export default function EditManualPage() {
                         if (fieldCheckResults[field.id]) {
                           setFieldCheckResults((prev) => { const next = { ...prev }; delete next[field.id]; return next; });
                         }
-                      }} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldLabelPlaceholder')} className={`text-sm ${fieldCheckResults[field.id] === 'block' ? 'border-destructive' : ''}`} />
+                      }} onBlur={() => saveCustomField(field.id)} placeholder={t('edit.fieldLabelPlaceholder')} className={`text-sm ${fieldCheckResults[field.id] === 'block' ? 'border-destructive' : ''}`} data-focus-key={`cf-${field.id}`} />
                       {fieldCheckResults[field.id] === 'block' && (
                         <p className="text-xs text-destructive">{t('secretName.blocked')}</p>
                       )}
