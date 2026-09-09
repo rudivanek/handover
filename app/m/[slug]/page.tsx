@@ -316,7 +316,7 @@ export default function PublicManualPage() {
     ));
   };
 
-  const renderCustomSection = (section: CustomSection, num: number) => {
+  const renderCustomSection = (section: CustomSection, num: number | null) => {
     const fields = customFields
       .filter((f) => f.section_type === 'custom' && f.section_key === section.id && f.label && f.label.trim() && f.value && f.value.trim())
       .sort((a, b) => a.position - b.position);
@@ -327,7 +327,7 @@ export default function PublicManualPage() {
       <section key={section.id} id={`custom-${section.id}`} className="manual-section mb-8 sm:mb-10 scroll-mt-20">
         <h2 className="mb-3 flex items-center gap-2 text-xl sm:mb-4 sm:text-2xl" style={sectionHeadingStyle}>
           <FileText className="h-5 w-5 shrink-0" style={{ color: brandColor }} />
-          <span className="text-sm font-normal text-muted-foreground sm:text-base">{num}.</span>
+          {num !== null && <span className="text-sm font-normal text-muted-foreground sm:text-base">{num}.</span>}
           {section.title}
         </h2>
         <div className="space-y-3 sm:space-y-4">
@@ -365,7 +365,7 @@ export default function PublicManualPage() {
     { id: 'site',        label: t('public.sections.site'),        present: true },
     { id: 'domain',      label: t('public.sections.domain'),      present: true },
     { id: 'hosting',     label: t('public.sections.hosting'),     present: true },
-    { id: 'accounts',    label: t('public.sections.accounts'),    present: accounts.length > 0 || accountsCustomFields.length > 0 },
+    { id: 'accounts',    label: t('public.sections.accounts'),    present: true },
     { id: 'edit',        label: t('public.sections.edit'),        present: editBlocks.length > 0 || editCustomFields.length > 0 },
     { id: 'coverage',    label: t('public.sections.coverage'),    present: includedItems.length > 0 || excludedItems.length > 0 || coverageCustomFields.length > 0 },
     { id: 'maintenance', label: t('public.sections.maintenance'), present: maintenanceTasks.length > 0 },
@@ -374,9 +374,13 @@ export default function PublicManualPage() {
     ...customSectionsInOrder.map((s) => ({ id: `custom-${s.id}`, label: s.title, present: hasFieldsFor(s) })),
   ].filter((s) => s.present);
 
-  const sectionNumber = (id: string): number => {
+  const sectionNumber = (id: string): number | null => {
     const idx = sectionList.findIndex((s) => s.id === id);
-    return idx >= 0 ? idx + 1 : 0;
+    if (idx < 0) {
+      console.error(`sectionNumber: id "${id}" not found in sectionList`);
+      return null;
+    }
+    return idx + 1;
   };
 
   const maintenanceCadenceOrder: MaintenanceCadence[] = ['daily', 'weekly', 'monthly', 'annual'];

@@ -118,6 +118,7 @@ export default function EditManualPage() {
   const [assetCheckResults, setAssetCheckResults] = useState<Record<string, NameCheckLevel>>({});
   const [signoffSaving, setSignoffSaving] = useState(false);
   const [signoffPersonCheck, setSignoffPersonCheck] = useState<NameCheckLevel | null>(null);
+  const [pluginsText, setPluginsText] = useState('');
 
   const manualLocale: Locale = (manual?.locale as Locale) || 'en';
   const hiddenFields = manual?.hidden_fields ?? [];
@@ -136,7 +137,11 @@ export default function EditManualPage() {
       supabase.from('manual_contacts').select('*').eq('manual_id', id).order('sort_order'),
       supabase.from('maintenance_tasks').select('*').eq('manual_id', id).order('sort_order'),
     ]);
-    if (manualRes.data) setManual(manualRes.data as Manual);
+    if (manualRes.data) {
+      const m = manualRes.data as Manual;
+      setManual(m);
+      setPluginsText((m.key_plugins || []).join(', '));
+    }
     setAccounts((accountsRes.data as Account[]) || []);
     setEditBlocks((blocksRes.data as EditBlock[]) || []);
     setCoverage((coverageRes.data as Coverage[]) || []);
@@ -185,7 +190,9 @@ export default function EditManualPage() {
       setSaving(false);
       if (error) {
         toast({ title: 'Save failed', description: error.message, variant: 'destructive' });
+        return;
       }
+      setPluginsText((manual.key_plugins || []).join(', '));
     }, 1200);
     return () => clearTimeout(timer);
   }, [manual, toast]);
@@ -732,7 +739,7 @@ export default function EditManualPage() {
     return complete ? text : null;
   };
 
-  const pluginsString = (manual.key_plugins || []).join(', ');
+
 
   const completion = computeCompletion(manual, accounts, editBlocks, coverage, customFields, uiLocale);
   const draft = isDraft(completion.percentage);
@@ -1306,7 +1313,7 @@ export default function EditManualPage() {
               {isFieldVisible('key_plugins') && (
               <div className="space-y-2">
                 <Label htmlFor="key_plugins">{t('edit.fields.keyPlugins')}</Label>
-                <Input id="key_plugins" value={pluginsString} onChange={(e) => updateManual('key_plugins', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="WooCommerce, Yoast SEO, WP Rocket" disabled={isArchived} />
+                <Input id="key_plugins" value={pluginsText} onChange={(e) => setPluginsText(e.target.value)} onBlur={() => { const parsed = pluginsText.split(',').map((s) => s.trim()).filter(Boolean); updateManual('key_plugins', parsed); setPluginsText(parsed.join(', ')); }} placeholder="WooCommerce, Yoast SEO, WP Rocket" disabled={isArchived} />
               </div>
               )}
             </div>

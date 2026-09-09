@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-08T12:00:00Z
+Last Updated: 2026-09-09T00:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -208,3 +208,15 @@ Sign-off is available on all plans including free. It is not gated by plan.
 - `lib/completion.ts` was not modified — sign-off is excluded by design (it doesn't reference signoff fields).
 - No new table was created.
 - `signoff_person` has no secret-name CHECK constraint — it is free prose, screened warn-only in the UI.
+
+### 3.12 Two UI Bug Fixes — Key Plugins and Accounts Numbering
+
+The Key plugins editor preserves the raw text while the user types instead of deriving the displayed input value from the parsed array after every keystroke. This allows commas, spaces, and subsequent plugin names to be entered naturally in one pass. On blur, the existing parsing rule is applied unchanged: split on commas, trim each item, and filter out empty items. The resulting array continues through the existing manual save flow, and the input is reseeded from that parsed array using the canonical comma-and-space format.
+
+The general input rule is: never bind an input's value to a round-tripped derivation of its own `onChange`. Keep raw text in local input state and parse it only at a boundary such as blur or save.
+
+The public Accounts & ownership section is always present because the page intentionally renders its empty state and the note that passwords are never stored. It is therefore included in the contents list even when there are no account rows. Section numbering continues to use the same shared section list, so sections after Accounts & ownership shift to their correct numbers and the contents anchors remain aligned.
+
+If a rendered section requests an ID missing from the section list, the page logs the missing ID with `console.error` and omits the number rather than silently rendering `0.`. The section's anchor, contents link, empty state, and existing behavior remain unchanged.
+
+No migration, schema, grant, RLS policy, public-manual function, completion logic, locale key, anchor ID, print style, or account-row behavior was changed.
