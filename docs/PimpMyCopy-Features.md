@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T18:30:00Z
+Last Updated: 2026-09-09T19:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -304,3 +304,5 @@ The domain-owner editor uses a five-option selector: Client owns it, Agency owns
 Published manuals render known tokens through localized defaults, including agency-name interpolation and the existing incomplete-token suppression rule. Legacy or new free text is rendered verbatim in its own paragraph and is never inserted into an application sentence. A domain-owner note appears after any rendered ownership value, while registrar access appears only when it has a value. The domain table displays localized option labels for known tokens, literal text for free text, and an em dash for empty values; it now includes a Registrar access row beneath Domain owner. English and Spanish contain matching keys for all new labels and options.
 
 The migration added `registrar_access` without any data update, so existing manual timestamps and values remain unchanged. It re-issued the authenticated UPDATE column grant with the current allowlist plus `registrar_access`; the live catalogue includes that new column and still excludes protected columns including `slug` and `updated_at`. No RLS policy, public-manual function, completion field, hideable field, or maintenance-preset behavior was changed. Type checking and JSON validation passed; browser verification was not available in this environment.
+
+The two Selects previously showed **Other…** for any unanswered field because an empty value is not a token and fell through to the `@other` branch. This was a display-only defect: the column stayed empty and the published page correctly printed nothing, but the form falsely implied the agency had chosen Other. The fix passes `undefined` as the Select value when the stored value is empty after trimming, so Radix shows the localized placeholder **Select…** / **Selecciona…** instead. The free-text input beneath each Select now appears only when the agency has actually chosen Other — either by selecting it from the dropdown (tracked via local state) or because the stored value is non-empty free text. An empty field shows the Select alone with nothing beneath it. A new locale key `common.selectPlaceholder` was added to both files. No migration, SQL, grant, RLS policy, stored value, public page, completion field, or other Select in the app was changed. Locale key parity was verified at 556 keys; the production build passed. Browser verification was not available in this environment.

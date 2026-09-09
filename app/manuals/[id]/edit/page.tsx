@@ -122,6 +122,8 @@ export default function EditManualPage() {
   const [signoffPersonCheck, setSignoffPersonCheck] = useState<NameCheckLevel | null>(null);
   const [pluginsText, setPluginsText] = useState('');
   const [pendingFocus, setPendingFocus] = useState<string | null>(null);
+  const [domainOwnerOtherOpen, setDomainOwnerOtherOpen] = useState(false);
+  const [registrarAccessOtherOpen, setRegistrarAccessOtherOpen] = useState(false);
 
   useEffect(() => {
     if (!pendingFocus) return;
@@ -1405,11 +1407,19 @@ export default function EditManualPage() {
               <div className="space-y-2">
                 <Label htmlFor="domain_owner">{t('edit.fields.domainOwner')}</Label>
                 <Select
-                  value={isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) ? manual.domain_owner : '@other'}
-                  onValueChange={(value) => updateManual('domain_owner', value === '@other' ? (isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) ? '' : manual.domain_owner || '') : value)}
+                  value={isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) ? manual.domain_owner : (manual.domain_owner?.trim() ? '@other' : undefined)}
+                  onValueChange={(value) => {
+                    if (value === '@other') {
+                      setDomainOwnerOtherOpen(true);
+                      if (isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS)) updateManual('domain_owner', '');
+                    } else {
+                      setDomainOwnerOtherOpen(false);
+                      updateManual('domain_owner', value);
+                    }
+                  }}
                   disabled={isArchived}
                 >
-                  <SelectTrigger id="domain_owner"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="domain_owner"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="@client">{t('domainOwner.option.client')}</SelectItem>
                     <SelectItem value="@agency">{t('domainOwner.option.agency')}</SelectItem>
@@ -1418,7 +1428,7 @@ export default function EditManualPage() {
                     <SelectItem value="@other">{t('domainOwner.option.other')}</SelectItem>
                   </SelectContent>
                 </Select>
-                {!isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) && (
+                {(domainOwnerOtherOpen || (manual.domain_owner != null && manual.domain_owner.trim() !== '' && !isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS))) && (
                   <Input id="domain_owner_other" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="the client's IT provider" disabled={isArchived} />
                 )}
               </div>
@@ -1426,11 +1436,19 @@ export default function EditManualPage() {
               <div className="space-y-2">
                 <Label htmlFor="registrar_access">{t('edit.fields.registrarAccess')}</Label>
                 <Select
-                  value={isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) ? manual.registrar_access : '@other'}
-                  onValueChange={(value) => updateManual('registrar_access', value === '@other' ? (isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) ? '' : manual.registrar_access || '') : value)}
+                  value={isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) ? manual.registrar_access : (manual.registrar_access?.trim() ? '@other' : undefined)}
+                  onValueChange={(value) => {
+                    if (value === '@other') {
+                      setRegistrarAccessOtherOpen(true);
+                      if (isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS)) updateManual('registrar_access', '');
+                    } else {
+                      setRegistrarAccessOtherOpen(false);
+                      updateManual('registrar_access', value);
+                    }
+                  }}
                   disabled={isArchived}
                 >
-                  <SelectTrigger id="registrar_access"><SelectValue /></SelectTrigger>
+                  <SelectTrigger id="registrar_access"><SelectValue placeholder={t('common.selectPlaceholder')} /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="@client">{t('registrarAccess.option.client')}</SelectItem>
                     <SelectItem value="@agency">{t('registrarAccess.option.agency')}</SelectItem>
@@ -1439,7 +1457,7 @@ export default function EditManualPage() {
                     <SelectItem value="@other">{t('registrarAccess.option.other')}</SelectItem>
                   </SelectContent>
                 </Select>
-                {!isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) && (
+                {(registrarAccessOtherOpen || (manual.registrar_access != null && manual.registrar_access.trim() !== '' && !isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS))) && (
                   <Input id="registrar_access_other" value={manual.registrar_access || ''} onChange={(e) => updateManual('registrar_access', e.target.value)} placeholder="the client's IT provider" disabled={isArchived} />
                 )}
               </div>
