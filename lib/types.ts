@@ -31,6 +31,7 @@ export type Manual = {
   registrar: string | null;
   domain_expiry: string | null;
   domain_owner: string | null;
+  registrar_access: string | null;
   nameservers: string | null;
   host: string | null;
   host_plan: string | null;

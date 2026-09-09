@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault, getDefaultsForLocale } from '@/lib/defaults';
 import maintenancePresets from '@/data/maintenance-presets.json';
 import { presetText } from '@/lib/maintenance-presets';
+import { DOMAIN_OWNER_TOKENS, REGISTRAR_ACCESS_TOKENS, isToken } from '@/lib/domain-ownership';
 import { computeCompletion, isDraft } from '@/lib/completion';
 import { isSectionHidden, isFieldHidden, type FieldKey } from '@/lib/manual-shape';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, ManualContact, MaintenanceTask, MaintenanceCadence, MaintenanceOwner, Locale } from '@/lib/types';
@@ -184,6 +185,7 @@ export default function EditManualPage() {
           registrar: manual.registrar,
           domain_expiry: manual.domain_expiry,
           domain_owner: manual.domain_owner,
+          registrar_access: manual.registrar_access,
           nameservers: manual.nameservers,
           host: manual.host,
           host_plan: manual.host_plan,
@@ -1402,9 +1404,45 @@ export default function EditManualPage() {
               {isFieldVisible('domain_owner') && (
               <div className="space-y-2">
                 <Label htmlFor="domain_owner">{t('edit.fields.domainOwner')}</Label>
-                <Input id="domain_owner" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="Client owns the domain" disabled={isArchived} />
+                <Select
+                  value={isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) ? manual.domain_owner : '@other'}
+                  onValueChange={(value) => updateManual('domain_owner', value === '@other' ? (isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) ? '' : manual.domain_owner || '') : value)}
+                  disabled={isArchived}
+                >
+                  <SelectTrigger id="domain_owner"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="@client">{t('domainOwner.option.client')}</SelectItem>
+                    <SelectItem value="@agency">{t('domainOwner.option.agency')}</SelectItem>
+                    <SelectItem value="@third_party">{t('domainOwner.option.thirdParty')}</SelectItem>
+                    <SelectItem value="@unknown">{t('domainOwner.option.unknown')}</SelectItem>
+                    <SelectItem value="@other">{t('domainOwner.option.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {!isToken(manual.domain_owner, DOMAIN_OWNER_TOKENS) && (
+                  <Input id="domain_owner_other" value={manual.domain_owner || ''} onChange={(e) => updateManual('domain_owner', e.target.value)} placeholder="the client's IT provider" disabled={isArchived} />
+                )}
               </div>
               )}
+              <div className="space-y-2">
+                <Label htmlFor="registrar_access">{t('edit.fields.registrarAccess')}</Label>
+                <Select
+                  value={isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) ? manual.registrar_access : '@other'}
+                  onValueChange={(value) => updateManual('registrar_access', value === '@other' ? (isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) ? '' : manual.registrar_access || '') : value)}
+                  disabled={isArchived}
+                >
+                  <SelectTrigger id="registrar_access"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="@client">{t('registrarAccess.option.client')}</SelectItem>
+                    <SelectItem value="@agency">{t('registrarAccess.option.agency')}</SelectItem>
+                    <SelectItem value="@both">{t('registrarAccess.option.both')}</SelectItem>
+                    <SelectItem value="@unknown">{t('registrarAccess.option.unknown')}</SelectItem>
+                    <SelectItem value="@other">{t('registrarAccess.option.other')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                {!isToken(manual.registrar_access, REGISTRAR_ACCESS_TOKENS) && (
+                  <Input id="registrar_access_other" value={manual.registrar_access || ''} onChange={(e) => updateManual('registrar_access', e.target.value)} placeholder="the client's IT provider" disabled={isArchived} />
+                )}
+              </div>
               {isFieldVisible('nameservers') && (
               <div className="space-y-2">
                 <Label htmlFor="nameservers">{t('edit.fields.nameservers')}</Label>

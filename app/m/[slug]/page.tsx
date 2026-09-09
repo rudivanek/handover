@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { interpolate, getDefault } from '@/lib/defaults';
+import { defaultsKeyFor, optionLabelKey } from '@/lib/domain-ownership';
 import { formatDateValue } from '@/lib/date';
 import { MARKETING_URL } from '@/lib/utils';
 import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, Asset, MaintenanceTask, MaintenanceCadence, Locale } from '@/lib/types';
@@ -240,7 +241,17 @@ export default function PublicManualPage() {
   const keyPluginsText = renderInterpolated('key_plugins');
   const domainText = renderInterpolated('domain');
   const domainExpiryText = renderInterpolated('domain_expiry');
-  const domainOwnerText = renderInterpolated('domain_owner');
+  const domainOwnerKey = defaultsKeyFor('domain_owner', manual.domain_owner);
+  const domainOwnerText = domainOwnerKey
+    ? renderInterpolated(domainOwnerKey)
+    : manual.domain_owner?.trim() ? manual.domain_owner : null;
+  const domainOwnerNoteText = domainOwnerText ? getDefault('domain_owner_note', locale) : null;
+  const registrarAccessKey = defaultsKeyFor('registrar_access', manual.registrar_access);
+  const registrarAccessText = registrarAccessKey
+    ? renderInterpolated(registrarAccessKey)
+    : manual.registrar_access?.trim() ? manual.registrar_access : null;
+  const domainOwnerLabelKey = optionLabelKey('domain_owner', manual.domain_owner);
+  const registrarAccessLabelKey = optionLabelKey('registrar_access', manual.registrar_access);
   const nameserversText = renderInterpolated('nameservers');
   const hostText = renderInterpolated('host');
   const hostPlanText = renderInterpolated('host_plan');
@@ -585,7 +596,9 @@ export default function PublicManualPage() {
           <div className="space-y-3 sm:space-y-4">
             {domainText && <p className="text-sm leading-relaxed sm:text-base">{domainText}</p>}
             {domainExpiryText && <p className="text-sm leading-relaxed sm:text-base">{domainExpiryText}</p>}
-            {manual.domain_owner && domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
+            {domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
+            {domainOwnerNoteText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerNoteText}</p>}
+            {registrarAccessText && <p className="text-sm leading-relaxed sm:text-base">{registrarAccessText}</p>}
             {nameserversText && <p className="text-sm leading-relaxed sm:text-base">{nameserversText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
@@ -601,7 +614,11 @@ export default function PublicManualPage() {
                   </tr>
                   <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.domainOwner')}</td>
-                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{manual.domain_owner || '\u2014'}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{domainOwnerLabelKey ? t(domainOwnerLabelKey) : manual.domain_owner?.trim() || '\u2014'}</td>
+                  </tr>
+                  <tr className="border-b border-border">
+                    <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.registrarAccess')}</td>
+                    <td className="px-3 py-2 sm:px-4 sm:py-2.5">{registrarAccessLabelKey ? t(registrarAccessLabelKey) : manual.registrar_access?.trim() || '\u2014'}</td>
                   </tr>
                   <tr>
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.nameservers')}</td>

@@ -248,6 +248,7 @@ export default function ManualsPage() {
         registrar: manual.registrar,
         domain_expiry: null,
         domain_owner: manual.domain_owner,
+        registrar_access: manual.registrar_access,
         nameservers: manual.nameservers,
         host: manual.host,
         host_plan: manual.host_plan,

@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T18:06:00Z
+Last Updated: 2026-09-09T18:30:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -294,3 +294,13 @@ The two language controls now identify what they change. The navigation language
 The manual editor’s locale selector now shows the existing `edit.manualLanguage` label between its globe icon and EN/ES buttons on screens at least the small breakpoint. The label is hidden on narrower screens so the toolbar continues to fit, while the globe and buttons remain visible. The bordered control has the same localized label as its ARIA name for screen readers. This control continues to change `manuals.locale`, preserve the confirmation dialog, and leave editor field labels controlled by the interface language.
 
 Both locale files now contain the matching key `nav.interfaceLanguage`: “Interface language” in English and “Idioma de la interfaz” in Spanish. No existing locale values were changed, and no database object, migration, grant, RLS policy, public-manual function, or maintenance preset behavior was modified. Locale key parity was verified with 543 identical keys. Type checking was not rerun for this label-only change; the production build passed after one transient filesystem retry. Browser verification was not available in this environment.
+
+### 3.19 Domain Ownership and Registrar Access
+
+The Domain & DNS editor now separates registered domain ownership from registrar-account access. `domain_owner` keeps its existing text column and accepts the tokens `@client`, `@agency`, `@third_party`, and `@unknown`, while any other value remains legacy or agency-written free text. A new nullable `manuals.registrar_access` column accepts `@client`, `@agency`, `@both`, and `@unknown`, or free text. Empty registrar access remains valid and optional.
+
+The domain-owner editor uses a five-option selector: Client owns it, Agency owns it on the client's behalf, A third party owns it, Not confirmed, and Other…. Existing free text automatically appears as Other… with its exact text in the revealed noun-phrase input. Choosing a known option replaces the free text only when explicitly selected. The registrar-access editor uses the same pattern and includes The client's team, The agency, Both, Not confirmed, and Other…. Both values are autosaved, and duplicated manuals carry both values forward.
+
+Published manuals render known tokens through localized defaults, including agency-name interpolation and the existing incomplete-token suppression rule. Legacy or new free text is rendered verbatim in its own paragraph and is never inserted into an application sentence. A domain-owner note appears after any rendered ownership value, while registrar access appears only when it has a value. The domain table displays localized option labels for known tokens, literal text for free text, and an em dash for empty values; it now includes a Registrar access row beneath Domain owner. English and Spanish contain matching keys for all new labels and options.
+
+The migration added `registrar_access` without any data update, so existing manual timestamps and values remain unchanged. It re-issued the authenticated UPDATE column grant with the current allowlist plus `registrar_access`; the live catalogue includes that new column and still excludes protected columns including `slug` and `updated_at`. No RLS policy, public-manual function, completion field, hideable field, or maintenance-preset behavior was changed. Type checking and JSON validation passed; browser verification was not available in this environment.

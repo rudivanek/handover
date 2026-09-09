@@ -35,9 +35,41 @@
     "en": "Your domain renews on {domain_expiry}. If it expires, your website and email both stop working the same day.",
     "es": "Tu dominio se renueva el {domain_expiry}. Si expira, tu sitio web y tu correo dejan de funcionar el mismo d\u00eda."
   },
-  "domain_owner": {
-    "en": "The domain is owned by {domain_owner}. Only the owner (or someone they authorize) can renew, transfer, or make changes to the domain registration.",
-    "es": "El dominio es propiedad de {domain_owner}. Solo el propietario (o alguien que \u00e9l autorice) puede renovar, transferir o hacer cambios al registro del dominio."
+  "domain_owner_client": {
+    "en": "The domain is registered in your organization's name. That is the strongest position to be in: nobody else can renew it, transfer it, or change it without you.",
+    "es": "El dominio está registrado a nombre de tu organización. Es la mejor posición posible: nadie más puede renovarlo, transferirlo ni cambiarlo sin ti."
+  },
+  "domain_owner_agency": {
+    "en": "The domain is registered by {agency_name} on your behalf. If you would rather hold it in your own name, ask us and we will transfer it to you.",
+    "es": "El dominio está registrado por {agency_name} en tu nombre. Si prefieres tenerlo a nombre de tu organización, pídenoslo y te lo transferimos."
+  },
+  "domain_owner_third_party": {
+    "en": "The domain is registered by someone outside this project — not your organization, and not {agency_name}. You will need to go through them to renew it or change anything about it.",
+    "es": "El dominio está registrado por alguien ajeno a este proyecto: ni tu organización ni {agency_name}. Tendrás que acudir a esa persona para renovarlo o cambiar cualquier cosa."
+  },
+  "domain_owner_unknown": {
+    "en": "Who holds the domain registration has not been confirmed yet. It is worth settling before the next renewal date: if nobody renews the domain, the website and the email stop working the same day.",
+    "es": "Todavía no se ha confirmado quién es el titular del dominio. Conviene aclararlo antes de la próxima fecha de renovación: si nadie lo renueva, el sitio web y el correo dejan de funcionar el mismo día."
+  },
+  "domain_owner_note": {
+    "en": "Only the registered owner, or someone they authorize, can renew, transfer, or change the domain registration.",
+    "es": "Solo el titular registrado, o alguien que él autorice, puede renovar, transferir o cambiar el registro del dominio."
+  },
+  "registrar_access_client": {
+    "en": "The registrar account — the login that actually controls the domain — is held by your team.",
+    "es": "La cuenta del registrador, que es el acceso que realmente controla el dominio, la tiene tu equipo."
+  },
+  "registrar_access_agency": {
+    "en": "{agency_name} holds the login to the registrar account. Ask us whenever something needs changing there, or ask us to hand the account over to you.",
+    "es": "{agency_name} tiene el acceso a la cuenta del registrador. Pídenos lo que necesites cambiar ahí, o pídenos que te entreguemos la cuenta."
+  },
+  "registrar_access_both": {
+    "en": "Both your team and {agency_name} can sign in to the registrar account.",
+    "es": "Tanto tu equipo como {agency_name} pueden entrar a la cuenta del registrador."
+  },
+  "registrar_access_unknown": {
+    "en": "It has not been confirmed who can sign in to the registrar account. This is worth settling now rather than at renewal time — being the registered owner does not help much if nobody can log in.",
+    "es": "No se ha confirmado quién puede entrar a la cuenta del registrador. Conviene aclararlo ahora y no en la renovación: ser el titular no sirve de mucho si nadie puede iniciar sesión."
   },
   "nameservers": {
     "en": "Your domain points to these nameservers: {nameservers}. Nameservers tell the internet where your website and email live. If they are changed incorrectly, your site and email will go offline.",
