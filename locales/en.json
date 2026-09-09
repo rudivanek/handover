@@ -7,6 +7,7 @@
   "nav.signOut": "Sign out",
   "nav.scripts": "Scripts",
   "nav.language": "Language",
+  "nav.interfaceLanguage": "Interface language",
 
   "common.loading": "Loading\u2026",
   "common.save": "Save",

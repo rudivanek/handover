@@ -7,6 +7,7 @@
   "nav.signOut": "Cerrar sesi\u00f3n",
   "nav.scripts": "Correos",
   "nav.language": "Idioma",
+  "nav.interfaceLanguage": "Idioma de la interfaz",
 
   "common.loading": "Cargando\u2026",
   "common.save": "Guardar",

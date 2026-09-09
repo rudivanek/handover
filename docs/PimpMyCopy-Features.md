@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T18:01:43Z
+Last Updated: 2026-09-09T18:06:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -286,3 +286,11 @@ The manual editor stores the preset key when loading a standard schedule, stores
 When creating a manual from a template, the task text is resolved with the new manual's locale while the key is copied across. Duplicating a manual and saving a manual as a template copy both the key and the stored task text unchanged. The existing cadence order, sort order, owner display, add-row focus behavior, completion calculation, print styles, dialog wording, and all preset English, Spanish, cadence, and owner values remain unchanged.
 
 Migration verification reported 84 of 84 `maintenance_tasks` rows with non-null `preset_key` and 21 of 21 `template_maintenance_tasks` rows with non-null `preset_key`; no rows stayed null. The migration corrected 21 `maintenance_tasks` task texts for the Spanish manual, and all 21 now match their Spanish preset text with no English preset text remaining. Browser verification was not available in this environment; type checking and the production build passed.
+
+### 3.18 Language Control Labels
+
+The two language controls now identify what they change. The navigation language dropdown keeps its compact globe and EN/ES trigger, but adds an accessible label and hover title using `nav.interfaceLanguage`. Its opened menu starts with a non-interactive localized header, “Interface language” / “Idioma de la interfaz”, above the existing English and Español choices. The existing locale-change handler and profile UI locale behavior are unchanged.
+
+The manual editor’s locale selector now shows the existing `edit.manualLanguage` label between its globe icon and EN/ES buttons on screens at least the small breakpoint. The label is hidden on narrower screens so the toolbar continues to fit, while the globe and buttons remain visible. The bordered control has the same localized label as its ARIA name for screen readers. This control continues to change `manuals.locale`, preserve the confirmation dialog, and leave editor field labels controlled by the interface language.
+
+Both locale files now contain the matching key `nav.interfaceLanguage`: “Interface language” in English and “Idioma de la interfaz” in Spanish. No existing locale values were changed, and no database object, migration, grant, RLS policy, public-manual function, or maintenance preset behavior was modified. Locale key parity was verified with 543 identical keys. Type checking was not rerun for this label-only change; the production build passed after one transient filesystem retry. Browser verification was not available in this environment.

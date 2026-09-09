@@ -11,6 +11,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Settings, LogOut, BookOpen, ChevronDown, Globe, Mail, HelpCircle } from 'lucide-react';
@@ -118,12 +119,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {renderPlanIndicator()}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-1">
+                <Button variant="ghost" size="sm" className="gap-1" aria-label={t('nav.interfaceLanguage')} title={t('nav.interfaceLanguage')}>
                   <Globe className="h-4 w-4" />
                   <span className="hidden sm:inline">{locale === 'en' ? 'EN' : 'ES'}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{t('nav.interfaceLanguage')}</DropdownMenuLabel>
                 <DropdownMenuItem
                   onClick={() => handleLocaleChange('en')}
                   className={locale === 'en' ? 'font-semibold' : ''}

@@ -1070,8 +1070,9 @@ export default function EditManualPage() {
               </Button>
             )}
             {/* Manual locale selector */}
-            <div className="flex items-center gap-1 rounded-lg border border-border p-1 shrink-0">
+            <div className="flex items-center gap-1 rounded-lg border border-border p-1 shrink-0" aria-label={t('edit.manualLanguage')}>
               <Globe className="h-4 w-4 text-muted-foreground ml-1" />
+              <span className="hidden sm:inline mr-2 text-xs text-muted-foreground">{t('edit.manualLanguage')}</span>
               <Button
                 variant={manualLocale === 'en' ? 'default' : 'ghost'}
                 size="sm"
