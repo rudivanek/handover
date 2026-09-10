@@ -36,6 +36,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
 import { HIDEABLE_FIELDS, HIDEABLE_SECTIONS, type FieldKey, type SectionKey } from '@/lib/manual-shape';
+import { PLAN_LABELS, PLAN_LIMITS } from '@/lib/plans';
 
 type ManualWithChildren = Manual & {
   accounts?: Account[];
@@ -76,7 +77,7 @@ export default function ManualsPage() {
   const plan = profile?.plan || 'free';
   const liveManuals = manuals.filter((m) => m.is_published && !m.archived_at);
   const liveCount = liveManuals.length;
-  const planLimit = plan === 'free' ? 1 : plan === 'freelancer' ? 3 : null;
+  const planLimit = PLAN_LIMITS[plan] ?? null;
 
   const fetchManuals = useCallback(async () => {
     const { data, error } = await supabase
@@ -941,7 +942,7 @@ export default function ManualsPage() {
               {t('planLimit.title')}
             </DialogTitle>
             <DialogDescription>
-              {t('planLimit.body', { n: planLimitInfo.count, plan: planLimitInfo.plan })}
+              {t('planLimit.body', { n: planLimitInfo.count, plan: PLAN_LABELS[planLimitInfo.plan]?.[locale] || planLimitInfo.plan })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
@@ -954,10 +955,12 @@ export default function ManualsPage() {
               </Link>
             </Button>
             <Button asChild>
-              <a href="https://handover.agency/pricing" target="_blank" rel="noopener noreferrer">
+              <a href="https://handover.agency/#pricing" target="_blank" rel="noopener noreferrer">
                 {planLimitInfo.plan === 'free'
                   ? t('planLimit.upgradeFree')
-                  : t('planLimit.upgradeFreelancer')}
+                  : planLimitInfo.plan === 'freelancer'
+                    ? t('planLimit.upgradeStudio')
+                    : t('planLimit.upgradeAgency')}
               </a>
             </Button>
           </DialogFooter>

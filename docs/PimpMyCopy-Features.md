@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T23:00:00Z
+Last Updated: 2026-09-09T23:30:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -365,3 +365,17 @@ The app now supports a fourth plan tier, **Studio**, sitting between Freelancer 
 - Domain & DNS, maintenance presets, language controls, or anything outside the plan system.
 
 Locale key parity was verified at 587 identical keys. Type checking and the production build passed. Browser verification was not available in this environment — the database-enforced quota limit (10 active manuals) and the admin plan selector should be confirmed visually as a signed-in user.
+
+### 3.24 Plan-Limit Dialog Fixes (Studio Tier Exposure)
+
+Four defects in the plan-limit dialog, exposed by the new Studio tier, were fixed. The dialog appears when publishing is refused by the database quota — the refusal itself is unchanged and still comes from Postgres.
+
+**1 — Plan name shows the label, not the raw key.** Both `app/manuals/page.tsx` and `app/manuals/[id]/edit/page.tsx` passed `planLimitInfo.plan` (the raw database value like "studio") into `planLimit.body`. They now pass `PLAN_LABELS[planLimitInfo.plan]?.[locale] || planLimitInfo.plan`, using the same `PLAN_LABELS` from `lib/plans.ts` that the nav badge and Settings card already use. The `planLimit.body` string in both locale files is unchanged — `{plan}` stays a token; only what is passed into it changes.
+
+**2 — Upgrade button shows the correct next tier.** Both files used a two-branch ternary: `free` → `planLimit.upgradeFree`, everything else → `planLimit.upgradeFreelancer`. A Freelancer hitting 3 was pushed straight to $79 Agency, skipping the $39 Studio tier. Replaced with an explicit next-step map: `free` → `upgradeFree` (3 for $19), `freelancer` → `upgradeStudio` (10 for $39, new key), `studio` → `upgradeAgency` (unlimited for $79, new key), anything else → `upgradeAgency`. The existing `planLimit.upgradeFreelancer` key is left in both locale files so nothing referencing it breaks silently. `agency` is unlimited and can never reach this dialog — the fallback covers it.
+
+**3 — Upgrade link points to a working page.** Both files linked to `https://handover.agency/pricing`, which 404s — pricing is the `#pricing` section of the homepage. Changed both to `https://handover.agency/#pricing`.
+
+**4 — Manuals-list count uses the shared limit constant.** `app/manuals/page.tsx` line 79 had a third hand-maintained copy of the plan limits: `plan === 'free' ? 1 : plan === 'freelancer' ? 3 : null`. On Studio this yielded `null`, so the header read "N active manuals" instead of "N of 10 active manuals" and the amber over-limit styling never fired. Replaced with `PLAN_LIMITS[plan] ?? null` from `lib/plans.ts`. The file now imports `PLAN_LIMITS` and `PLAN_LABELS` from `lib/plans.ts`; the edit page imports `PLAN_LABELS`.
+
+Two locale keys were added to each file: `planLimit.upgradeStudio` and `planLimit.upgradeAgency`. The existing `planLimit.upgradeFree` and `planLimit.upgradeFreelancer` keys are unchanged. No database migration, SQL, grant, RLS policy, `enforce_manual_quota()`, `plan_manual_limit()`, `profiles_plan_check`, `planLimit.title`, `planLimit.body`, `planLimit.archive`, the archive flow, the `PLAN_LIMIT` error detection, Domain & DNS, or language controls were changed. Locale key parity was verified at 589 identical keys. Type checking and the production build passed. Browser verification was not available in this environment.

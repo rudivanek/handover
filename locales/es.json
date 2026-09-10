@@ -451,6 +451,8 @@
   "planLimit.upgrade": "Mejorar de plan",
   "planLimit.upgradeFree": "3 manuales activos por $19/mes",
   "planLimit.upgradeFreelancer": "ilimitado por $79/mes",
+  "planLimit.upgradeStudio": "10 manuales activos por $39/mes",
+  "planLimit.upgradeAgency": "ilimitado por $79/mes",
   "plan.name.free": "Gratis",
   "plan.name.freelancer": "Freelancer",
   "plan.name.agency": "Agencia",

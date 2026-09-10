@@ -18,6 +18,7 @@ import type { Manual, Account, EditBlock, Coverage, CustomSection, CustomField, 
 import { checkFieldName, checkAssetUrl, isSecretConstraintError } from '@/lib/secret-names';
 import type { NameCheckLevel } from '@/lib/secret-names';
 import { EXAMPLE_MANUAL_URL } from '@/lib/utils';
+import { PLAN_LABELS } from '@/lib/plans';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -1247,7 +1248,7 @@ export default function EditManualPage() {
               {t('planLimit.title')}
             </DialogTitle>
             <DialogDescription>
-              {t('planLimit.body', { n: planLimitInfo.count, plan: planLimitInfo.plan })}
+              {t('planLimit.body', { n: planLimitInfo.count, plan: PLAN_LABELS[planLimitInfo.plan]?.[uiLocale] || planLimitInfo.plan })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-row">
@@ -1260,10 +1261,12 @@ export default function EditManualPage() {
               </Link>
             </Button>
             <Button asChild>
-              <a href="https://handover.agency/pricing" target="_blank" rel="noopener noreferrer">
+              <a href="https://handover.agency/#pricing" target="_blank" rel="noopener noreferrer">
                 {planLimitInfo.plan === 'free'
                   ? t('planLimit.upgradeFree')
-                  : t('planLimit.upgradeFreelancer')}
+                  : planLimitInfo.plan === 'freelancer'
+                    ? t('planLimit.upgradeStudio')
+                    : t('planLimit.upgradeAgency')}
               </a>
             </Button>
           </DialogFooter>
