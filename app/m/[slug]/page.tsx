@@ -329,7 +329,7 @@ export default function PublicManualPage() {
   const renderBuiltinCustomFieldParagraphs = (sectionKey: string) => {
     const fields = getFilledBuiltinFields(sectionKey);
     return fields.map((field) => (
-      <p key={field.id} className="text-sm leading-relaxed sm:text-base">
+      <p key={field.id} className="text-base leading-relaxed sm:text-base">
         <span className="font-medium">{field.label}:</span>{' '}
         <span className="whitespace-pre-wrap">{field.value}</span>
       </p>
@@ -352,7 +352,7 @@ export default function PublicManualPage() {
         </h2>
         <div className="space-y-3 sm:space-y-4">
           <div className="overflow-hidden rounded-lg border border-border">
-            <table className="w-full text-xs sm:text-sm">
+            <table className="w-full text-sm m-stack m-kv">
               <tbody>
                 {fields.map((field, i) => (
                   <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -442,7 +442,7 @@ export default function PublicManualPage() {
       {/* Draft banner - hidden on print */}
       {isDraftPreview && (
         <div className="no-print sticky top-0 z-40 border-b border-amber-200 bg-amber-50">
-          <div className="mx-auto flex h-12 max-w-3xl items-center px-3 sm:px-6">
+          <div className="mx-auto flex h-12 max-w-3xl items-center px-4 sm:px-6">
             <p className="text-sm text-amber-900">
               {t('public.draftBanner')}
             </p>
@@ -452,15 +452,22 @@ export default function PublicManualPage() {
 
       {/* Top bar - hidden on print */}
       <div className="no-print sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-3 sm:px-6">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
           <span className="truncate text-sm text-muted-foreground">
             {manual.client_name} {'\u2014'} {t('public.websiteOwnersManual')}
           </span>
-          <Button variant="outline" size="sm" onClick={handlePrint} className="shrink-0">
-            <Printer className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">{t('public.print')}</span>
-            <span className="sm:hidden">{t('public.printShort')}</span>
-          </Button>
+          <div className="flex shrink-0 gap-2">
+            {sectionList.length >= 4 && (
+              <Button variant="outline" size="sm" asChild>
+                <a href="#contents">{t('public.contents')}</a>
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handlePrint} className="shrink-0">
+              <Printer className="mr-2 h-4 w-4" />
+              <span className="hidden sm:inline">{t('public.print')}</span>
+              <span className="sm:hidden">{t('public.printShort')}</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -472,7 +479,7 @@ export default function PublicManualPage() {
         [data-manual] h1, [data-manual] h2, [data-manual] h3, [data-manual] h4 { font-family: var(--manual-heading-font, var(--manual-body-font, ${SYSTEM_STACK})); }
         [data-manual] td, [data-manual] th, [data-manual] li, [data-manual] button { font-family: inherit; }
       ` }} />
-      <div data-manual className={`manual-page mx-auto max-w-3xl px-3 py-8 sm:px-6 sm:py-16 ${manualFontClasses}`} style={manualStyle}>
+      <div data-manual className={`manual-page mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-16 ${manualFontClasses}`} style={manualStyle}>
         {/* Header / Cover */}
         <div className="manual-header mb-8 sm:mb-12">
           {logoUrl && (
@@ -523,17 +530,17 @@ export default function PublicManualPage() {
         {hasIntro && (
           <div className="manual-intro mb-8 sm:mb-10 space-y-3 sm:space-y-4">
             {siteIntro && (
-              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+              <p className="text-base leading-relaxed text-foreground sm:text-base">
                 {siteIntro}
               </p>
             )}
             {welcomePreparedBy && (
-              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+              <p className="text-base leading-relaxed text-foreground sm:text-base">
                 {welcomePreparedBy}
               </p>
             )}
             {welcomeUse && (
-              <p className="text-sm leading-relaxed text-foreground sm:text-base">
+              <p className="text-base leading-relaxed text-foreground sm:text-base">
                 {welcomeUse}
               </p>
             )}
@@ -542,7 +549,7 @@ export default function PublicManualPage() {
 
         {/* Table of contents */}
         {sectionList.length >= 4 && (
-          <div className="manual-contents mb-8 sm:mb-10">
+          <div id="contents" className="manual-contents mb-8 sm:mb-10 scroll-mt-20">
             <h2 className="mb-3 text-lg font-medium text-muted-foreground sm:mb-4 sm:text-xl">
               {t('public.contents')}
             </h2>
@@ -551,7 +558,7 @@ export default function PublicManualPage() {
                 <li key={s.id}>
                   <a
                     href={`#${s.id}`}
-                    className="text-sm underline transition-colors hover:opacity-80 sm:text-base"
+                    className="text-base underline underline-offset-2 transition-colors hover:opacity-80 sm:text-base inline-block py-1.5 sm:py-0"
                     style={linkStyle}
                   >
                     {i + 1}. {s.label}
@@ -570,13 +577,13 @@ export default function PublicManualPage() {
             {t('public.sections.site')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {siteOverview && <p className="text-sm leading-relaxed sm:text-base">{siteOverview}</p>}
-            {platformText && <p className="text-sm leading-relaxed sm:text-base">{platformText}</p>}
-            {frameworkText && <p className="text-sm leading-relaxed sm:text-base">{frameworkText}</p>}
-            {keyPluginsText && <p className="text-sm leading-relaxed sm:text-base">{keyPluginsText}</p>}
+            {siteOverview && <p className="text-base leading-relaxed sm:text-base">{siteOverview}</p>}
+            {platformText && <p className="text-base leading-relaxed sm:text-base">{platformText}</p>}
+            {frameworkText && <p className="text-base leading-relaxed sm:text-base">{frameworkText}</p>}
+            {keyPluginsText && <p className="text-base leading-relaxed sm:text-base">{keyPluginsText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack m-kv">
                 <tbody>
                   <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.siteName')}</td>
@@ -584,7 +591,7 @@ export default function PublicManualPage() {
                   </tr>
                   <tr className="border-b border-border">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.url')}</td>
-                    <td className="break-all px-3 py-2 sm:px-4 sm:py-2.5">{manual.site_url || '\u2014'}</td>
+                    <td className="break-all px-3 py-2 sm:px-4 sm:py-2.5">{manual.site_url && !manual.site_url.includes(' ') ? <a href={manual.site_url.match(/^https?:\/\//) ? manual.site_url : `https://${manual.site_url}`} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">{manual.site_url}</a> : (manual.site_url || '\u2014')}</td>
                   </tr>
                   <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.platform')}</td>
@@ -613,19 +620,19 @@ export default function PublicManualPage() {
             {t('public.sections.domain')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {domainText && <p className="text-sm leading-relaxed sm:text-base">{domainText}</p>}
-            {domainExpiryText && <p className="text-sm leading-relaxed sm:text-base">{domainExpiryText}</p>}
-            {domainOwnerText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerText}</p>}
-            {domainOwnerNoteText && <p className="text-sm leading-relaxed sm:text-base">{domainOwnerNoteText}</p>}
-            {registrarAccessText && <p className="text-sm leading-relaxed sm:text-base">{registrarAccessText}</p>}
-            {dnsManagedText && <p className="text-sm leading-relaxed sm:text-base">{dnsManagedText}</p>}
-            {dnsAccessText && <p className="text-sm leading-relaxed sm:text-base">{dnsAccessText}</p>}
-            {dnsChangeText && <p className="text-sm leading-relaxed sm:text-base">{dnsChangeText}</p>}
+            {domainText && <p className="text-base leading-relaxed sm:text-base">{domainText}</p>}
+            {domainExpiryText && <p className="text-base leading-relaxed sm:text-base">{domainExpiryText}</p>}
+            {domainOwnerText && <p className="text-base leading-relaxed sm:text-base">{domainOwnerText}</p>}
+            {domainOwnerNoteText && <p className="text-base leading-relaxed sm:text-base">{domainOwnerNoteText}</p>}
+            {registrarAccessText && <p className="text-base leading-relaxed sm:text-base">{registrarAccessText}</p>}
+            {dnsManagedText && <p className="text-base leading-relaxed sm:text-base">{dnsManagedText}</p>}
+            {dnsAccessText && <p className="text-base leading-relaxed sm:text-base">{dnsAccessText}</p>}
+            {dnsChangeText && <p className="text-base leading-relaxed sm:text-base">{dnsChangeText}</p>}
             {manual.mail_elsewhere === true && <div className="rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-xs leading-relaxed text-amber-900 sm:text-sm">{getDefault('mail_elsewhere_warning', locale)}</p></div>}
-            {nameserverValues.length > 0 && <div className="text-sm leading-relaxed sm:text-base"><p>{getDefault('nameservers_intro', locale)}</p><ul className="my-2 list-disc pl-6">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul><p>{getDefault('nameservers_note', locale)}</p></div>}
+            {nameserverValues.length > 0 && <div className="text-base leading-relaxed sm:text-base"><p>{getDefault('nameservers_intro', locale)}</p><ul className="my-2 list-disc pl-6">{nameserverValues.map((value) => <li key={value}>{value}</li>)}</ul><p>{getDefault('nameservers_note', locale)}</p></div>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack m-kv">
                 <tbody>
                   <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.registrar')}</td>
@@ -665,10 +672,10 @@ export default function PublicManualPage() {
             </div>
             {dnsRecords.length > 0 && (
               <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full text-xs sm:text-sm">
+                <table className="w-full text-sm m-stack">
                   <caption className="border-b border-border bg-secondary/20 px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('public.dns.recordsTitle')}</caption>
                   <thead><tr className="border-b border-border"><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordType')}</th><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordName')}</th><th className="px-3 py-2 text-left font-medium sm:px-4">{t('public.dns.recordValue')}</th></tr></thead>
-                  <tbody>{dnsRecords.map((record, idx) => <tr key={record.id || idx} className={idx % 2 === 0 ? 'bg-secondary/10' : ''}><td className="px-3 py-2 sm:px-4">{record.record_type}</td><td className="px-3 py-2 sm:px-4">{record.record_name}</td><td className="break-all px-3 py-2 sm:px-4">{record.record_value}</td></tr>)}</tbody>
+                  <tbody>{dnsRecords.map((record, idx) => <tr key={record.id || idx} className={idx % 2 === 0 ? 'bg-secondary/10' : ''}><td data-label={t('public.dns.recordType')} className="px-3 py-2 sm:px-4">{record.record_type}</td><td data-label={t('public.dns.recordName')} className="px-3 py-2 sm:px-4">{record.record_name}</td><td data-label={t('public.dns.recordValue')} className="break-all px-3 py-2 sm:px-4">{record.record_value}</td></tr>)}</tbody>
                 </table>
               </div>
             )}
@@ -683,13 +690,13 @@ export default function PublicManualPage() {
             {t('public.sections.hosting')}
           </h2>
           <div className="space-y-3 sm:space-y-4">
-            {hostText && <p className="text-sm leading-relaxed sm:text-base">{hostText}</p>}
-            {hostPlanText && <p className="text-sm leading-relaxed sm:text-base">{hostPlanText}</p>}
-            {hostRenewalText && <p className="text-sm leading-relaxed sm:text-base">{hostRenewalText}</p>}
-            {emailProviderText && <p className="text-sm leading-relaxed sm:text-base">{emailProviderText}</p>}
+            {hostText && <p className="text-base leading-relaxed sm:text-base">{hostText}</p>}
+            {hostPlanText && <p className="text-base leading-relaxed sm:text-base">{hostPlanText}</p>}
+            {hostRenewalText && <p className="text-base leading-relaxed sm:text-base">{hostRenewalText}</p>}
+            {emailProviderText && <p className="text-base leading-relaxed sm:text-base">{emailProviderText}</p>}
 
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack m-kv">
                 <tbody>
                   <tr className="border-b border-border bg-secondary/20">
                     <td className="px-3 py-2 font-medium sm:px-4 sm:py-2.5">{t('public.fields.hostingProvider')}</td>
@@ -721,11 +728,11 @@ export default function PublicManualPage() {
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('accounts')}.</span>
             {t('public.sections.accounts')}
           </h2>
-          {accountsIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{accountsIntroText}</p>}
+          {accountsIntroText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{accountsIntroText}</p>}
 
           {accounts.length > 0 ? (
             <div className="overflow-x-auto rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack">
                 <thead>
                   <tr className="border-b border-border bg-secondary/30">
                     <th className="px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('public.fields.service')}</th>
@@ -736,9 +743,9 @@ export default function PublicManualPage() {
                 <tbody>
                   {accounts.map((a, i) => (
                     <tr key={i} className={i % 2 === 0 ? 'bg-secondary/10' : ''}>
-                      <td className="px-3 py-2 sm:px-4 sm:py-2.5">{a.service || '\u2014'}</td>
-                      <td className="px-3 py-2 sm:px-4 sm:py-2.5">{a.account_owner || '\u2014'}</td>
-                      <td className="break-all px-3 py-2 sm:px-4 sm:py-2.5">{a.admin_email || '\u2014'}</td>
+                      <td className="m-title px-3 py-2 sm:px-4 sm:py-2.5">{a.service || '\u2014'}</td>
+                      <td data-label={t('public.fields.owner')} className="px-3 py-2 sm:px-4 sm:py-2.5">{a.account_owner || '\u2014'}</td>
+                      <td data-label={t('public.fields.adminEmail')} className="break-all px-3 py-2 sm:px-4 sm:py-2.5">{a.admin_email && a.admin_email.includes('@') ? <a href={`mailto:${a.admin_email}`} className="underline underline-offset-2">{a.admin_email}</a> : (a.admin_email || '\u2014')}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -750,7 +757,7 @@ export default function PublicManualPage() {
 
           {accountsCustomFields.length > 0 && (
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack m-kv">
                 <tbody>
                   {accountsCustomFields.map((field, i) => (
                     <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -776,14 +783,14 @@ export default function PublicManualPage() {
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('edit')}.</span>
               {t('public.sections.edit')}
             </h2>
-            {editBlocksIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{editBlocksIntroText}</p>}
+            {editBlocksIntroText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{editBlocksIntroText}</p>}
             <div className="space-y-3 sm:space-y-4">
               {editBlocks.map((block, i) => (
                 <div key={i} className="rounded-lg border border-border p-3 sm:p-5">
                   <h3 className="mb-2 text-base sm:text-lg" style={{ color: brandColor }}>
                     {block.block_name}
                   </h3>
-                  <p className="whitespace-pre-wrap text-xs leading-relaxed sm:text-sm">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed">
                     {block.instructions}
                   </p>
                 </div>
@@ -805,7 +812,7 @@ export default function PublicManualPage() {
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('coverage')}.</span>
               {t('public.sections.coverage')}
             </h2>
-            {coverageIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{coverageIntroText}</p>}
+            {coverageIntroText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{coverageIntroText}</p>}
             <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
               {includedItems.length > 0 && (
                 <div>
@@ -814,7 +821,7 @@ export default function PublicManualPage() {
                   </h3>
                   <ul className="space-y-1.5 sm:space-y-2">
                     {includedItems.map((c, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
+                      <li key={i} className="flex items-start gap-2 text-sm">
                         <span className="mt-0.5 text-green-600">&#10003;</span>
                         <span>{c.item}</span>
                       </li>
@@ -829,7 +836,7 @@ export default function PublicManualPage() {
                   </h3>
                   <ul className="space-y-1.5 sm:space-y-2">
                     {excludedItems.map((c, i) => (
-                      <li key={i} className="flex items-start gap-2 text-xs sm:text-sm">
+                      <li key={i} className="flex items-start gap-2 text-sm">
                         <span className="mt-0.5 text-amber-600">&#8212;</span>
                         <span>{c.item}</span>
                       </li>
@@ -840,7 +847,7 @@ export default function PublicManualPage() {
             </div>
             {coverageCustomFields.length > 0 && (
               <div className="mt-4 overflow-hidden rounded-lg border border-border">
-                <table className="w-full text-xs sm:text-sm">
+                <table className="w-full text-sm m-stack m-kv">
                   <tbody>
                     {coverageCustomFields.map((field, i) => (
                       <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -863,7 +870,7 @@ export default function PublicManualPage() {
               <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('maintenance')}.</span>
               {t('public.sections.maintenance')}
             </h2>
-            {maintenanceIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{maintenanceIntroText}</p>}
+            {maintenanceIntroText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{maintenanceIntroText}</p>}
             <div className="space-y-5 sm:space-y-6">
               {maintenanceByCadence.map((group) => {
                 const hasNotes = group.tasks.some((t) => t.notes && t.notes.trim());
@@ -873,7 +880,7 @@ export default function PublicManualPage() {
                       {t(`maintenance.cadence.${group.cadence}`)}
                     </h3>
                     <div className="overflow-hidden rounded-lg border border-border">
-                      <table className="w-full text-xs sm:text-sm">
+                      <table className="w-full text-sm m-stack">
                         <thead>
                           <tr className="border-b border-border bg-secondary/30">
                             <th className="px-3 py-2 text-left font-medium sm:px-4 sm:py-2.5">{t('maintenance.columns.task')}</th>
@@ -884,9 +891,9 @@ export default function PublicManualPage() {
                         <tbody>
                           {group.tasks.map((task, i) => (
                             <tr key={task.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
-                              <td className="px-3 py-2 sm:px-4 sm:py-2.5">{task.task || '\u2014'}</td>
-                              <td className="px-3 py-2 sm:px-4 sm:py-2.5">{maintenanceOwnerName(task.owner)}</td>
-                              {hasNotes && <td className="whitespace-pre-wrap px-3 py-2 sm:px-4 sm:py-2.5">{task.notes || '\u2014'}</td>}
+                              <td className="m-title px-3 py-2 sm:px-4 sm:py-2.5">{task.task || '\u2014'}</td>
+                              <td data-label={t('maintenance.columns.who')} className="px-3 py-2 sm:px-4 sm:py-2.5">{maintenanceOwnerName(task.owner)}</td>
+                              {hasNotes && <td data-label={t('maintenance.columns.notes')} className="whitespace-pre-wrap px-3 py-2 sm:px-4 sm:py-2.5">{task.notes || '\u2014'}</td>}
                             </tr>
                           ))}
                         </tbody>
@@ -898,7 +905,7 @@ export default function PublicManualPage() {
             </div>
             {maintenanceCustomFields.length > 0 && (
               <div className="mt-4 overflow-hidden rounded-lg border border-border">
-                <table className="w-full text-xs sm:text-sm">
+                <table className="w-full text-sm m-stack m-kv">
                   <tbody>
                     {maintenanceCustomFields.map((field, i) => (
                       <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -921,9 +928,9 @@ export default function PublicManualPage() {
             <span className="text-sm font-normal text-muted-foreground sm:text-base">{sectionNumber('emergency')}.</span>
             {t('public.sections.emergency')}
           </h2>
-          {emergencyIntroText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyIntroText}</p>}
-          {emergencyContactText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{emergencyContactText}</p>}
-          {supportGeneralText && <p className="mb-3 text-sm leading-relaxed sm:mb-4 sm:text-base">{supportGeneralText}</p>}
+          {emergencyIntroText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{emergencyIntroText}</p>}
+          {emergencyContactText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{emergencyContactText}</p>}
+          {supportGeneralText && <p className="mb-3 text-base leading-relaxed sm:mb-4 sm:text-base">{supportGeneralText}</p>}
 
           {hasEmergencyCard && (
           <div className="rounded-lg border border-border p-3 sm:p-5">
@@ -937,15 +944,15 @@ export default function PublicManualPage() {
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{t('public.fields.phone')}</p>
-                <p className="mt-1 text-sm font-medium">{manual.emergency_phone || '\u2014'}</p>
+                <p className="mt-1 text-sm font-medium">{manual.emergency_phone ? <a href={`tel:${manual.emergency_phone.replace(/[^\d+]/g, '')}`} className="underline underline-offset-2">{manual.emergency_phone}</a> : '\u2014'}</p>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{t('public.fields.email')}</p>
-                <p className="mt-1 break-all text-sm font-medium">{manual.emergency_email || '\u2014'}</p>
+                <p className="mt-1 break-all text-sm font-medium">{manual.emergency_email && manual.emergency_email.includes('@') ? <a href={`mailto:${manual.emergency_email}`} className="underline underline-offset-2">{manual.emergency_email}</a> : (manual.emergency_email || '\u2014')}</p>
               </div>
               <div>
                 <p className="text-xs font-medium uppercase text-muted-foreground">{t('public.fields.generalSupport')}</p>
-                <p className="mt-1 break-all text-sm font-medium">{agency.support_email || '\u2014'}</p>
+                <p className="mt-1 break-all text-sm font-medium">{agency.support_email && agency.support_email.includes('@') ? <a href={`mailto:${agency.support_email}`} className="underline underline-offset-2">{agency.support_email}</a> : (agency.support_email || '\u2014')}</p>
                 <p className="text-xs text-muted-foreground sm:text-sm">{agency.support_hours || ''}</p>
               </div>
             </div>
@@ -954,7 +961,7 @@ export default function PublicManualPage() {
 
           {emergencyCustomFields.length > 0 && (
             <div className="mt-4 overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack m-kv">
                 <tbody>
                   {emergencyCustomFields.map((field, i) => (
                     <tr key={field.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -977,7 +984,7 @@ export default function PublicManualPage() {
               {t('public.sections.assets')}
             </h2>
             <div className="overflow-hidden rounded-lg border border-border">
-              <table className="w-full text-xs sm:text-sm">
+              <table className="w-full text-sm m-stack">
                 <tbody>
                   {[...assets].sort((a, b) => a.sort_order - b.sort_order).map((asset, i) => (
                     <tr key={asset.id} className={i % 2 === 0 ? 'border-b border-border bg-secondary/20' : 'border-b border-border'}>
@@ -1031,7 +1038,7 @@ export default function PublicManualPage() {
                 {signoffItems.length > 0 && (
                   <ul className="space-y-1.5 sm:space-y-2">
                     {signoffItems.map((item) => (
-                      <li key={item.key} className="flex items-start gap-2 text-sm sm:text-base">
+                      <li key={item.key} className="flex items-start gap-2 text-base sm:text-base">
                         <span className="mt-0.5 text-green-600">&#10003;</span>
                         <span>{item.label}</span>
                       </li>
@@ -1039,7 +1046,7 @@ export default function PublicManualPage() {
                   </ul>
                 )}
                 {manual.signoff_person && manual.signoff_person.trim() && (
-                  <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+                  <p className="mt-3 text-base text-muted-foreground sm:text-base">
                     {t('public.signoffConfirmedWith', { name: manual.signoff_person })}
                   </p>
                 )}

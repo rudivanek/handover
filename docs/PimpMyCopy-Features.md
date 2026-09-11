@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-09T23:30:00Z
+Last Updated: 2026-09-11T00:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -379,3 +379,24 @@ Four defects in the plan-limit dialog, exposed by the new Studio tier, were fixe
 **4 — Manuals-list count uses the shared limit constant.** `app/manuals/page.tsx` line 79 had a third hand-maintained copy of the plan limits: `plan === 'free' ? 1 : plan === 'freelancer' ? 3 : null`. On Studio this yielded `null`, so the header read "N active manuals" instead of "N of 10 active manuals" and the amber over-limit styling never fired. Replaced with `PLAN_LIMITS[plan] ?? null` from `lib/plans.ts`. The file now imports `PLAN_LIMITS` and `PLAN_LABELS` from `lib/plans.ts`; the edit page imports `PLAN_LABELS`.
 
 Two locale keys were added to each file: `planLimit.upgradeStudio` and `planLimit.upgradeAgency`. The existing `planLimit.upgradeFree` and `planLimit.upgradeFreelancer` keys are unchanged. No database migration, SQL, grant, RLS policy, `enforce_manual_quota()`, `plan_manual_limit()`, `profiles_plan_check`, `planLimit.title`, `planLimit.body`, `planLimit.archive`, the archive flow, the `PLAN_LIMIT` error detection, Domain & DNS, or language controls were changed. Locale key parity was verified at 589 identical keys. Type checking and the production build passed. Browser verification was not available in this environment.
+
+### 3.25 Public Manual Page — Mobile Readability
+
+The public manual page (`/m/[slug]`) was made comfortable to read on phones below 640px wide. At 640px and wider, and in print, the page is unchanged. No migration, database change, `get_public_manual` change, or new dependency was made.
+
+**Mobile CSS block** added to the end of `app/globals.css`, scoped to `@media screen and (max-width: 639px)` so print is never affected. Tables with the `m-stack` class collapse to stacked full-width blocks: every `td` becomes `display: block`, `thead` is hidden, `caption` stays visible, and each `tr` gets padding. Cells with a `data-label` attribute show that label as a small muted caption above the value. The `m-kv` class makes the first `td` of label/value tables smaller and muted. The `m-title` class bolds the primary cell of a stacked row (service name, task name).
+
+**Table classes** added in `app/m/[slug]/page.tsx`:
+- Site & Stack, Domain & DNS facts, Hosting & Email, and all custom-field tables (custom sections, and the custom-field tables under Accounts, Coverage, Maintenance, Emergency) get `m-stack m-kv`.
+- Files & assets table gets `m-stack` only (first cell stays bold, not muted).
+- Accounts table gets `m-stack`. The Service cell gets `m-title`. The Owner cell gets `data-label` with the localized owner label. The Admin email cell gets `data-label` with the localized admin email label, and becomes a `mailto:` link when the value contains `@`.
+- Maintenance tables (one per cadence) get `m-stack`. The Task cell gets `m-title`. The Who cell gets `data-label`. The Notes cell, only rendered when notes exist, gets `data-label`.
+- DNS records table gets `m-stack`. All three cells get `data-label` with the localized type/name/value labels.
+
+**Text sizes** increased on phones: every table from `text-xs` to `text-sm`, every body paragraph and list item from `text-sm` to `text-base`, edit-block body text and coverage list items from `text-xs` to `text-sm`. The `sm:` classes are all preserved. Heading sizes, the small uppercase labels in the emergency card, and the amber note boxes were left alone. Side padding on the page wrapper and both sticky top bars went from `px-3` to `px-4`.
+
+**Tappable contacts**: the emergency phone is now a `tel:` link, the emergency email, support email, and each account admin email are `mailto:` links (only when the value contains `@`), and the site URL is a link that adds `https://` when the scheme is missing (only when the value has no spaces). All links inherit colour and add `underline underline-offset-2` so they print the same as plain text.
+
+**Contents**: the contents `div` gets `id="contents"` and `scroll-mt-20`. Contents links get `inline-block py-1.5 sm:py-0` for ~40px tap targets on phones. The sticky top bar gets a "Contents" button (outline, `asChild` wrapping an `<a href="#contents">`) before the PDF button, wrapped with the PDF button in a `flex shrink-0 gap-2` div. The button only appears when the contents list is rendered (`sectionList.length >= 4`).
+
+No section order, section numbering, `sectionList`, `renderInterpolated`, `interpolate()`, suppression rules, `get_public_manual`, migration, grant, RLS, the `/m/` path, agency branding, Handover footer, editor, manuals list, localStorage, service worker, or manifest were changed. The existing `@media print` block in `globals.css` is untouched. Type checking and the production build passed. Browser verification was not available in this environment — the stacked tables, tappable contacts, enlarged text, and the Contents button should be confirmed visually on a 375px-wide viewport, and the print layout should be confirmed unchanged at 1024px and in Save as PDF.
