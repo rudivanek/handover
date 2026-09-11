@@ -453,7 +453,7 @@ export default function PublicManualPage() {
       {/* Top bar - hidden on print */}
       <div className="no-print sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4 sm:px-6">
-          <span className="truncate text-sm text-muted-foreground">
+          <span className="hidden truncate text-sm text-muted-foreground sm:inline">
             {manual.client_name} {'\u2014'} {t('public.websiteOwnersManual')}
           </span>
           <div className="flex shrink-0 gap-2">
@@ -462,6 +462,11 @@ export default function PublicManualPage() {
                 <a href="#contents">{t('public.contents')}</a>
               </Button>
             )}
+            <Button variant="outline" size="sm" asChild>
+              <a href="#emergency">
+                <Phone className="mr-1.5 h-4 w-4" />{t('public.help')}
+              </a>
+            </Button>
             <Button variant="outline" size="sm" onClick={handlePrint} className="shrink-0">
               <Printer className="mr-2 h-4 w-4" />
               <span className="hidden sm:inline">{t('public.print')}</span>
@@ -999,8 +1004,9 @@ export default function PublicManualPage() {
                       </td>
                       <td className="break-all px-3 py-2 sm:px-4 sm:py-2.5">
                         {asset.url ? (
-                          <a href={asset.url} target="_blank" rel="noopener noreferrer" className="underline" style={linkStyle}>
-                            {asset.url}
+                          <a href={asset.url} target="_blank" rel="noopener noreferrer" title={asset.url} className="underline" style={linkStyle}>
+                            <span className="sm:hidden print:hidden">{(() => { try { return new URL(asset.url).hostname.replace(/^www\./, ''); } catch { return asset.url; } })()} ↗</span>
+                            <span className="hidden sm:inline print:inline">{asset.url}</span>
                           </a>
                         ) : (
                           <span className="text-muted-foreground">{'\u2014'}</span>

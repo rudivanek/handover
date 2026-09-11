@@ -385,6 +385,7 @@
   "edit.maintenanceStandardHint": "Twenty-one tasks a typical site needs, with a suggested owner on each. Edit, reassign or delete any of them.",
   "public.sections.maintenance": "Maintenance schedule",
   "public.contents": "Contents",
+  "public.help": "Help",
   "public.draftBanner": "Draft — only you can see this. Publish it to give your client the link.",
   "edit.published": "Published",
   "edit.live": "Active",

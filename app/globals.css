@@ -117,7 +117,8 @@
   [data-manual] table.m-stack td { display: block; width: 100%; }
   [data-manual] table.m-stack thead { display: none; }
   [data-manual] table.m-stack caption { display: block; }
-  [data-manual] table.m-stack tr { padding: 0.625rem 0.875rem; }
+  [data-manual] table.m-stack tr { border-bottom-width: 0; padding: 0.75rem 0.875rem; }
+  [data-manual] table.m-stack tr + tr { border-top: 1px solid hsl(var(--border)); }
   [data-manual] table.m-stack td { padding: 0.125rem 0; }
   /* label/value tables: label sits above the value, small and muted */
   [data-manual] table.m-kv td:first-child {

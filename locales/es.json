@@ -386,6 +386,7 @@
   "edit.maintenanceStandardHint": "Veintiuna tareas que un sitio t\u00edpico necesita, cada una con un responsable sugerido. Puedes editarlas, reasignarlas o eliminarlas.",
   "public.sections.maintenance": "Calendario de mantenimiento",
   "public.contents": "Contenido",
+  "public.help": "Ayuda",
   "public.draftBanner": "Borrador — solo tú puedes verlo. Publícalo para darle el enlace a tu cliente.",
   "edit.published": "Publicado",
   "edit.live": "Activo",
