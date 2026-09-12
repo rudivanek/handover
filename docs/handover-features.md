@@ -1,4 +1,4 @@
-# PimpMyCopy Features Documentation
+# Handover Features Documentation
 
 <!--
 Version: 1.5.0
