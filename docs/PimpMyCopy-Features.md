@@ -2,7 +2,7 @@
 
 <!--
 Version: 1.5.0
-Last Updated: 2026-09-11T00:00:00Z
+Last Updated: 2026-09-12T00:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -361,7 +361,7 @@ The app now supports a fourth plan tier, **Studio**, sitting between Freelancer 
 - `enforce_manual_quota()`, its trigger, the publish gate, `get_public_manual`, archiving, and `updated_at`.
 - `is_admin()`, `admin_users`, `admin_overview()`, or the `SECURITY DEFINER` gate on `admin_set_plan()`.
 - The free-plan footer rule: `show_footer` is `plan = 'free'` in `get_public_manual` and needs no change — Studio removes it exactly as Freelancer and Agency do.
-- The templates paid-feature gate in `app/templates/page.tsx` (`plan === 'free'` → blocked). Studio is not free, so it gets templates automatically.
+- The templates paid-feature gate in `app/templates/page.tsx` (`plan === 'free'` → blocked). Studio is not free, so it gets templates automatically. The `templates.freePlanDescription` locale string was updated in both English and Spanish to name all three paid tiers (Freelancer, Studio, and Agency) instead of only Freelancer and Agency.
 - Domain & DNS, maintenance presets, language controls, or anything outside the plan system.
 
 Locale key parity was verified at 587 identical keys. Type checking and the production build passed. Browser verification was not available in this environment — the database-enforced quota limit (10 active manuals) and the admin plan selector should be confirmed visually as a signed-in user.

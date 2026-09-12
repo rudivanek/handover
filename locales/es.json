@@ -486,7 +486,7 @@
   "templates.empty": "A\u00fan no hay plantillas",
   "templates.emptyDescription": "Crea una plantilla para definir la estructura est\u00e1ndar de los manuales de tu agencia.",
   "templates.freePlan": "Las plantillas son una funci\u00f3n de pago",
-  "templates.freePlanDescription": "Actualiza a Freelancer o Agencia para definir plantillas de manuales reutilizables.",
+  "templates.freePlanDescription": "Las plantillas se incluyen en Freelancer, Studio y Agencia. Mejora de plan para definir plantillas de manuales reutilizables.",
   "templates.fieldsHidden": "{fields} campos ocultos, {sections} secciones ocultas, {custom} campos personalizados",
   "templates.contentSections": "secciones de contenido incluidas",
   "templates.maintenance": "Cronograma de mantenimiento",

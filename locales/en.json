@@ -485,7 +485,7 @@
   "templates.empty": "No templates yet",
   "templates.emptyDescription": "Create a template to define your agency's standard manual shape.",
   "templates.freePlan": "Templates are a paid feature",
-  "templates.freePlanDescription": "Upgrade to Freelancer or Agency to define reusable manual templates.",
+  "templates.freePlanDescription": "Templates are included on Freelancer, Studio and Agency. Move up a plan to define reusable manual templates.",
   "templates.fieldsHidden": "{fields} fields hidden, {sections} sections hidden, {custom} custom fields",
   "templates.contentSections": "content sections included",
   "templates.maintenance": "Maintenance schedule",
