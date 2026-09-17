@@ -4,13 +4,14 @@ import { publicClient } from '@/lib/supabase-public';
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ): Promise<Metadata> {
   const base: Metadata = { robots: { index: false, follow: false } };
 
   let data: any = null;
   try {
-    const res = await publicClient().rpc('get_public_manual', { p_slug: params.slug });
+    const { slug } = await params;
+    const res = await publicClient().rpc('get_public_manual', { p_slug: slug });
     data = res.data;
   } catch {
     // Never throw from generateMetadata — fall through to neutral title.
