@@ -4,6 +4,7 @@ import { Lora } from 'next/font/google';
 import { appFontVariable } from '@/lib/fonts';
 import { AuthProvider } from '@/lib/auth-context';
 import { I18nProvider } from '@/lib/i18n';
+import { Toaster } from '@/components/ui/toaster';
 
 const lora = Lora({ subsets: ['latin'], variable: '--font-serif' });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
         <AuthProvider>
           <I18nProvider>{children}</I18nProvider>
         </AuthProvider>
+        <Toaster />
       </body>
     </html>
   );
