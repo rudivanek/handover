@@ -1,8 +1,8 @@
 # Handover Features Documentation
 
 <!--
-Version: 1.5.0
-Last Updated: 2026-09-12T00:00:00Z
+Version: 1.6.0
+Last Updated: 2026-10-24T00:00:00Z
 -->
 
 ## 1. Plan & Billing Card (Settings Page)
@@ -400,3 +400,30 @@ The public manual page (`/m/[slug]`) was made comfortable to read on phones belo
 **Contents**: the contents `div` gets `id="contents"` and `scroll-mt-20`. Contents links get `inline-block py-1.5 sm:py-0` for ~40px tap targets on phones. The sticky top bar gets a "Contents" button (outline, `asChild` wrapping an `<a href="#contents">`) before the PDF button, wrapped with the PDF button in a `flex shrink-0 gap-2` div. The button only appears when the contents list is rendered (`sectionList.length >= 4`).
 
 No section order, section numbering, `sectionList`, `renderInterpolated`, `interpolate()`, suppression rules, `get_public_manual`, migration, grant, RLS, the `/m/` path, agency branding, Handover footer, editor, manuals list, localStorage, service worker, or manifest were changed. The existing `@media print` block in `globals.css` is untouched. Type checking and the production build passed. Browser verification was not available in this environment — the stacked tables, tappable contacts, enlarged text, and the Contents button should be confirmed visually on a 375px-wide viewport, and the print layout should be confirmed unchanged at 1024px and in Save as PDF.
+
+### 3.20 Admin Email — Send to Selected Accounts
+
+The Admin page (`app/admin/page.tsx`) now lets the operator select accounts and send them an email. The page is not the security boundary; the database function is.
+
+**Selection:** Each row has a checkbox in a new first column. A header checkbox selects/clears all rows and shows the indeterminate state when only some are selected. An "Email selected (N)" button above the table is disabled when N is 0.
+
+**Email opt-out:** A new "Emails" column has a Switch per row. On means the account receives admin emails; off means it is in `email_optouts`. The opt-out list is loaded once alongside `admin_overview()`. Toggling calls `admin_set_email_optout()` and reverts the switch if the call fails.
+
+**Compose dialog:** Clicking "Email selected (N)" opens a Dialog with a Subject input, a Body textarea (10 rows), and a read-only preview of the footer. It shows how many accounts will receive the email and how many are skipped due to opt-out. The Send button reads "Send to K" where K = N − M (skipped). On success, the dialog closes, the selection clears, a toast shows the queued and skipped counts, and the recent sends list reloads. On error, the dialog stays open with subject and body intact, and the error message is shown in red.
+
+**Recent sends:** A "Recent emails" card below the table lists the 50 most recent sends from `admin_email_log_list()`: date/time, subject, recipient count, and a status of Sent (all requests returned 200–299), Failed (any request failed, shown in red), or Unknown (no response recorded yet, because `net._http_response` is purged after a few hours).
+
+**Database migration — 20261017_admin_email_accounts:**
+
+Two new tables:
+- `public.email_optouts` — `user_id uuid PK references auth.users(id) on delete cascade`. RLS on, no policies, all privileges revoked. Read/written only through admin SECURITY DEFINER functions.
+- `public.admin_email_log` — `id bigserial PK`, `sent_at`, `sent_by`, `subject`, `body`, `recipient_count`, `skipped_optout`, `request_ids bigint[]`. RLS on, no policies, all privileges revoked. No CHECK constraints on subject/body.
+
+Four new functions, all SECURITY DEFINER, all gated by `is_admin()` as the first statement, EXECUTE granted to `authenticated` only:
+- `admin_send_email(p_user_ids uuid[], p_subject text, p_body text) returns jsonb` — validates subject (1–200), body (1–10000), user_ids (1–500 unique non-null). Reads `resend_api_key` from Vault. Joins ids to auth.users, excludes opt-outs and null emails. Each recipient gets their own email object (one address per `to`). From: `Handover <news@handover.agency>`, reply_to: `hello@handover.agency`. Footer appended. Sends via Resend batch endpoint in chunks of 100. Logs the send and returns `{ queued, skipped_optout, log_id }`. Does not swallow errors.
+- `admin_set_email_optout(p_user_id uuid, p_opted_out boolean) returns void` — inserts or deletes from `email_optouts`.
+- `admin_email_optouts() returns setof uuid` — returns all opted-out user ids.
+- `admin_email_log_list() returns table(...)` — returns 50 most recent log rows with request status counts from `net._http_response`.
+
+No existing function, policy, grant, trigger, `admin_overview()`, `profiles`, `manuals`, `get_public_manual()`, `admin_users`, `is_admin()`, or `notify_new_signup()` was changed. No nav link to `/admin` was added. No public unsubscribe page was created. All new user-facing strings were added to both locale files under `admin.*` keys at key parity.
+

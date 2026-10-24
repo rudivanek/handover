@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/hooks/use-toast';
 import { AppShell } from '@/components/app-shell';
-import { FileText, KeyRound, Trash2 } from 'lucide-react';
+import { FileText, KeyRound, Trash2, Mail } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -15,6 +16,17 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -49,6 +61,23 @@ type DeleteResult = {
   auth_deleted: boolean;
 };
 
+type EmailLogRow = {
+  id: number;
+  sent_at: string;
+  subject: string;
+  recipient_count: number;
+  skipped_optout: number;
+  requests: number;
+  requests_ok: number;
+  requests_failed: number;
+};
+
+type SendEmailResult = {
+  queued: number;
+  skipped_optout: number;
+  log_id: number;
+};
+
 const PLAN_LIMITS: Record<string, number | null> = {
   free: 1,
   freelancer: 3,
@@ -56,7 +85,10 @@ const PLAN_LIMITS: Record<string, number | null> = {
   agency: null,
 };
 
+const EMAIL_FOOTER = '—\nYou\'re receiving this because you have a Handover account.\nTo stop these emails, reply with "unsubscribe".';
+
 export default function AdminPage() {
+  const { toast } = useToast();
   const { loading: authLoading, user } = useAuth();
   const { t } = useI18n();
   const [rows, setRows] = useState<AdminRow[] | null>(null);
@@ -70,6 +102,16 @@ export default function AdminPage() {
   const [deleteEmail, setDeleteEmail] = useState('');
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteMsg, setDeleteMsg] = useState<{ type: 'ok' | 'partial' | 'err'; text: string } | null>(null);
+
+  // Email feature state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [optOuts, setOptOuts] = useState<Set<string>>(new Set());
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailLog, setEmailLog] = useState<EmailLogRow[] | null>(null);
 
   const fetchKeyStatus = useCallback(async () => {
     const { data, error } = await supabase.rpc('admin_resend_key_status');
@@ -93,6 +135,24 @@ export default function AdminPage() {
     setLoading(false);
   }, []);
 
+  const fetchOptOuts = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_email_optouts');
+    if (error) {
+      console.error('admin_email_optouts RPC error:', error);
+      return;
+    }
+    setOptOuts(new Set((data as string[]) ?? []));
+  }, []);
+
+  const fetchEmailLog = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_email_log_list');
+    if (error) {
+      console.error('admin_email_log_list RPC error:', error);
+      return;
+    }
+    setEmailLog((data as EmailLogRow[]) ?? []);
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -102,7 +162,9 @@ export default function AdminPage() {
     setLoading(true);
     fetchOverview();
     fetchKeyStatus();
-  }, [authLoading, user, fetchOverview, fetchKeyStatus]);
+    fetchOptOuts();
+    fetchEmailLog();
+  }, [authLoading, user, fetchOverview, fetchKeyStatus, fetchOptOuts, fetchEmailLog]);
 
   const handlePlanChange = async (userId: string, newPlan: string, prevPlan: string) => {
     const { error } = await supabase.rpc('admin_set_plan', {
@@ -170,6 +232,130 @@ export default function AdminPage() {
     setDeleteBusy(false);
   };
 
+  const handleToggleOptOut = async (userId: string, optedOut: boolean) => {
+    // Optimistically update
+    setOptOuts((prev) => {
+      const next = new Set(prev);
+      if (optedOut) {
+        next.add(userId);
+      } else {
+        next.delete(userId);
+      }
+      return next;
+    });
+
+    const { error } = await supabase.rpc('admin_set_email_optout', {
+      p_user_id: userId,
+      p_opted_out: optedOut,
+    });
+
+    if (error) {
+      // Revert on failure
+      setOptOuts((prev) => {
+        const next = new Set(prev);
+        if (optedOut) {
+          next.delete(userId);
+        } else {
+          next.add(userId);
+        }
+        return next;
+      });
+      console.error('admin_set_email_optout RPC error:', error);
+    }
+  };
+
+  // Selection helpers
+  const allSelected = useMemo(() => {
+    return rows !== null && rows.length > 0 && selectedIds.size === rows.length;
+  }, [rows, selectedIds]);
+
+  const someSelected = useMemo(() => {
+    return selectedIds.size > 0 && !allSelected;
+  }, [selectedIds, allSelected]);
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(rows?.map((r) => r.user_id) ?? []));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  // Email dialog helpers
+  const selectedOptedOutCount = useMemo(() => {
+    let count = 0;
+    selectedIds.forEach((id) => {
+      if (optOuts.has(id)) count++;
+    });
+    return count;
+  }, [selectedIds, optOuts]);
+
+  const sendableCount = selectedIds.size - selectedOptedOutCount;
+
+  const openEmailDialog = () => {
+    setEmailSubject('');
+    setEmailBody('');
+    setEmailError(null);
+    setEmailDialogOpen(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (sendableCount === 0 || !emailSubject.trim() || !emailBody.trim()) return;
+
+    setEmailSending(true);
+    setEmailError(null);
+
+    const { data, error } = await supabase.rpc('admin_send_email', {
+      p_user_ids: Array.from(selectedIds),
+      p_subject: emailSubject,
+      p_body: emailBody,
+    });
+
+    if (error) {
+      setEmailError(error.message || t('admin.emailError'));
+      setEmailSending(false);
+      return;
+    }
+
+    const result = data as SendEmailResult;
+    setEmailDialogOpen(false);
+    setSelectedIds(new Set());
+    setEmailSubject('');
+    setEmailBody('');
+    setEmailSending(false);
+
+    const toastDesc = result.skipped_optout > 0
+      ? t('admin.emailSent', { queued: result.queued, skipped: result.skipped_optout })
+      : t('admin.emailSentNoSkip', { queued: result.queued });
+
+    toast({ title: toastDesc });
+
+    fetchEmailLog();
+  };
+
+  const fmtDateTime = (val: string) => {
+    try {
+      return new Date(val).toLocaleString('en-US', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit',
+      });
+    } catch {
+      return val;
+    }
+  };
+
   if (loading || authLoading) {
     return (
       <AppShell>
@@ -210,6 +396,16 @@ export default function AdminPage() {
     return liveCount > limit;
   };
 
+  const emailLogStatus = (row: EmailLogRow): { label: string; className: string } => {
+    if (row.requests === 0 || (row.requests_ok === 0 && row.requests_failed === 0)) {
+      return { label: t('admin.emailStatusUnknown'), className: 'text-muted-foreground' };
+    }
+    if (row.requests_failed > 0) {
+      return { label: t('admin.emailStatusFailed'), className: 'text-destructive' };
+    }
+    return { label: t('admin.emailStatusSent'), className: 'text-green-700' };
+  };
+
   return (
     <AppShell>
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
@@ -235,24 +431,55 @@ export default function AdminPage() {
           </p>
         )}
 
-        <div className="mt-6 overflow-x-auto rounded-lg border border-border">
+        <div className="mt-6 flex items-center gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={selectedIds.size === 0}
+            onClick={openEmailDialog}
+          >
+            <Mail className="h-4 w-4" />
+            {t('admin.emailSelected', { count: selectedIds.size })}
+          </Button>
+        </div>
+
+        <div className="mt-4 overflow-x-auto rounded-lg border border-border">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border bg-secondary/20">
+                <th className="px-4 py-3 text-left">
+                  <Checkbox
+                    checked={allSelected ? true : someSelected ? 'indeterminate' : false}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Select all"
+                  />
+                </th>
                 <th className="px-4 py-3 text-left font-medium">Email</th>
                 <th className="px-4 py-3 text-left font-medium">Agency</th>
                 <th className="px-4 py-3 text-left font-medium">Plan</th>
                 <th className="px-4 py-3 text-left font-medium">Signed up</th>
                 <th className="px-4 py-3 text-left font-medium">Manuals</th>
                 <th className="px-4 py-3 text-left font-medium">Live</th>
+                <th className="px-4 py-3 text-left font-medium">{t('admin.emails')}</th>
                 <th className="px-4 py-3 text-left font-medium">{t('admin.delete')}</th>
               </tr>
             </thead>
             <tbody>
               {rows?.map((r) => {
                 const overLimit = isOverLimit(r.plan, r.live_count || 0);
+                const isSelected = selectedIds.has(r.user_id);
+                const optedOut = optOuts.has(r.user_id);
                 return (
                   <tr key={r.user_id} className="border-b border-border last:border-0">
+                    <td className="px-4 py-3">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleSelectOne(r.user_id)}
+                        aria-label={`Select ${r.email || r.user_id}`}
+                      />
+                    </td>
                     <td className="px-4 py-3">{r.email || '—'}</td>
                     <td className="px-4 py-3">{r.agency_name || '—'}</td>
                     <td className="px-4 py-3">
@@ -291,6 +518,13 @@ export default function AdminPage() {
                       )}
                     </td>
                     <td className="px-4 py-3">
+                      <Switch
+                        checked={!optedOut}
+                        onCheckedChange={(checked) => handleToggleOptOut(r.user_id, !checked)}
+                        aria-label={t('admin.emails')}
+                      />
+                    </td>
+                    <td className="px-4 py-3">
                       <Button
                         type="button"
                         variant="destructive"
@@ -312,6 +546,45 @@ export default function AdminPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Recent emails card */}
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Mail className="h-5 w-5 text-muted-foreground" />
+              {t('admin.recentEmails')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {emailLog === null ? (
+              <p className="text-sm text-muted-foreground">Loading…</p>
+            ) : emailLog.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('admin.recentEmailsEmpty')}</p>
+            ) : (
+              <div className="space-y-3">
+                {emailLog.map((row) => {
+                  const status = emailLogStatus(row);
+                  return (
+                    <div
+                      key={row.id}
+                      className="flex items-center justify-between gap-4 border-b border-border pb-3 last:border-0 last:pb-0"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">{row.subject}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {fmtDateTime(row.sent_at)} · {t('admin.emailRecipients', { count: row.recipient_count })}
+                        </p>
+                      </div>
+                      <span className={`shrink-0 text-sm font-medium ${status.className}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card className="mt-6 max-w-md">
           <CardHeader>
@@ -356,6 +629,94 @@ export default function AdminPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Email compose dialog */}
+        <Dialog open={emailDialogOpen} onOpenChange={(open) => {
+          if (!emailSending) {
+            setEmailDialogOpen(open);
+            if (!open) setEmailError(null);
+          }
+        }}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{t('admin.emailTitle')}</DialogTitle>
+              <DialogDescription>{t('admin.emailDescription')}</DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="email-subject" className="text-sm font-medium">
+                  {t('admin.emailSubject')}
+                </label>
+                <Input
+                  id="email-subject"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  placeholder={t('admin.emailSubjectPlaceholder')}
+                  disabled={emailSending}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="email-body" className="text-sm font-medium">
+                  {t('admin.emailBody')}
+                </label>
+                <Textarea
+                  id="email-body"
+                  value={emailBody}
+                  onChange={(e) => setEmailBody(e.target.value)}
+                  placeholder={t('admin.emailBodyPlaceholder')}
+                  disabled={emailSending}
+                  rows={10}
+                />
+              </div>
+
+              <div className="rounded-md border border-border bg-secondary/20 p-3">
+                <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                  {EMAIL_FOOTER}
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-sm text-muted-foreground">
+                  {t('admin.emailGoesTo', { count: selectedIds.size })}
+                </p>
+                {selectedOptedOutCount > 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    {t('admin.emailSkipped', { count: selectedOptedOutCount })}
+                  </p>
+                )}
+              </div>
+
+              {emailError && (
+                <p className="text-sm text-destructive">{emailError}</p>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (!emailSending) {
+                    setEmailDialogOpen(false);
+                    setEmailError(null);
+                  }
+                }}
+                disabled={emailSending}
+              >
+                {t('common.cancel')}
+              </Button>
+              <Button
+                onClick={handleSendEmail}
+                disabled={emailSending || sendableCount === 0 || !emailSubject.trim() || !emailBody.trim()}
+              >
+                {emailSending
+                  ? t('admin.emailSending')
+                  : t('admin.emailSend', { count: sendableCount })}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         <AlertDialog
           open={deleteTarget !== null}
