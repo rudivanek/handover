@@ -8,6 +8,8 @@
   "nav.scripts": "Correos",
   "nav.language": "Idioma",
   "nav.interfaceLanguage": "Idioma de la interfaz",
+  "nav.admin": "Admin",
+  "nav.emails": "Correos",
 
   "common.loading": "Cargando\u2026",
   "common.save": "Guardar",

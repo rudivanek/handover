@@ -8,6 +8,8 @@
   "nav.scripts": "Scripts",
   "nav.language": "Language",
   "nav.interfaceLanguage": "Interface language",
+  "nav.admin": "Admin",
+  "nav.emails": "Emails",
 
   "common.loading": "Loading\u2026",
   "common.save": "Save",

@@ -25,6 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { locale, setLocale, t } = useI18n();
   const pathname = usePathname();
   const [liveCount, setLiveCount] = useState<number | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const fetchLiveCount = async () => {
     if (!user) return;
@@ -40,6 +41,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetchLiveCount();
   }, [user, pathname]);
+
+  useEffect(() => {
+    if (!user) {
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    supabase.rpc('is_admin').then(({ data, error }) => {
+      if (cancelled) return;
+      if (error) {
+        setIsAdmin(false);
+        return;
+      }
+      setIsAdmin(data === true);
+    });
+    return () => { cancelled = true; };
+  }, [user]);
 
   useEffect(() => {
     const handler = () => fetchLiveCount();
@@ -167,6 +185,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
         </div>
+        {isAdmin && (
+          <div className="border-t border-border">
+            <div className="mx-auto flex h-8 max-w-5xl items-center gap-4 px-4 sm:px-6">
+              <Link
+                href="/admin"
+                className={`text-xs ${pathname === '/admin' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {t('nav.admin')}
+              </Link>
+              <Link
+                href="/emails"
+                className={`text-xs ${pathname === '/emails' ? 'font-medium text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                {t('nav.emails')}
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">{children}</main>
