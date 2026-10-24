@@ -6,7 +6,7 @@ import { useI18n } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { AppShell } from '@/components/app-shell';
-import { FileText, Mail } from 'lucide-react';
+import { FileText, Mail, KeyRound } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -29,6 +29,7 @@ import {
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -68,7 +69,7 @@ const PLAN_LABELS: Record<string, string> = {
   agency: 'Agency',
 };
 
-const EMAIL_FOOTER = '—\nYou\'re receiving this because you have a Handover account.\nTo stop these emails, reply with "unsubscribe".';
+const UNSUBSCRIBE_LINE = 'You\'re receiving this because you have a Handover account. To stop these emails, reply with "unsubscribe".';
 
 export default function EmailsPage() {
   const { toast } = useToast();
@@ -85,6 +86,10 @@ export default function EmailsPage() {
   const [emailSending, setEmailSending] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailLog, setEmailLog] = useState<EmailLogRow[] | null>(null);
+  const [signature, setSignature] = useState('');
+  const [savedSignature, setSavedSignature] = useState('');
+  const [signatureSaving, setSignatureSaving] = useState(false);
+  const [signatureMsg, setSignatureMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const fetchOverview = useCallback(async () => {
     const { data, error } = await supabase.rpc('admin_overview');
@@ -108,6 +113,17 @@ export default function EmailsPage() {
     setEmailLog((data as EmailLogRow[]) ?? []);
   }, []);
 
+  const fetchSignature = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_get_email_signature');
+    if (error) {
+      console.error('admin_get_email_signature RPC error:', error);
+      return;
+    }
+    const value = (data as string) ?? '';
+    setSignature(value);
+    setSavedSignature(value);
+  }, []);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -117,7 +133,8 @@ export default function EmailsPage() {
     setLoading(true);
     fetchOverview();
     fetchEmailLog();
-  }, [authLoading, user, fetchOverview, fetchEmailLog]);
+    fetchSignature();
+  }, [authLoading, user, fetchOverview, fetchEmailLog, fetchSignature]);
 
   const filteredRows = (() => {
     if (!rows) return [];
@@ -181,6 +198,30 @@ export default function EmailsPage() {
 
     fetchEmailLog();
   };
+
+  const handleSaveSignature = async () => {
+    if (signature === savedSignature) return;
+    setSignatureSaving(true);
+    setSignatureMsg(null);
+    const { error } = await supabase.rpc('admin_set_email_signature', { p_value: signature });
+    if (error) {
+      setSignatureMsg({ type: 'err', text: error.message || t('emails.signatureError') });
+    } else {
+      setSavedSignature(signature);
+      setSignatureMsg({ type: 'ok', text: t('emails.signatureSaved') });
+    }
+    setSignatureSaving(false);
+  };
+
+  const footerPreview = (() => {
+    const sig = savedSignature.trim();
+    if (sig) {
+      return `—\n${sig}\n\n${UNSUBSCRIBE_LINE}`;
+    }
+    return `—\n${UNSUBSCRIBE_LINE}`;
+  })();
+
+  const signatureDirty = signature !== savedSignature;
 
   const fmtDateTime = (val: string) => {
     try {
@@ -316,6 +357,49 @@ export default function EmailsPage() {
           </table>
         </div>
 
+        {/* Email signature card */}
+        <Card className="mt-6 max-w-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <KeyRound className="h-5 w-5 text-muted-foreground" />
+              {t('emails.signatureTitle')}
+            </CardTitle>
+            <CardDescription>
+              {t('emails.signatureDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Textarea
+              value={signature}
+              onChange={(e) => setSignature(e.target.value)}
+              rows={6}
+              disabled={signatureSaving}
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                onClick={handleSaveSignature}
+                disabled={signatureSaving || !signatureDirty}
+              >
+                {signatureSaving ? t('emails.signatureSaving') : t('emails.signatureSave')}
+              </Button>
+              {signatureMsg && (
+                <p className={`text-sm ${signatureMsg.type === 'ok' ? 'text-green-600' : 'text-destructive'}`}>
+                  {signatureMsg.text}
+                </p>
+              )}
+            </div>
+            <div className="rounded-md border border-border bg-secondary/20 p-3">
+              <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                {UNSUBSCRIBE_LINE}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground italic">
+                {t('emails.signatureUnsubscribeNote')}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Recent emails card */}
         <Card className="mt-6">
           <CardHeader>
@@ -401,8 +485,13 @@ export default function EmailsPage() {
 
               <div className="rounded-md border border-border bg-secondary/20 p-3">
                 <p className="whitespace-pre-wrap text-xs text-muted-foreground">
-                  {EMAIL_FOOTER}
+                  {footerPreview}
                 </p>
+                {signatureDirty && (
+                  <p className="mt-2 text-xs text-amber-700">
+                    {t('emails.signatureUnsaved')}
+                  </p>
+                )}
               </div>
 
               <p className="text-sm text-muted-foreground">
